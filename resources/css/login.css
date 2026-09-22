@@ -1,0 +1,304 @@
+.lg-body {
+    --lg-zenith: #0c232b;
+    --lg-sky-2: #173a41;
+    --lg-sky-3: #2e5659;
+    --lg-sky-4: #7c8779;
+    --lg-haze: #c7a07a;
+    --lg-ink: #05090b;
+    --lg-land: #070b0d;
+    --lg-field: #0d1417;
+    --lg-line: #2a3538;
+    --lg-line-strong: #465457;
+    --lg-bone: #ebe5d9;
+    --lg-muted: #a2aaa8;
+    --lg-faint: #76807f;
+    --lg-accent: #29a1a1;
+    --lg-accent-text: #6fd6d6;
+    --lg-danger: #ff9f8a;
+    --lg-ring: 0 0 0 2px var(--lg-land), 0 0 0 4px var(--lg-accent-text);
+    --lg-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --lg-gutter: clamp(16px, 5vw, 72px);
+
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--lg-land);
+    color: var(--lg-bone);
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.lg {
+    display: grid;
+    grid-template-rows: minmax(52vh, 1fr) auto;
+    min-height: 100dvh;
+}
+
+/* ---------------------------------------------------------------- sky */
+
+.lg-sky {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        to bottom,
+        var(--lg-zenith) 0%,
+        var(--lg-sky-2) 34%,
+        var(--lg-sky-3) 62%,
+        var(--lg-sky-4) 86%,
+        var(--lg-haze) 100%
+    );
+}
+
+.lg-intro {
+    position: relative;
+    z-index: 2;
+    padding: clamp(2rem, 9vh, 6.5rem) var(--lg-gutter) 0;
+}
+
+/* The flock. */
+.lg-flock {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.lg-wire {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: clamp(28px, 11%, 110px);
+    width: 100%;
+    height: clamp(44px, 9vh, 96px);
+    overflow: visible;
+}
+.lg-wire path {
+    fill: none;
+    stroke: var(--lg-ink);
+    stroke-width: 1.4px;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.9;
+}
+.lg-wire .lg-wire__low { stroke-width: 1px; opacity: 0.55; }
+
+/* ---------------------------------------------------------------- land */
+
+.lg-land {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1.75rem var(--lg-gutter) 1.25rem;
+    background: var(--lg-land);
+}
+
+/* Scrub along the horizon, overlapping the bottom of the sky so birds dip behind it. */
+.lg-trees {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% - 1px);
+    width: 100%;
+    height: clamp(18px, 3.2vh, 30px);
+    fill: var(--lg-land);
+    pointer-events: none;
+}
+
+.lg-main {
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) minmax(0, 21rem);
+    gap: 1.5rem clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+    width: 100%;
+    max-width: 76rem;
+}
+
+/* app.css styles bare h1 (20px teal); the class wins over the element selector. */
+.lg-title {
+    margin: 0;
+    color: var(--lg-bone);
+    font-family: 'Gloock', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: clamp(2.5rem, 1.2rem + 4.4vw, 4.75rem);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+}
+
+.lg-lede {
+    max-width: 30ch;
+    margin: 1rem 0 0;
+    color: var(--lg-muted);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------- form */
+
+/* One row on the ground: username, password, Sign in. The error drops to a row of its own. */
+.lg-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem;
+    align-items: end;
+}
+.lg-form .lg-error { grid-column: 1 / -1; grid-row: 2; }
+
+.lg-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.lg-label {
+    color: var(--lg-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.lg-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 2.875rem;
+    padding: 0 0.85rem;
+    border: 1px solid var(--lg-line);
+    border-radius: 8px;
+    background: var(--lg-field);
+    color: var(--lg-bone);
+    font: inherit;
+    font-size: 1rem; /* 16px stops iOS zooming into the field */
+    caret-color: var(--lg-accent-text);
+    transition: border-color 140ms var(--lg-ease), box-shadow 140ms var(--lg-ease);
+}
+.lg-input:hover { border-color: var(--lg-line-strong); }
+.lg-input:focus-visible,
+.lg-input:focus {
+    outline: none;
+    border-color: var(--lg-accent);
+    box-shadow: var(--lg-ring);
+}
+.lg-input[aria-invalid='true'] { border-color: var(--lg-danger); }
+
+/* Password managers paint autofill yellow/blue; keep it on the page's colours. */
+.lg-input:-webkit-autofill {
+    -webkit-text-fill-color: var(--lg-bone);
+    box-shadow: 0 0 0 100px var(--lg-field) inset;
+    caret-color: var(--lg-accent-text);
+}
+.lg-input:-webkit-autofill:focus {
+    box-shadow: 0 0 0 100px var(--lg-field) inset, var(--lg-ring);
+}
+
+.lg-error {
+    margin: 0;
+    color: var(--lg-danger);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.lg-error[hidden] { display: none; }
+
+.lg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.875rem;
+    padding: 0 1.25rem;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.975rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 140ms var(--lg-ease), border-color 140ms var(--lg-ease),
+        color 140ms var(--lg-ease), box-shadow 140ms var(--lg-ease);
+}
+.lg-btn:focus-visible { outline: none; box-shadow: var(--lg-ring); }
+.lg-btn:disabled { cursor: progress; }
+
+.lg-btn--primary {
+    padding: 0 1.6rem;
+    border: 1px solid var(--lg-bone);
+    background: var(--lg-bone);
+    color: var(--lg-ink);
+}
+.lg-btn--primary:hover { background: #fffaf0; border-color: #fffaf0; }
+.lg-btn--primary:disabled { background: var(--lg-muted); border-color: var(--lg-muted); }
+
+/* Secondary, not hidden: its own column beside the sign-in row, behind a rule. */
+.lg-guest {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+    padding-left: clamp(1.5rem, 3vw, 2.5rem);
+    border-left: 1px solid var(--lg-line);
+}
+.lg-guest__lead { margin: 0; color: var(--lg-bone); font-weight: 600; }
+.lg-guest__note {
+    margin: 0 0 0.6rem;
+    color: var(--lg-muted);
+    font-size: 0.925rem;
+    line-height: 1.45;
+}
+
+.lg-btn--ghost {
+    justify-self: start;
+    border: 1px solid var(--lg-line-strong);
+    background: transparent;
+    color: var(--lg-bone);
+}
+.lg-btn--ghost:hover { border-color: var(--lg-accent); color: var(--lg-accent-text); }
+
+/* ---------------------------------------------------------------- footer */
+
+.lg-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    max-width: 76rem;
+    color: var(--lg-faint);
+    font-size: 0.85rem;
+}
+.lg-mark { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--lg-muted); }
+.lg-mark svg { width: 1.35rem; height: 1.35rem; fill: currentColor; }
+
+/* The hand-off: once the server has said yes the flock scatters and the ground goes quiet. */
+.lg.is-leaving .lg-main,
+.lg.is-leaving .lg-foot {
+    opacity: 0.35;
+    transition: opacity 500ms var(--lg-ease);
+}
+
+/* ---------------------------------------------------------------- narrower */
+
+/* Guest moves under the sign-in row: text on the left, its button on the right. */
+@media (max-width: 1099.98px) {
+    .lg-main { grid-template-columns: minmax(0, 46rem); }
+    .lg-guest {
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 1.5rem;
+        align-items: center;
+        padding: 1.25rem 0 0;
+        border-left: 0;
+        border-top: 1px solid var(--lg-line);
+    }
+    .lg-guest__lead { grid-column: 1; }
+    .lg-guest__note { grid-column: 1; margin: 0; }
+    .lg-guest .lg-btn--ghost { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+@media (max-width: 760px) {
+    .lg { grid-template-rows: minmax(30vh, 1fr) auto; }
+    .lg-intro { padding-top: clamp(1.5rem, 6vh, 3rem); }
+    .lg-land { gap: 1.75rem; padding-top: 1.25rem; }
+    .lg-lede { margin-top: 0.6rem; font-size: 1rem; }
+    .lg-form { grid-template-columns: minmax(0, 1fr); gap: 0.85rem; }
+    .lg-form .lg-error { grid-row: auto; }
+    .lg-guest { grid-template-columns: minmax(0, 1fr); }
+    .lg-guest__note { margin-bottom: 0.6rem; }
+    .lg-guest .lg-btn--ghost { grid-column: 1; grid-row: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lg-input,
+    .lg-btn { transition: none; }
+    .lg.is-leaving .lg-main,
+    .lg.is-leaving .lg-foot { transition: none; }
+}

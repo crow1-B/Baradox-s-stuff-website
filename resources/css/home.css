@@ -1,0 +1,168 @@
+.home {
+    width: 100%;
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: 2.5rem 1rem 2rem;
+    color: var(--bs-text);
+}
+@media (min-width: 640px) { .home { padding: 3.5rem 2rem 2.5rem; } }
+
+.home :focus-visible { outline: none; box-shadow: var(--bs-ring); border-radius: var(--bs-radius-sm); }
+
+/* ---------------------------------------------------------------- hero */
+
+.home-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+@media (min-width: 768px) {
+    .home-hero { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+}
+
+.home-hero__words { min-width: 0; }
+
+/* app.css styles bare h1 (teal, 20px) unlayered; the class selector wins over it */
+.home .home-hero__title {
+    margin: 0;
+    color: var(--bs-text);
+    font-size: clamp(2.1rem, 1.35rem + 3vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
+}
+
+.home-hero__sub {
+    margin: 0.6rem 0 0;
+    color: var(--bs-text-muted);
+    font-size: clamp(1.02rem, 0.95rem + 0.3vw, 1.2rem);
+}
+.home-hero__sub::first-letter { text-transform: uppercase; }
+
+.home-hero__time { margin: 0; flex: none; }
+.home-hero__time time { display: flex; flex-direction: column; gap: 0.15rem; }
+@media (min-width: 768px) { .home-hero__time time { align-items: flex-end; text-align: right; } }
+
+.home-hero__clock {
+    color: var(--bs-accent-text);
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+.home-hero__date { color: var(--bs-text-faint); font-size: 0.88rem; }
+
+/* ---------------------------------------------------------------- cards */
+
+.home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1.15rem 1.25rem 1.25rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius-lg);
+    background: var(--bs-surface);
+}
+
+.home-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.home-card__title { margin: 0; color: var(--bs-text); font-size: 0.98rem; font-weight: 600; }
+
+.home-link {
+    color: var(--bs-accent-text);
+    font-size: 0.86rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.home-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.home-empty { margin: 0; color: var(--bs-text-muted); font-size: 0.9rem; line-height: 1.55; }
+.home-empty .home-link { white-space: normal; }
+
+/* ---------------------------------------------------------------- recent visits */
+
+.home-visits { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+.home-visit {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    border-top: 1px solid var(--bs-border);
+}
+.home-visit:first-child { border-top: 0; }
+
+.home-visit__page {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--bs-text);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.home-visit__page:hover { color: var(--bs-accent-text); }
+
+.home-visit__when { flex: none; color: var(--bs-text-faint); font-size: 0.84rem; }
+.home-visit__remove { flex: none; margin: 0; }
+
+.home .home-icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bs-text-faint);
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.home .home-icon-btn:hover { background: var(--bs-surface-2); color: var(--bs-text); }
+.home .home-icon-btn:focus-visible { border-radius: 8px; }
+.home .home-icon-btn svg { width: 1rem; height: 1rem; }
+
+/* ---------------------------------------------------------------- song suggestion */
+
+.home-song { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.home-song__title { margin: 0; color: var(--bs-text); font-size: 1.15rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.home-song__artist { margin: 0; color: var(--bs-text-muted); font-size: 0.95rem; overflow-wrap: anywhere; }
+.home-song__meta { display: flex; flex-wrap: wrap; gap: 0 0.9rem; margin: 0.45rem 0 0; color: var(--bs-text-faint); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+
+.home .home-play {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.5rem;
+    min-height: 2.4rem;
+    padding: 0 1.1rem 0 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--bs-accent);
+    color: var(--bs-on-accent);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), transform 120ms var(--bs-ease);
+}
+.home .home-play:hover { background: var(--bs-accent-hover); }
+.home .home-play:active { transform: scale(0.97); }
+.home .home-play:focus-visible { border-radius: 999px; }
+.home .home-play svg { width: 1rem; height: 1rem; }
+
+/* ---------------------------------------------------------------- history overlay
+   (existing overlay, styled in app.css — only the old inline styles moved here) */
+
+.home-overlay-clear { margin-bottom: 1rem; }
+.home-overlay-row-form { display: inline; }
+
+@media (prefers-reduced-motion: reduce) {
+    .home * { transition: none !important; }
+}

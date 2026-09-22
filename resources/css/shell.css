@@ -1,0 +1,261 @@
+:root {
+    --bs-bg: #121212;
+    --bs-sidebar: #161618;
+    --bs-surface: #1a1a1d;
+    --bs-surface-2: #222226;
+    --bs-surface-3: #2a2a2f;
+    --bs-border: #2c2c32;
+    --bs-border-strong: #3a3a42;
+    --bs-text: #ececf1;
+    --bs-text-muted: #a3a3ad;
+    --bs-text-faint: #75757f;
+    --bs-accent: #29a1a1;
+    --bs-accent-hover: #33b8b8;
+    --bs-accent-soft: rgb(41 161 161 / 0.14);
+    --bs-accent-text: #6fd6d6;
+    --bs-on-accent: #041414;
+    --bs-danger: #f87171;
+    --bs-radius-sm: 6px;
+    --bs-radius: 10px;
+    --bs-radius-lg: 14px;
+    --bs-ring: 0 0 0 2px var(--bs-bg), 0 0 0 4px var(--bs-accent-text);
+    --bs-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    --bs-sidebar-w: 15rem;
+    --bs-topbar-h: 3.25rem;
+}
+
+/* ---------------------------------------------------------------- skip link */
+
+.app-skip {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 1200;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--bs-radius);
+    background: var(--bs-accent);
+    color: var(--bs-on-accent);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+}
+.app-skip:focus-visible { transform: none; outline: none; box-shadow: var(--bs-ring); }
+
+.app-main:focus { outline: none; }
+
+/* ---------------------------------------------------------------- shared bits */
+
+.app-shell .app-icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--bs-radius);
+    background: transparent;
+    color: var(--bs-text-muted);
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.app-shell .app-icon-btn:hover { background: var(--bs-surface-2); color: var(--bs-text); }
+.app-shell .app-icon-btn svg { width: 1.25rem; height: 1.25rem; }
+
+.app-shell .app-icon-btn:focus-visible,
+.app-shell .app-brand:focus-visible,
+.app-shell .app-nav__link:focus-visible {
+    outline: none;
+    box-shadow: var(--bs-ring);
+}
+
+.app-shell .app-brand {
+    color: var(--bs-text);
+    font-size: 0.98rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    border-radius: var(--bs-radius-sm);
+}
+
+/* ---------------------------------------------------------------- sidebar */
+
+.app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: var(--bs-sidebar-w);
+    padding: 1.1rem 0.75rem 1.5rem;
+    overflow-y: auto;
+    border-right: 1px solid var(--bs-border);
+    background: var(--bs-sidebar);
+    color: var(--bs-text);
+    overscroll-behavior: contain;
+}
+
+.app-sidebar__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    padding: 0 0.25rem 0 0.6rem;
+}
+.app-sidebar__close { display: none !important; }
+
+.app-nav { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+.app-nav-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.app-nav-group__label {
+    margin: 0;
+    padding: 0 0.6rem;
+    color: var(--bs-text-faint);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.app-nav__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.25rem;
+    padding: 0 0.6rem;
+    border-radius: 8px;
+    color: var(--bs-text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.app-nav__link:hover { background: var(--bs-surface); color: var(--bs-text); }
+
+.app-nav__link[aria-current='page'] { background: var(--bs-surface-2); color: var(--bs-text); }
+.app-nav__link[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    left: -0.75rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--bs-accent);
+}
+
+/* 20px icon slot; the dot is a placeholder until real icons are dropped in */
+.app-nav__icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    color: inherit;
+}
+.app-nav__icon > svg { width: 20px; height: 20px; }
+.app-nav__icon:empty::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--bs-border-strong);
+    transition: background-color 120ms var(--bs-ease);
+}
+.app-nav__link:hover .app-nav__icon:empty::before { background: var(--bs-text-faint); }
+.app-nav__link[aria-current='page'] .app-nav__icon:empty::before { background: var(--bs-accent-text); }
+
+.app-nav__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Sign out */
+.app-signout {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bs-border);
+}
+.app-signout__who {
+    margin: 0;
+    padding: 0 0.6rem;
+    overflow: hidden;
+    color: var(--bs-text-faint);
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.app-signout__who span { color: var(--bs-text-muted); font-weight: 500; }
+.app-signout .app-signout__btn {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+.app-signout .app-signout__btn:hover { background: var(--bs-surface); color: var(--bs-text); }
+.app-signout .app-signout__btn:focus-visible { outline: none; box-shadow: var(--bs-ring); }
+.app-signout__btn .app-nav__icon { font-size: 0.95rem; }
+
+/* ---------------------------------------------------------------- content area */
+
+.app-main {
+    display: block;
+    min-width: 0;
+    margin-left: var(--bs-sidebar-w);
+}
+
+.app-topbar,
+.app-backdrop { display: none; }
+
+/* ---------------------------------------------------------------- below lg: drawer */
+
+@media (max-width: 1023.98px) {
+    .app-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: var(--bs-topbar-h);
+        padding: 0 0.75rem 0 0.5rem;
+        border-bottom: 1px solid var(--bs-border);
+        background: rgb(18 18 18 / 0.92);
+        backdrop-filter: blur(8px);
+    }
+
+    .app-main { margin-left: 0; }
+
+    .app-sidebar {
+        z-index: 1100; /* above the player pill (1000) while the drawer is open */
+        width: min(18rem, 85vw);
+        box-shadow: 20px 0 50px -20px rgb(0 0 0 / 0.8);
+        transform: translateX(-100%);
+        visibility: hidden; /* keeps closed-drawer links out of the Tab order */
+        transition: transform 200ms var(--bs-ease), visibility 0s linear 200ms;
+    }
+    .app-sidebar__close { display: grid !important; }
+
+    .app-shell[data-nav-open] .app-sidebar {
+        transform: none;
+        visibility: visible;
+        transition: transform 200ms var(--bs-ease), visibility 0s;
+    }
+
+    .app-shell[data-nav-open] .app-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1090;
+        display: block;
+        background: rgb(0 0 0 / 0.55);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-sidebar, .app-nav__link, .app-shell .app-icon-btn { transition: none !important; }
+}

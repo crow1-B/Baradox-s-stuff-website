@@ -1,0 +1,51 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# --- Baradox's stuff: private / personal, never published ---
+
+# Local AI-assistant notes and settings. CLAUDE.md stays on disk for local sessions.
+CLAUDE.md
+/.claude/
+CLAUDE.local.md
+
+# Windows download markers (NTFS alternate data streams copied into WSL)
+*:Zone.Identifier
+
+# Personal media and runtime data. storage/'s own nested .gitignore files already
+# exclude these; the explicit rules are a second line in case one of those is lost.
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/app/private/*
+!/storage/app/private/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Local secrets backups and editor/test leftovers
+.env.*
+!.env.example
+/.phpunit.result.cache

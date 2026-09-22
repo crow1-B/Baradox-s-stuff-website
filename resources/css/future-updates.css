@@ -1,0 +1,464 @@
+.fu {
+    color: var(--bs-text);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    color-scheme: dark; /* native select popup, checkbox, scrollbars */
+}
+
+.fu button {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+.fu button:hover { background: transparent; }
+.fu [hidden] { display: none !important; }
+
+.fu *:focus { outline: none; }
+.fu *:focus-visible {
+    outline: none;
+    box-shadow: var(--bs-ring);
+    border-radius: var(--bs-radius-sm);
+}
+.fu h1 {
+    margin: 0;
+    color: var(--bs-text);
+    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+.fu h2 { color: var(--bs-text); font-weight: 600; letter-spacing: -0.01em; }
+
+.fu .fu-muted { color: var(--bs-text-muted); }
+.fu .fu-faint { color: var(--bs-text-faint); }
+
+.fu a.fu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--bs-accent-text);
+    text-decoration: none;
+    border-radius: var(--bs-radius-sm);
+}
+.fu a.fu-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.fu .fu-orphan {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--bs-text-faint);
+    font-style: italic;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+.fu .fu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0 0.9rem;
+    border: 1px solid var(--bs-border-strong);
+    border-radius: var(--bs-radius);
+    background: var(--bs-surface-2);
+    color: var(--bs-text);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 120ms var(--bs-ease), border-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.fu .fu-btn:hover { background: var(--bs-surface-3); border-color: #4a4a54; }
+.fu .fu-btn:focus-visible { border-radius: var(--bs-radius); }
+.fu .fu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fu .fu-btn--primary {
+    background: var(--bs-accent);
+    border-color: var(--bs-accent);
+    color: var(--bs-on-accent);
+    font-weight: 600;
+}
+.fu .fu-btn--primary:hover { background: var(--bs-accent-hover); border-color: var(--bs-accent-hover); }
+
+.fu .fu-btn--danger {
+    background: var(--bs-danger);
+    border-color: var(--bs-danger);
+    color: #1c0707;
+    font-weight: 600;
+}
+.fu .fu-btn--danger:hover { background: #fb8f8f; border-color: #fb8f8f; }
+
+.fu .fu-btn--sm { min-height: 2rem; padding: 0 0.7rem; font-size: 0.8rem; border-radius: 8px; }
+.fu .fu-act {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--bs-radius-sm);
+    color: var(--bs-text-faint);
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.fu .fu-act:hover { background: var(--bs-surface-3); color: var(--bs-text); }
+.fu .fu-act--danger:hover { color: var(--bs-danger); }
+
+/* pressed-state toggle (Show done) */
+.fu .fu-toggle[aria-pressed='true'] {
+    background: var(--bs-accent-soft);
+    border-color: rgb(41 161 161 / 0.5);
+    color: var(--bs-accent-text);
+}
+.fu .fu-badge {
+    min-width: 1.4rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: var(--bs-bg);
+    border: 1px solid var(--bs-border);
+    color: var(--bs-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------- inputs */
+
+.fu .fu-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--bs-text-muted); margin-bottom: 0.35rem; }
+.fu .fu-hint { margin-top: 0.4rem; font-size: 0.78rem; color: var(--bs-text-faint); }
+.fu .fu-hint--warn { color: #fde68a; }
+.fu .fu-error { margin: 0; padding-left: 1rem; list-style: disc; font-size: 0.8rem; color: var(--bs-danger); }
+
+.fu .fu-input {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--bs-border-strong);
+    border-radius: var(--bs-radius);
+    background: var(--bs-bg);
+    color: var(--bs-text);
+    font: inherit;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    transition: border-color 120ms var(--bs-ease), box-shadow 120ms var(--bs-ease);
+}
+.fu .fu-input::placeholder { color: var(--bs-text-faint); }
+.fu .fu-input:hover { border-color: #4a4a54; }
+.fu .fu-input:focus-visible {
+    border-color: var(--bs-accent);
+    box-shadow: 0 0 0 3px var(--bs-accent-soft);
+    border-radius: var(--bs-radius);
+}
+.fu textarea.fu-input--area { min-height: 7rem; resize: vertical; }
+.fu .fu-select { cursor: pointer; }
+
+/* the done checkbox — the one control that matters most on this page */
+.fu .fu-check {
+    display: grid;
+    place-items: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0;
+    padding: 0;
+    appearance: none;
+    border: 1.5px solid var(--bs-border-strong);
+    border-radius: 6px;
+    background: var(--bs-bg);
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), border-color 120ms var(--bs-ease);
+}
+.fu .fu-check:hover { border-color: var(--bs-accent); }
+.fu .fu-check::after {
+    content: '';
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid var(--bs-on-accent);
+    border-bottom: 2px solid var(--bs-on-accent);
+    transform: translateY(-1px) rotate(-45deg) scale(0.4);
+    opacity: 0;
+    transition: opacity 120ms var(--bs-ease), transform 120ms var(--bs-ease);
+}
+.fu .fu-check:checked { background: var(--bs-accent); border-color: var(--bs-accent); }
+.fu .fu-check:checked::after { opacity: 1; transform: translateY(-1px) rotate(-45deg) scale(1); }
+
+/* ---------------------------------------------------------------- capture bar */
+
+.fu .fu-add {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.7rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius-lg);
+    background: var(--bs-surface);
+}
+@media (min-width: 640px) {
+    .fu .fu-add { grid-template-columns: minmax(0, 1fr) minmax(8rem, 14rem) auto; align-items: center; }
+}
+.fu .fu-add__text { background: var(--bs-bg); }
+
+/* ---------------------------------------------------------------- banners */
+
+.fu .fu-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid;
+    border-radius: var(--bs-radius);
+    font-size: 0.9rem;
+}
+.fu .fu-banner > i { margin-top: 0.2rem; }
+.fu .fu-banner--success { background: rgb(52 211 153 / 0.12); border-color: rgb(52 211 153 / 0.35); color: #b7f5d8; }
+.fu .fu-banner--error { background: rgb(248 113 113 / 0.12); border-color: rgb(248 113 113 / 0.35); color: #fecaca; }
+.fu .fu-banner ul { margin: 0; padding-left: 1rem; list-style: disc; }
+
+.fu .fu-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius);
+    background: var(--bs-surface-2);
+    color: var(--bs-text-muted);
+    font-size: 0.88rem;
+}
+.fu .fu-filter strong { color: var(--bs-text); font-weight: 600; }
+
+/* ---------------------------------------------------------------- toolbar */
+
+.fu .fu-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+.fu .fu-count {
+    margin-left: auto;
+    color: var(--bs-text-muted);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* At phone width the counts get their own line rather than being squeezed out. */
+@media (max-width: 480px) {
+    .fu .fu-toolbar .fu-count { width: 100%; margin-left: 0; }
+}
+
+.fu .fu-segmented {
+    display: flex;
+    gap: 0.2rem;
+    padding: 0.25rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius);
+    background: var(--bs-surface);
+}
+.fu .fu-seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 1.95rem;
+    padding: 0 0.7rem;
+    border-radius: 8px;
+    color: var(--bs-text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+}
+.fu .fu-seg:hover { color: var(--bs-text); }
+.fu .fu-seg[aria-pressed='true'] { background: var(--bs-surface-3); color: var(--bs-text); }
+
+/* ---------------------------------------------------------------- layouts
+ *
+ * Both layouts are in the DOM; the root attribute decides which is shown. Done rows are
+ * hidden the same way, so ticking one off and flipping the toggle are the same operation
+ * as far as the CSS is concerned.
+ */
+
+.fu[data-view='grouped'] [data-fu-panel='flat'],
+.fu[data-view='flat'] [data-fu-panel='grouped'] { display: none; }
+
+.fu[data-done='hidden'] .fu-row[data-done='1'] { display: none; }
+
+.fu .fu-panel { margin-top: 1.25rem; }
+
+.fu .fu-group + .fu-group { margin-top: 1.5rem; }
+.fu .fu-group__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    padding: 0 0.15rem 0.5rem;
+    border-bottom: 1px solid var(--bs-border);
+}
+.fu .fu-group__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.98rem;
+    overflow-wrap: anywhere;
+}
+.fu .fu-group__sitewide { display: inline-flex; align-items: center; gap: 0.4rem; }
+.fu .fu-group__title i { color: var(--bs-text-faint); }
+.fu .fu-group__title .fu-link i { color: inherit; }
+.fu .fu-group__head .fu-count { font-size: 0.78rem; }
+
+.fu .fu-status {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--bs-border-strong);
+    border-radius: 999px;
+    background: var(--bs-surface-2);
+    color: var(--bs-text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.fu .fu-status--in_work { color: #fbbf24; border-color: rgb(251 191 36 / 0.4); }
+.fu .fu-status--future { color: #a78bfa; border-color: rgb(167 139 250 / 0.4); }
+.fu .fu-status--done { color: #34d399; border-color: rgb(52 211 153 / 0.4); }
+
+.fu .fu-group__empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px dashed var(--bs-border-strong);
+    border-radius: var(--bs-radius);
+    color: var(--bs-text-faint);
+    font-size: 0.84rem;
+}
+
+/* ---------------------------------------------------------------- rows */
+
+.fu .fu-list { list-style: none; margin: 0; padding: 0; }
+.fu .fu-list--flat { border-top: 1px solid var(--bs-border); }
+
+.fu .fu-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.7rem 0.15rem;
+    border-bottom: 1px solid var(--bs-border);
+}
+.fu .fu-row:hover { background: rgb(255 255 255 / 0.015); }
+.fu .fu-row__check { display: flex; padding-top: 0.15rem; }
+.fu .fu-row__body { min-width: 0; }
+.fu .fu-row__text { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; text-align: left; }
+.fu .fu-row__meta { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--bs-text-muted); }
+.fu .fu-row__meta i { margin-right: 0.35rem; }
+.fu .fu-row__meta .fu-link i, .fu .fu-row__meta .fu-orphan i, .fu .fu-row__meta .fu-faint i { margin-right: 0; }
+.fu .fu-row__meta .fu-faint { display: inline-flex; align-items: center; gap: 0.4rem; }
+.fu .fu-row__actions { display: flex; gap: 0.1rem; opacity: 0; transition: opacity 120ms var(--bs-ease); }
+.fu .fu-row:hover .fu-row__actions,
+.fu .fu-row:focus-within .fu-row__actions { opacity: 1; }
+
+/* Done is the whole point of the page, so it has to read as done at a glance. */
+.fu .fu-row[data-done='1'] .fu-row__text {
+    color: var(--bs-text-faint);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.fu .fu-row[data-done='1'] .fu-row__meta { opacity: 0.6; }
+
+/* Touch: there is no hover, so the actions are always there. */
+@media (hover: none) {
+    .fu .fu-row__actions { opacity: 1; }
+}
+
+/* ---------------------------------------------------------------- empty states */
+
+.fu .fu-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 3rem 1.25rem;
+    border: 1px dashed var(--bs-border-strong);
+    border-radius: var(--bs-radius-lg);
+    text-align: center;
+}
+.fu .fu-empty__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: var(--bs-surface-2);
+    color: var(--bs-text-muted);
+    font-size: 1.15rem;
+}
+
+/* ---------------------------------------------------------------- dialogs */
+
+.fu-dialog {
+    width: min(34rem, calc(100vw - 2rem));
+    max-height: 90vh;
+    padding: 0;
+    margin: auto;
+    border: 1px solid var(--bs-border-strong);
+    border-radius: var(--bs-radius-lg);
+    background: var(--bs-surface);
+    color: var(--bs-text);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.8);
+    overflow: hidden;
+}
+.fu-dialog--sm { width: min(26rem, calc(100vw - 2rem)); }
+.fu-dialog::backdrop { background: rgb(0 0 0 / 0.6); backdrop-filter: blur(4px); }
+.fu-dialog[open] { display: flex; flex-direction: column; animation: fu-pop 160ms var(--bs-ease); }
+.fu-dialog form { display: flex; flex-direction: column; min-height: 0; max-height: 90vh; }
+.fu .fu-dialog__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem 0.25rem;
+}
+.fu .fu-dialog__title { font-size: 1.05rem; font-weight: 600; }
+.fu .fu-dialog__body { padding: 0.75rem 1.25rem 1.25rem; overflow-y: auto; }
+.fu .fu-dialog__foot {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.9rem 1.25rem;
+    border-top: 1px solid var(--bs-border);
+    background: var(--bs-bg);
+}
+@media (max-width: 480px) {
+    .fu .fu-dialog__foot .fu-btn { flex: 1; }
+}
+
+.fu .fu-preview {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--bs-border);
+    border-radius: var(--bs-radius);
+    background: var(--bs-bg);
+    color: var(--bs-text-muted);
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 9rem;
+    overflow-y: auto;
+    text-align: left;
+}
+
+@keyframes fu-pop {
+    from { opacity: 0; transform: translateY(6px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fu *, .fu-dialog { animation: none !important; transition: none !important; }
+}
