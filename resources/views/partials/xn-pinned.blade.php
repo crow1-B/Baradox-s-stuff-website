@@ -1,10 +1,3 @@
-{{-- The pinned rail. Pinned messages surface here AND stay where they were written, so the
-     stream never develops a hole. Rendered whole and swapped whole by turbo-stream `replace`,
-     which is why the id is on the outermost element.
-
-     Deliberately NOT filtered by the search box or the tag chips: pinning means "always where
-     I can see it", and a filter taking that away would defeat it. Jumping to a message that
-     the current filter hides is handled in JS, which says so rather than doing nothing. --}}
 <section class="xn-pinned" id="xn-pinned" data-xn-pinned aria-label="Pinned messages" @if ($pinned->isEmpty()) hidden @endif>
     <div class="xn-pinned__head">
         <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
@@ -18,8 +11,6 @@
     <ul class="xn-pinned__list" id="xn-pinned-list" role="list">
         @foreach ($pinned as $note)
             @php
-                // A one-line reference, not a second copy of the message: whitespace is
-                // collapsed so a multi-line note still occupies one row.
                 $preview = Str::limit(trim(preg_replace('/\s+/u', ' ', $note->content)), 120);
                 $keys = $note->tagKeys();
             @endphp

@@ -1,11 +1,4 @@
 @php
-    /**
-     * The grid and its empty states. The Videos page and an album's page render exactly
-     * this, so the two never drift apart.
-     *
-     * $context is 'all' or 'album' and only changes the words: an album with nothing in it
-     * is a different situation from having registered no videos at all.
-     */
     $context = $context ?? 'all';
     $total = $videos->count();
 @endphp

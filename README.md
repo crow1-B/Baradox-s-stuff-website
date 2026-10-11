@@ -2,8 +2,7 @@
 
 # Baradox's Stuff
 
-**A private, single-user personal hub — music, photos, videos, a locked diary, a scratchpad and a
-project tracker, all in one site, with a music player that keeps playing while you browse.**
+**A private, single-user personal hub.**
 
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)

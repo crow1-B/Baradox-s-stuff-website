@@ -1,9 +1,3 @@
-{{--
-    Sitewide music player. data-turbo-permanent makes Turbo Drive carry this exact element
-    (and the <audio> inside it) across page navigations instead of replacing it, which is
-    what keeps playback going. Its markup is only ever rendered once per full page load;
-    player.js owns everything inside it after that.
---}}
 <div id="bs-player"
      data-turbo-permanent
      data-mode="none"
