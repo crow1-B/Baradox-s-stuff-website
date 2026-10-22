@@ -15,6 +15,7 @@ return [
 
     'keep_daily' => (int) env('BACKUP_KEEP_DAILY', 7),
     'keep_weekly' => (int) env('BACKUP_KEEP_WEEKLY', 4),
+    'keep_manual' => (int) env('BACKUP_KEEP_MANUAL', 10),
 
     'daily_at' => env('BACKUP_DAILY_AT', '03:00'),
     'timezone' => 'Asia/Baghdad',
