@@ -69,7 +69,7 @@ class VideosController extends Controller
 
     private function folderLabel(): string
     {
-        return 'E:\\photos\\Videos  (in the container: /photos-ssd/' . self::FOLDER . ')';
+        return 'E:\\Baradox_stuff_web\\videos  (in the container: /photos-ssd/' . self::FOLDER . ')';
     }
 
     private function filesOnDrive(): ?array

@@ -19,7 +19,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: "${PWD}"
         volumes:
             - ".:/var/www/html"
-            - "/mnt/e/photos:/photos-ssd"
+            - "/mnt/e/Baradox_stuff_web:/photos-ssd"
             - "/home/baradox/projects:/projects-root:ro"
             - "${BACKUP_HOST_PATH:?set BACKUP_HOST_PATH in .env (docs/backups.md)}:/backups"
         networks:
