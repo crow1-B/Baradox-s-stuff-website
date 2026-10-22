@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-#[Fillable(['user_id', 'title', 'path', 'artist_name', 'duration', 'playtime', 'song_date', 'favorite'])]
+#[Fillable(['user_id', 'title', 'path', 'artist_name', 'duration', 'song_date', 'favorite'])]
 class Track extends Model
 {
     public function durationForHumans(): string
