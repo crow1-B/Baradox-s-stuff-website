@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Visit;
+use App\Models\VideoAlbum;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,6 +11,22 @@ use Illuminate\Support\Facades\Auth;
 
 class LogVisit
 {
+    // Keyed by route name, not path, so a nested route ("video-albums/5") gets a real label.
+    // Every route carrying log.visit must have an entry here; LogVisitTest enforces it.
+    public const LABELS = [
+        'diary' => 'Diary Page.',
+        'extra-notes' => 'Extra Notes Page.',
+        'future-updates' => 'Future Updates Page.',
+        'music' => 'Music Page.',
+        'photos' => 'Photos Studio Page.',
+        'projects' => 'Projects Page.',
+        'videos' => 'Videos Page.',
+        'video-albums.show' => 'Video Album Page.',
+    ];
+
+    // Routes that carry log.visit but are deliberately not recorded.
+    public const SKIPPED = ['homepage'];
+
     /**
      * Handle an incoming request.
      *
@@ -20,38 +37,35 @@ class LogVisit
         if (Auth::user() === null) {
             return $next($request);
         }
-        if ($request->path() === "homepage") {
+
+        $routeName = $request->route()?->getName();
+
+        if (in_array($routeName, self::SKIPPED, true)) {
             return $next($request);
         }
-        $ID= Auth::user()->id;
-        $url = $request->path();
-        $PageName=null;
-        if($request->path() === "diary"){
-            $PageName = "Diary Page.";
-        }
-        else if ($request->path() === "future_updates") {
-            $PageName = "Future Updates Page.";
-        }
-        else if ($request->path() === "extra_notes") {
-            $PageName = "Extra Notes Page.";
-        }
-        else if ($request->path() === "photos") {
-            $PageName = "Photos Studio Page.";
-        }
-        else if ($request->path() === "projects") {
-            $PageName = "Projects Page.";
-        }
-        else if ($request->path() === "videos") {
-            $PageName = "Videos Page.";
-        }
-        else {
-            $PageName = ucfirst($url) . " Page.";
-        }
+
         Visit::create([
-            'user_id' => $ID,
-            'page_name' => $PageName,
-            'path' => $url
+            'user_id' => Auth::user()->id,
+            'page_name' => $this->label($request, $routeName),
+            'path' => $request->path(),
         ]);
+
         return $next($request);
+    }
+
+    private function label(Request $request, ?string $routeName): string
+    {
+        if ($routeName === 'video-albums.show') {
+            $album = $request->route('album');
+
+            // Only name an album the visitor owns: the controller 403s on anyone else's,
+            // but this runs first and would otherwise write that name into their history.
+            if ($album instanceof VideoAlbum && $album->user_id === Auth::user()->id) {
+                return 'Video Album “' . $album->name . '” Page.';
+            }
+        }
+
+        // Unmapped routes are a bug the test catches; this only keeps the label readable.
+        return self::LABELS[$routeName] ?? 'Unknown Page.';
     }
 }
