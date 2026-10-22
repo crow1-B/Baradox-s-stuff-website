@@ -26,7 +26,10 @@ class VideosController extends Controller
 
     private function getOrCreateFavoriteAlbum()
     {
-        return VideoAlbum::firstOrCreate(
+        // Page views call this too, and the preview account must not write on a GET.
+        $method = Auth::user()->isPreview() ? 'firstOrNew' : 'firstOrCreate';
+
+        return VideoAlbum::$method(
             ['user_id' => Auth::user()->id, 'is_system' => true],
             ['name' => 'Favorite']
         );
@@ -179,7 +182,7 @@ class VideosController extends Controller
         return [$counts, $covers];
     }
 
-    private function videoPayload($videos, int $favoriteAlbumId, ?array $onDrive)
+    private function videoPayload($videos, ?int $favoriteAlbumId, ?array $onDrive)
     {
         return $videos->map(function (Video $video) use ($favoriteAlbumId, $onDrive) {
             return [

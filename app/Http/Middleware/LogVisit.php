@@ -34,7 +34,8 @@ class LogVisit
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::user() === null) {
+        // Recording a visit is a write, and the preview account is read-only.
+        if (Auth::user() === null || Auth::user()->isPreview()) {
             return $next($request);
         }
 
