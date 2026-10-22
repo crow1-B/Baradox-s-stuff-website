@@ -1,0 +1,320 @@
+/* ==========================================================================
+   Shared components on the night-desk tokens. Plain, unlayered, scoped class names (the
+   same reasoning as every page so far: unlayered rules beat Tailwind's layered utilities),
+   used by every redesigned page instead of a per-page copy.
+   ========================================================================== */
+
+.nd-focus:focus-visible,
+.nd-btn:focus-visible,
+.nd-icon-btn:focus-visible,
+.nd-chip:focus-visible,
+.nd-link:focus-visible {
+    outline: 2px solid var(--nd-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.nd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nd-space-2);
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-surface);
+    color: var(--nd-ink);
+    font: 500 var(--nd-text-sm) / 1 var(--nd-font-sans);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), border-color var(--nd-dur-1) var(--nd-ease),
+        color var(--nd-dur-1) var(--nd-ease), transform var(--nd-dur-1) var(--nd-ease);
+}
+.nd-btn:hover { background: var(--nd-surface-2); border-color: var(--nd-ink-3); }
+.nd-btn:active { transform: translateY(1px); }
+.nd-btn:disabled,
+.nd-btn[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; transform: none; }
+.nd-btn > i { font-size: 0.95em; }
+
+.nd-btn--primary {
+    border-color: transparent;
+    background: var(--nd-accent-strong);
+    color: #f4fbfa;
+}
+.nd-btn--primary:hover { border-color: transparent; background: var(--nd-accent); color: var(--nd-on-accent); }
+
+.nd-btn--ghost { border-color: transparent; background: transparent; color: var(--nd-ink-2); }
+.nd-btn--ghost:hover { border-color: transparent; background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.nd-btn--danger { border-color: transparent; background: var(--nd-danger); color: var(--nd-bg-deep); }
+.nd-btn--danger:hover { border-color: transparent; background: var(--nd-danger); filter: brightness(1.08); }
+
+.nd-btn--sm { min-height: 2rem; padding: 0 0.7rem; border-radius: var(--nd-r-sm); font-size: var(--nd-text-xs); }
+.nd-btn--lg { min-height: 3rem; padding: 0 1.4rem; font-size: var(--nd-text-base); }
+
+.nd-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r);
+    background: transparent;
+    color: var(--nd-ink-2);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-icon-btn:hover { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-icon-btn--danger:hover { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-icon-btn--sm { width: 1.9rem; height: 1.9rem; font-size: 0.85rem; }
+
+.nd-link {
+    color: var(--nd-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--nd-accent) 35%, transparent);
+    text-underline-offset: 3px;
+    border-radius: 2px;
+}
+.nd-link:hover { text-decoration-color: currentColor; }
+
+/* ------------------------------------------------------------------ fields */
+
+.nd-field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+
+.nd-label { color: var(--nd-ink-2); font-size: var(--nd-text-sm); font-weight: 500; }
+.nd-req { margin-left: 0.15rem; color: var(--nd-danger); }
+
+.nd-input {
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-paper);
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-sm) / 1.4 var(--nd-font-sans);
+    transition: border-color var(--nd-dur-1) var(--nd-ease), box-shadow var(--nd-dur-1) var(--nd-ease);
+}
+.nd-input::placeholder { color: var(--nd-ink-3); }
+.nd-input:hover { border-color: var(--nd-ink-3); }
+.nd-input:focus { outline: none; border-color: var(--nd-accent); box-shadow: 0 0 0 3px var(--nd-accent-soft); }
+.nd-input[aria-invalid='true'] { border-color: var(--nd-danger); }
+.nd-input--mono { font-family: var(--nd-font-mono); letter-spacing: 0.02em; }
+textarea.nd-input { min-height: 8rem; resize: vertical; line-height: 1.6; }
+select.nd-input {
+    appearance: none;
+    padding-right: 2.2rem;
+    background-image: linear-gradient(45deg, transparent 50%, var(--nd-ink-2) 50%), linear-gradient(135deg, var(--nd-ink-2) 50%, transparent 50%);
+    background-position: calc(100% - 1.1rem) 52%, calc(100% - 0.8rem) 52%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+input[type='date'].nd-input { color-scheme: inherit; }
+
+.nd-hint { margin: 0; color: var(--nd-ink-3); font-size: var(--nd-text-xs); line-height: 1.45; }
+.nd-error { margin: 0; color: var(--nd-danger); font-size: var(--nd-text-xs); font-weight: 500; }
+
+.nd-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+    cursor: pointer;
+}
+.nd-check input { width: 1rem; height: 1rem; margin-top: 0.15rem; accent-color: var(--nd-accent-strong); }
+
+/* ------------------------------------------------------------------ dialogs */
+
+.nd-dialog {
+    width: min(34rem, calc(100vw - 2rem));
+    max-height: min(46rem, calc(100dvh - 2rem));
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-lg);
+    background: var(--nd-surface);
+    color: var(--nd-ink);
+    box-shadow: var(--nd-shadow-3);
+}
+.nd-dialog[open] { display: flex; flex-direction: column; }
+.nd-dialog > form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.nd-dialog::backdrop { background: rgb(4 12 15 / 0.62); backdrop-filter: blur(3px); }
+.nd-dialog--sm { width: min(27rem, calc(100vw - 2rem)); }
+.nd-dialog--wide { width: min(46rem, calc(100vw - 2rem)); }
+
+.nd-dialog__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nd-space-3);
+    padding: 1.15rem 1.25rem 0.5rem;
+}
+.nd-dialog__title { margin: 0; color: var(--nd-ink); font-size: var(--nd-text-md); font-weight: 600; line-height: 1.3; }
+.nd-dialog__sub { margin: 0.2rem 0 0; color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+.nd-dialog__body { flex: 1; min-height: 0; padding: 0.75rem 1.25rem 1.25rem; overflow-y: auto; overscroll-behavior: contain; }
+.nd-dialog__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--nd-space-2);
+    padding: 0.9rem 1.25rem;
+    border-top: 1px solid var(--nd-line);
+    background: color-mix(in oklab, var(--nd-surface) 70%, var(--nd-bg-deep));
+}
+
+@media (max-width: 639.98px) {
+    /* Phones: dialogs become sheets that rise from the bottom edge, thumb-reachable. */
+    .nd-dialog:not(.nd-dialog--center) {
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        border-width: 1px 0 0;
+        border-radius: var(--nd-r-lg) var(--nd-r-lg) 0 0;
+    }
+}
+
+/* ------------------------------------------------------------------ banners, notes */
+
+.nd-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nd-space-3);
+    padding: 0.75rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: var(--nd-r);
+    font-size: var(--nd-text-sm);
+}
+.nd-banner > i { margin-top: 0.2rem; }
+.nd-banner p, .nd-banner ul { margin: 0; }
+.nd-banner--success { border-color: color-mix(in oklab, var(--nd-success) 30%, transparent); background: var(--nd-success-soft); color: var(--nd-success); }
+.nd-banner--error { border-color: color-mix(in oklab, var(--nd-danger) 30%, transparent); background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-banner__text { flex: 1; color: var(--nd-ink); }
+
+.nd-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nd-space-2);
+    margin: 0;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--nd-r);
+    font-size: var(--nd-text-sm);
+    line-height: 1.5;
+}
+.nd-note > i { margin-top: 0.2rem; }
+.nd-note--warn { background: var(--nd-warn-soft); color: var(--nd-ink); }
+.nd-note--warn > i { color: var(--nd-warn); }
+.nd-note--error { background: var(--nd-danger-soft); color: var(--nd-danger); }
+
+/* ------------------------------------------------------------------ chips, badges, keys */
+
+.nd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.75rem;
+    padding: 0 0.65rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-pill);
+    background: transparent;
+    color: var(--nd-ink-2);
+    font: 500 var(--nd-text-xs) / 1 var(--nd-font-sans);
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-chip:hover { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-chip[aria-pressed='true'],
+.nd-chip--active { border-color: var(--nd-accent); background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.nd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--nd-r-pill);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.nd-kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--nd-line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--nd-r-xs);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+    font: 500 0.7rem / 1 var(--nd-font-sans);
+}
+
+/* ------------------------------------------------------------------ moods */
+
+/* One hue per key in config('diary.moods'); lightness and chroma come from the phase so a
+   mood reads at the same strength by day and by night. */
+[data-mood] { --mood-hue: 200; --mood: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--mood-hue)); }
+[data-mood='radiant'] { --mood-hue: 80; }
+[data-mood='content'] { --mood-hue: 145; }
+[data-mood='calm'] { --mood-hue: 190; }
+[data-mood='tired'] { --mood-hue: 285; }
+[data-mood='low'] { --mood-hue: 245; }
+[data-mood='stormy'] { --mood-hue: 25; }
+
+/* ------------------------------------------------------------------ cards, empty states */
+
+.nd-card {
+    position: relative;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+    box-shadow: var(--nd-shadow-1);
+}
+
+.nd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nd-space-2);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+}
+.nd-empty p { margin: 0; max-width: 44ch; }
+
+/* ------------------------------------------------------------------ segmented choice */
+
+.nd-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: var(--nd-bg-deep);
+}
+.nd-segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.nd-segmented label {
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--nd-r-sm);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+.nd-segmented input:checked + label { background: var(--nd-surface-2); color: var(--nd-ink); box-shadow: var(--nd-shadow-1); }
+.nd-segmented input:focus-visible + label { outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nd-btn, .nd-icon-btn, .nd-chip, .nd-input { transition: none; }
+}

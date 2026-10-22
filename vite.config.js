@@ -54,6 +54,17 @@ export default defineConfig(({ command, mode }) => {
                     bunny('Instrument Sans', {
                         weights: [400, 500, 600],
                     }),
+                    // Everything Baradox wrote is set in Newsreader; Arabic falls through to Naskh.
+                    bunny('Newsreader', {
+                        weights: [400, 500, 600],
+                        styles: ['normal', 'italic'],
+                        preload: [{ weight: 400 }],
+                    }),
+                    bunny('Noto Naskh Arabic', {
+                        weights: [400, 600],
+                        subsets: ['arabic'],
+                        preload: false,
+                    }),
                     // Display face for the login page's title only.
                     bunny('Gloock', {
                         weights: [400],
