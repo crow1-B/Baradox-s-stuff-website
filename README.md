@@ -287,7 +287,7 @@ These are hard-coded for the original machine:
 
 | File | Value | What it is |
 |---|---|---|
-| `compose.yaml` → `laravel.test.volumes` | `/mnt/e/photos:/photos-ssd` | Your media folder on the host. Keep the right-hand side (`/photos-ssd`) as it is. |
+| `compose.yaml` → `laravel.test.volumes` | `/mnt/e/Baradox_stuff_web:/photos-ssd` | Your media folder on the host. Keep the right-hand side (`/photos-ssd`) as it is. |
 | `compose.yaml` → `laravel.test.volumes` | `/home/baradox/projects:/projects-root:ro` | The folder whose sub-folders the Projects file browser shows. Keep `:ro`. |
 | `config/projects.php` | `'wsl_root' => '/home/baradox/projects'` | The same folder as seen from your editor, used for *open in VS Code* and *copy path*. |
 | `config/projects.php` | `'wsl_distro' => 'Ubuntu'` | Your WSL distro name, used in the `vscode://` link. |
@@ -296,8 +296,7 @@ Inside the media folder, create a sub-folder called **`videos`** (lowercase) for
 Photos, thumbnails and posters get their own folders automatically.
 
 > [!NOTE]
-> The original setup uses `Videos`, which only works because an NTFS drive is case-insensitive.
-> On a Linux filesystem the name must be exactly `videos`.
+> The name is case-sensitive on a Linux filesystem: it must be exactly `videos`, not `Videos`.
 
 ### 3 · Install dependencies and start
 

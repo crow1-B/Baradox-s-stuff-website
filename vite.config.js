@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { defineConfig, loadEnv } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
@@ -14,6 +15,10 @@ export default defineConfig(({ command, mode }) => {
     if (command === 'serve' && !process.env.LARAVEL_SAIL) {
         throw new Error('Run the dev server through Sail: ./vendor/bin/sail npm run dev (see CLAUDE.md §2).');
     }
+
+    const localInputs = existsSync('vite.local-inputs.json')
+        ? JSON.parse(readFileSync('vite.local-inputs.json', 'utf8'))
+        : [];
 
     return {
         plugins: [
@@ -42,6 +47,7 @@ export default defineConfig(({ command, mode }) => {
                     'resources/js/videos.js',
                     'resources/css/login.css',
                     'resources/js/login.js',
+                    ...localInputs,
                 ],
                 refresh: true,
                 fonts: [

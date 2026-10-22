@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name') }}</title>
     {{-- Turbo 8 prefetches links on hover by default; here that would make log.visit record
          every nav link you merely point at as a visited page. --}}
@@ -14,6 +15,9 @@
             integrity="sha384-WTluvbYIlhW14A7J29od7iOv+SFs1XBKjEIBArVARW9ppIbzWZPq/MYZ2OatIIFC"
             crossorigin="anonymous" data-turbo-track="reload"></script>
     @vite(['resources/css/app.css', 'resources/css/shell.css', 'resources/css/player.css', 'resources/js/app.js', 'resources/js/shell.js', 'resources/js/player.js'])
+    @if (config('shell.assets'))
+        @vite(config('shell.assets'))
+    @endif
     @stack('head')
     <style>
         body {

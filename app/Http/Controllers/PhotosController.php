@@ -23,7 +23,10 @@ class PhotosController extends Controller
 
     private function getOrCreateFavoriteAlbum()
     {
-        return Album::firstOrCreate(
+        // Page views call this too, and the preview account must not write on a GET.
+        $method = Auth::user()->isPreview() ? 'firstOrNew' : 'firstOrCreate';
+
+        return Album::$method(
             ['user_id' => Auth::user()->id, 'is_system' => true],
             ['name' => 'Favorite']
         );
@@ -58,7 +61,7 @@ class PhotosController extends Controller
         return [$counts, $covers];
     }
 
-    private function photoPayload($photos, int $favoriteAlbumId)
+    private function photoPayload($photos, ?int $favoriteAlbumId)
     {
         return $photos->map(fn (Photo $photo) => [
             'id' => $photo->id,

@@ -1,16 +1,4 @@
 @php
-    /**
-     * One card in the grid. Shared by the Videos page and an album's page.
-     *
-     * The single most important thing here is what is NOT rendered: there is no <video>.
-     * The old page gave every card its own <video preload="metadata">, so opening it fired
-     * a metadata request per video — against multi-GB files on an external SSD. A card is a
-     * still image and text; a player is only ever built when the watch dialog opens.
-     *
-     * Nothing interactive nests inside anything else interactive: the poster's play button
-     * covers the tile and is the keyboard-reachable "watch this", and the footer buttons are
-     * siblings beside it.
-     */
     $favorite = $video->albums->contains('id', $favoriteAlbumId);
     $gated = $video->protection === 'gated';
     $missing = $missingIds->contains($video->id);
@@ -28,18 +16,12 @@
 
     <div class="vd-card__tile">
         @if ($missing)
-            {{-- Its own state, deliberately not an empty player: the row is fine, the file
-                 it points at is not on the drive any more. Renaming a file in Windows is
-                 all it takes, and "file not found" is the only useful thing to say. --}}
             <div class="vd-gone">
                 <i class="fa-solid fa-link-slash" aria-hidden="true"></i>
                 <p class="vd-gone__title">File not found on the drive</p>
                 <p class="vd-gone__name" dir="auto">{{ $video->filename }}</p>
             </div>
         @else
-            {{-- width/height match the tile's aspect-ratio box so the grid is laid out before
-                 a single poster has arrived; loading="lazy" keeps a long library off the
-                 first paint. The poster is a small cached JPEG, not the video. --}}
             <img class="vd-card__poster"
                  src="{{ route('video.poster', $video->id) }}"
                  alt=""
@@ -73,8 +55,6 @@
     </div>
 
     <div class="vd-card__body">
-        {{-- dir="auto" so an Arabic title reads right-to-left while still starting at the
-             same edge as every other card's; the alignment is pinned in CSS. --}}
         <h3 class="vd-card__title" dir="auto">{{ $video->title }}</h3>
 
         @if ($video->description)
@@ -89,9 +69,6 @@
             </ul>
         @endif
 
-        {{-- The whole URL, visible, because it gets pasted into Diary and Extra Notes and
-             you should be able to see what you are about to copy. It wraps rather than
-             ellipsing for the same reason. --}}
         <div class="vd-link">
             <code class="vd-link__url">{{ $watchUrl }}</code>
             <button type="button" class="vd-btn vd-btn--sm vd-btn--icon vd-link__copy"

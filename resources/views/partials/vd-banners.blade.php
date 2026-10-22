@@ -1,5 +1,3 @@
-{{-- Every mutation on this page redirects (Turbo Drive rejects a 200 page response), so
-     both of these arrive as a flash on the next render. Same shape as ph-banners. --}}
 @if (session('success'))
     <div class="vd-banner vd-banner--success mt-6" role="status" data-vd-dismissable>
         <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -25,9 +23,6 @@
 @endif
 
 @unless ($driveReady)
-    {{-- Distinct from a single file having gone missing: the mount itself is gone, which is
-         a documented WSL quirk (CLAUDE.md §3) and is fixed from PowerShell, not from here.
-         Saying it once, page-wide, beats every card claiming its own file vanished. --}}
     <div class="vd-banner vd-banner--warn mt-6" role="alert">
         <i class="fa-solid fa-hard-drive" aria-hidden="true"></i>
         <div>

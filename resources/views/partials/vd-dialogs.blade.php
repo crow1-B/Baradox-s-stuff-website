@@ -1,14 +1,4 @@
 @php
-    /**
-     * Every dialog the board needs, shared by the Videos page and an album's page.
-     *
-     * The forms live here, at page level, never inside a card: JS points the right one at
-     * the right video and submits it. A card is a thing that gets re-rendered, and a form
-     * inside one would be several forms per card for no gain.
-     *
-     * $manageAlbums adds the create/rename/delete-album dialogs; only the Videos page shows
-     * the album strip, so only it passes true.
-     */
     $manageAlbums = $manageAlbums ?? false;
     $pickable = $albums->where('is_system', false)->values();
     $preselect = (isset($album) && $album && ! $album->is_system) ? $album->id : null;
@@ -22,9 +12,7 @@
 </form>
 
 {{-- Watch --------------------------------------------------------------- --}}
-{{-- The <video> inside this dialog is the ONLY one on the page, and it has no src until
-     the dialog opens. That is the whole point of the rebuild: nothing touches a multi-GB
-     file until someone asks to watch it. Closing tears the src back off. --}}
+
 <dialog class="vd-player" id="vd-player-dialog" aria-label="Video player">
     <div class="vd-pl__head">
         <button type="button" class="vd-btn vd-btn--ghost vd-btn--icon" data-vd-close aria-label="Close player">
@@ -41,13 +29,8 @@
     </div>
 
     <div class="vd-pl__stage">
-        {{-- preload="none" as well as an absent src: belt and braces, so a stale snapshot
-             restored by the browser can never start fetching on its own. --}}
         <video class="vd-pl__video" data-vd-video controls playsinline preload="none" hidden></video>
 
-        {{-- The key prompt lives HERE, not on the card. A card is for scanning; a key
-             prompt sitting inline on one was the old page's worst habit — it put a live
-             overlay across the page the moment you clicked a gated video's thumbnail. --}}
         <div class="vd-pl__gate" data-vd-pl-gate hidden>
             <i class="fa-solid fa-lock vd-pl__gate-icon" aria-hidden="true"></i>
             <div>
@@ -57,8 +40,6 @@
                     control, not encryption — the file itself stays readable on the drive.
                 </p>
             </div>
-            {{-- data-turbo="false" and preventDefault(): this form has nowhere to go, it just
-                 gives Enter something to do. --}}
             <form data-vd-key-form data-turbo="false">
                 <input type="password" class="vd-input" data-vd-key autocomplete="off"
                        placeholder="Key" aria-label="Key for this video">
@@ -106,14 +87,6 @@
                     </span>
                 </p>
 
-                {{-- The picker: what is on the drive with no row pointing at it yet. Typing a
-                     long filename by hand is the step that goes wrong, so it is no longer the
-                     only way — but free text stays, for a file that appeared after this page
-                     rendered.
-
-                     Buttons, not radios: the form must carry exactly one filename field, and a
-                     grouped radio would post a second, ignored parameter beside it. They write
-                     straight into the input below, which is the only thing submitted. --}}
                 <div class="vd-field">
                     <span class="vd-label" id="vd-file-label">File<span class="vd-req" aria-hidden="true">*</span></span>
 
@@ -144,10 +117,6 @@
                     </label>
                 </div>
 
-                {{-- The one and only filename field. The picker writes into it, so the server
-                     sees the same parameter whichever way it was filled. `required` is applied
-                     by JS only while this is visible — a hidden required input makes Chrome
-                     refuse to submit and give no reason. --}}
                 <div class="vd-field" data-vd-manual-field @if (! ($errors->has('filename') || count($available) === 0 || ! $driveReady)) hidden @endif>
                     <label class="vd-label" for="vd-filename">File name, exactly as it is on the drive</label>
                     <input class="vd-input" id="vd-filename" name="filename" type="text" maxlength="255"

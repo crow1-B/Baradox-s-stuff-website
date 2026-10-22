@@ -1,12 +1,3 @@
-{{--
-    The key prompt inside a reveal dialog's <turbo-frame>.
-
-    Rendered twice per locked entry: once as the frame's starting content, and once inside a
-    <template> beside the frame so "Hide it again" can put it back without a round trip. The
-    ids repeat between the two, which is fine — <template> content is not in the document.
-
-    $pristine: the template copy, which never shows an error.
---}}
 <form method="POST" action="{{ route('diary.reveal', $entry->id) }}" class="dy-reveal" novalidate>
     @csrf
 

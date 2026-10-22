@@ -26,7 +26,10 @@ class VideosController extends Controller
 
     private function getOrCreateFavoriteAlbum()
     {
-        return VideoAlbum::firstOrCreate(
+        // Page views call this too, and the preview account must not write on a GET.
+        $method = Auth::user()->isPreview() ? 'firstOrNew' : 'firstOrCreate';
+
+        return VideoAlbum::$method(
             ['user_id' => Auth::user()->id, 'is_system' => true],
             ['name' => 'Favorite']
         );
@@ -66,7 +69,7 @@ class VideosController extends Controller
 
     private function folderLabel(): string
     {
-        return 'E:\\photos\\Videos  (in the container: /photos-ssd/' . self::FOLDER . ')';
+        return 'E:\\Baradox_stuff_web\\videos  (in the container: /photos-ssd/' . self::FOLDER . ')';
     }
 
     private function filesOnDrive(): ?array
@@ -88,7 +91,8 @@ class VideosController extends Controller
 
     private function unregisteredFiles(?array $onDrive): array
     {
-        if ($onDrive === null) {
+        // The preview account must not learn what is on the drive.
+        if ($onDrive === null || Auth::user()->isPreview()) {
             return [];
         }
 
@@ -178,7 +182,7 @@ class VideosController extends Controller
         return [$counts, $covers];
     }
 
-    private function videoPayload($videos, int $favoriteAlbumId, ?array $onDrive)
+    private function videoPayload($videos, ?int $favoriteAlbumId, ?array $onDrive)
     {
         return $videos->map(function (Video $video) use ($favoriteAlbumId, $onDrive) {
             return [
@@ -310,6 +314,12 @@ class VideosController extends Controller
     public function storeVideo(Request $request)
     {
         $userId = Auth::user()->id;
+
+        // Refused before anything touches the drive: the "not in the folder" error below
+        // would otherwise tell the preview account which filenames exist.
+        if (Auth::user()->isPreview()) {
+            abort(403);
+        }
 
         $request->validate([
             'title' => 'required|string|max:200',

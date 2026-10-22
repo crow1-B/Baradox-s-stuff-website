@@ -401,34 +401,70 @@ const initDiary = () => {
         if (clearToolbar) clearToolbar.hidden = !filtering;
     };
 
+    let committedQuery = '';
+
+    const queryForUrl = () => {
+        const value = search?.value.trim() ?? '';
+        if (value === committedQuery) return value;
+
+        const sync = new CustomEvent('diary:search-sync', { bubbles: true, cancelable: true, detail: { query: value } });
+        return search.dispatchEvent(sync) ? value : committedQuery;
+    };
+
     const writeUrl = () => {
         const url = new URL(window.location.href);
         const set = (key, value) => (value ? url.searchParams.set(key, value) : url.searchParams.delete(key));
-        set('q', search?.value.trim() ?? '');
+        set('q', queryForUrl());
         set('person', person ?? '');
         history.replaceState(history.state, '', url);
     };
 
     const readUrl = () => {
         const params = new URL(window.location.href).searchParams;
-        if (search) search.value = params.get('q') ?? '';
+        committedQuery = params.get('q') ?? '';
+        if (search) search.value = committedQuery;
         person = params.get('person') || null;
-    };
-
-    let urlTimer;
-    const scheduleUrl = () => {
-        clearTimeout(urlTimer);
-        urlTimer = setTimeout(writeUrl, 250);
     };
 
     if (search) {
         for (const type of ['input', 'search']) {
-            search.addEventListener(type, () => {
-                applyFilter();
-                scheduleUrl();
-            });
+            search.addEventListener(type, applyFilter);
         }
+
+        let committing = false;
+        search.addEventListener('keydown', async (event) => {
+            if (event.key !== 'Enter' || event.isComposing || committing) return;
+            event.preventDefault();
+
+            const value = search.value;
+            const claims = [];
+            const commit = new CustomEvent('diary:search-commit', {
+                bubbles: true,
+                cancelable: true,
+                detail: {
+                    query: value,
+                    claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)),
+                },
+            });
+            search.dispatchEvent(commit);
+
+            committing = true;
+            const claimed = commit.defaultPrevented || (await Promise.all(claims)).some(Boolean);
+            committing = false;
+
+            if (claimed) {
+                search.value = '';
+                person = null;
+                applyFilter();
+                return;
+            }
+
+            committedQuery = value.trim();
+            writeUrl();
+        });
     }
+
+    root.addEventListener('submit', writeUrl, true);
 
     const setPerson = (name) => {
         person = name;
