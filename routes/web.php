@@ -129,3 +129,5 @@ Route::delete('/music/{track}', [MusicController::class, 'destroyMusic'])->middl
 Route::patch('/music/{track}/favorite', [MusicController::class, 'toggleFavorite'])->middleware('auth');
 Route::get('/music/queue', [MusicController::class, 'queue'])->middleware('auth')->name('music.queue');
 Route::get('/music/{track}/stream', [MusicController::class, 'streamTrack'])->middleware('auth')->name('music.stream');
+Route::post('/music/{track}/play', [MusicController::class, 'recordPlay'])->middleware('auth')->name('music.play');
+

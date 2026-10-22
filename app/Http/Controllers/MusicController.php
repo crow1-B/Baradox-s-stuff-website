@@ -146,6 +146,18 @@ class MusicController extends Controller
         return back();
     }
 
+    // The player calls this once per track per session, after 30 seconds of real listening.
+    public function recordPlay(\App\Models\Track $track)
+    {
+        if ($track->user_id !== Auth::user()->id) {
+            abort(403);
+        }
+
+        \App\Models\TrackPlay::record(Auth::user()->id, $track->id);
+
+        return response()->noContent();
+    }
+
     public function queue()
     {
         return response()->json($this->tracksForUser()->map->playerPayload()->values());
