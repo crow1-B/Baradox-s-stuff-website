@@ -43,6 +43,10 @@
         </div>
     @endforeach
 
+    @foreach (config('shell.sidebar', []) as $partial)
+        @include($partial)
+    @endforeach
+
     {{-- data-turbo="false": signing out is a full page load, which is what stops the player
          (it lives outside Turbo's body swap) and swaps in the login page's own layout. --}}
     <form class="app-signout" method="POST" action="{{ route('logout') }}" data-turbo="false">

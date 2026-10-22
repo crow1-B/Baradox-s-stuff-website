@@ -14,6 +14,9 @@
             integrity="sha384-WTluvbYIlhW14A7J29od7iOv+SFs1XBKjEIBArVARW9ppIbzWZPq/MYZ2OatIIFC"
             crossorigin="anonymous" data-turbo-track="reload"></script>
     @vite(['resources/css/app.css', 'resources/css/shell.css', 'resources/css/player.css', 'resources/js/app.js', 'resources/js/shell.js', 'resources/js/player.js'])
+    @if (config('shell.assets'))
+        @vite(config('shell.assets'))
+    @endif
     @stack('head')
     <style>
         body {
