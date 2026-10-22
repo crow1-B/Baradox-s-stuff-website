@@ -9,22 +9,25 @@
     --lg-field: #0d1417;
     --lg-line: #2a3538;
     --lg-line-strong: #465457;
-    --lg-bone: #ebe5d9;
+    /* Shared with the app through the night-desk tokens (the login layout pins the night
+       phase, so these are the same values the scene was designed with). */
+    --lg-bone: var(--nd-ink);
     --lg-muted: #a2aaa8;
     --lg-faint: #76807f;
-    --lg-accent: #29a1a1;
+    --lg-accent: var(--nd-accent-strong);
     --lg-accent-text: #6fd6d6;
     --lg-danger: #ff9f8a;
     --lg-ring: 0 0 0 2px var(--lg-land), 0 0 0 4px var(--lg-accent-text);
-    --lg-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --lg-ease: var(--nd-ease);
     --lg-gutter: clamp(16px, 5vw, 72px);
 
     margin: 0;
     min-height: 100dvh;
     background: var(--lg-land);
     color: var(--lg-bone);
-    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--nd-font-sans);
     -webkit-font-smoothing: antialiased;
+    color-scheme: dark;
 }
 
 .lg {

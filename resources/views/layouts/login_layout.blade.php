@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+{{-- The sign-in scene is one fixed dusk, so the light never shifts here: the night tokens are
+     pinned rather than read from the clock. --}}
+<html lang="en" data-phase="night">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
