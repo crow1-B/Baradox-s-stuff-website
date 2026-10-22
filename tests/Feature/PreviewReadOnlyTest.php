@@ -32,7 +32,8 @@ class PreviewReadOnlyTest extends TestCase
     private const PLAIN_MIDDLEWARE = ['web', 'auth', 'log.visit'];
 
     private const TABLES = ['albums', 'video_albums', 'diary_entries', 'extra_notes', 'future_updates',
-        'photos', 'projects', 'tracks', 'videos', 'visits', 'album_photo', 'video_album', 'people', 'languages'];
+        'photos', 'projects', 'tracks', 'videos', 'visits', 'album_photo', 'video_album', 'people', 'languages',
+        'diary_entry_photo', 'track_plays'];
 
     private User $guest;
 
