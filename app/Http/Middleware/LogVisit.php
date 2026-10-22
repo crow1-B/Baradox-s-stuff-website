@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Album;
 use App\Models\Visit;
 use App\Models\VideoAlbum;
 use Closure;
@@ -22,6 +23,7 @@ class LogVisit
         'projects' => 'Projects Page.',
         'videos' => 'Videos Page.',
         'video-albums.show' => 'Video Album Page.',
+        'albums.show' => 'Photo Album Page.',
     ];
 
     // Routes that carry log.visit but are deliberately not recorded.
@@ -56,14 +58,14 @@ class LogVisit
 
     private function label(Request $request, ?string $routeName): string
     {
-        if ($routeName === 'video-albums.show') {
-            $album = $request->route('album');
+        $album = $request->route('album');
 
-            // Only name an album the visitor owns: the controller 403s on anyone else's,
-            // but this runs first and would otherwise write that name into their history.
-            if ($album instanceof VideoAlbum && $album->user_id === Auth::user()->id) {
-                return 'Video Album “' . $album->name . '” Page.';
-            }
+        // Only name an album the visitor owns: the controller 403s on anyone else's,
+        // but this runs first and would otherwise write that name into their history.
+        if (($album instanceof VideoAlbum || $album instanceof Album) && $album->user_id === Auth::user()->id) {
+            $kind = $album instanceof VideoAlbum ? 'Video Album' : 'Photo Album';
+
+            return $kind . ' “' . $album->name . '” Page.';
         }
 
         // Unmapped routes are a bug the test catches; this only keeps the label readable.

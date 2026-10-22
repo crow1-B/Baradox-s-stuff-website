@@ -85,7 +85,7 @@ Route::get('/photos/{photo}/thumbnail', [PhotosController::class, 'viewThumbnail
 Route::post('/albums', [PhotosController::class, 'storeAlbum'])->middleware('auth')->name('albums.store');
 Route::patch('/albums/{album}', [PhotosController::class, 'updateAlbum'])->middleware('auth')->name('albums.update');
 Route::delete('/albums/{album}', [PhotosController::class, 'destroyAlbum'])->middleware('auth')->name('albums.destroy');
-Route::get('/albums/{album}', [PhotosController::class, 'showAlbum'])->middleware('auth')->name('albums.show');
+Route::get('/albums/{album}', [PhotosController::class, 'showAlbum'])->middleware(['auth', 'log.visit'])->name('albums.show');
 
 //? the Videos page
 //
