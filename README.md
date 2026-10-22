@@ -359,8 +359,8 @@ deliberately refuses to start outside Sail. Prefer built assets? Use
 > This is a personal project that runs on `localhost`. It is **not hardened for public
 > deployment** as it stands.
 
-- The Guest button signs anyone who can reach the login page into the preview account — and that
-  account isn't read-only: it can create its own content.
+- The Guest button signs anyone who can reach the login page into the preview account. That
+  account is read-only — every write is refused server-side — but it can open every page.
 - The login form has no rate limiting, and the defaults are development settings
   (`APP_DEBUG=true`, PHP's built-in server).
 - The protection features guard against casual access on a machine you already control. They
