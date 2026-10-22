@@ -21,6 +21,7 @@ services:
             - ".:/var/www/html"
             - "/mnt/e/photos:/photos-ssd"
             - "/home/baradox/projects:/projects-root:ro"
+            - "${BACKUP_HOST_PATH:?set BACKUP_HOST_PATH in .env (docs/backups.md)}:/backups"
         networks:
             - sail
         depends_on:
@@ -29,6 +30,23 @@ services:
             - meilisearch
             - mailpit
             - selenium
+    scheduler:
+        image: "sail-8.5/app"
+        environment:
+            WWWUSER: "${WWWUSER}"
+            LARAVEL_SAIL: 1
+        volumes:
+            - ".:/var/www/html"
+            - "${BACKUP_HOST_PATH:?set BACKUP_HOST_PATH in .env (docs/backups.md)}:/backups"
+        command:
+            - bash
+            - -c
+            - 'php artisan backup:run --scheduled --if-stale || echo "startup catch-up backup failed (exit $$?); see storage/logs/backups.log" >&2; exec php artisan schedule:work'
+        networks:
+            - sail
+        depends_on:
+            mysql:
+                condition: service_healthy
     mysql:
         image: "mysql:8.4"
         ports:
