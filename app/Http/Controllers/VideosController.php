@@ -88,7 +88,8 @@ class VideosController extends Controller
 
     private function unregisteredFiles(?array $onDrive): array
     {
-        if ($onDrive === null) {
+        // The preview account must not learn what is on the drive.
+        if ($onDrive === null || Auth::user()->isPreview()) {
             return [];
         }
 
@@ -310,6 +311,12 @@ class VideosController extends Controller
     public function storeVideo(Request $request)
     {
         $userId = Auth::user()->id;
+
+        // Refused before anything touches the drive: the "not in the folder" error below
+        // would otherwise tell the preview account which filenames exist.
+        if (Auth::user()->isPreview()) {
+            abort(403);
+        }
 
         $request->validate([
             'title' => 'required|string|max:200',
