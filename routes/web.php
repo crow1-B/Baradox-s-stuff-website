@@ -9,6 +9,7 @@ use App\Http\Controllers\ExtraNotesController;
 use App\Http\Controllers\FutureUpdatesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MusicController;
+use App\Http\Controllers\PaletteController;
 use App\Http\Controllers\PhotosController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\VideosController;
@@ -132,3 +133,5 @@ Route::get('/music/queue', [MusicController::class, 'queue'])->middleware('auth'
 Route::get('/music/{track}/stream', [MusicController::class, 'streamTrack'])->middleware('auth')->name('music.stream');
 Route::post('/music/{track}/play', [MusicController::class, 'recordPlay'])->middleware('auth')->name('music.play');
 
+//? the command palette's index: a background GET, never a page visit
+Route::get('/palette', [PaletteController::class, 'items'])->middleware('auth')->name('palette');

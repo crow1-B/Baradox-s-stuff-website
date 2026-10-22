@@ -1,3 +1,7 @@
+import './theme.js';
+import './palette.js';
+import './view-transitions.js';
+
 const drawerQuery = window.matchMedia('(max-width: 1023.98px)');
 
 const shell = () => document.querySelector('[data-app-shell]');
@@ -60,12 +64,7 @@ document.addEventListener('keydown', (event) => {
 
     if (event.key !== 'Escape' || event.defaultPrevented) return;
 
-    if (isOpen()) {
-        closeNav({ returnFocus: true });
-        return;
-    }
-
-    document.querySelector('[data-visits-close]')?.click();
+    if (isOpen()) closeNav({ returnFocus: true });
 });
 drawerQuery.addEventListener('change', () => closeNav());
 
