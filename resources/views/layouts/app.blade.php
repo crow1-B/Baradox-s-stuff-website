@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name') }}</title>
     {{-- Turbo 8 prefetches links on hover by default; here that would make log.visit record
          every nav link you merely point at as a visited page. --}}
