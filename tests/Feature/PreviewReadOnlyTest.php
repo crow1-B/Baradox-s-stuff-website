@@ -40,9 +40,6 @@ class PreviewReadOnlyTest extends TestCase
     {
         parent::setUp();
 
-        // Pages render without the dev server or a build.
-        $this->withoutVite();
-
         Storage::fake('ssd_photos');
         Storage::fake('public');
 

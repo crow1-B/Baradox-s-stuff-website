@@ -18,9 +18,6 @@ class VideoRegistrationPreviewTest extends TestCase
     {
         parent::setUp();
 
-        // Pages render without the dev server or a build.
-        $this->withoutVite();
-
         Storage::fake('ssd_photos');
         Storage::disk('ssd_photos')->put('videos/real_holiday.mp4', 'not really a video');
     }

@@ -21,9 +21,6 @@ class LogVisitTest extends TestCase
     {
         parent::setUp();
 
-        // Pages render without the dev server or a build.
-        $this->withoutVite();
-
         Storage::fake('ssd_photos');
     }
 
