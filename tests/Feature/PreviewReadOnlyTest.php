@@ -40,6 +40,9 @@ class PreviewReadOnlyTest extends TestCase
     {
         parent::setUp();
 
+        // Pages render without the dev server or a build.
+        $this->withoutVite();
+
         Storage::fake('ssd_photos');
         Storage::fake('public');
 
@@ -84,7 +87,9 @@ class PreviewReadOnlyTest extends TestCase
         foreach (Route::getRoutes()->getRoutes() as $route) {
             $writes = array_diff($route->methods(), ['GET', 'HEAD', 'OPTIONS']);
 
+            // Allowlisted routes answer the guest themselves; PreviewHandledRoutesTest covers them.
             if ($writes === [] || in_array($route->getName(), self::NOT_WRITES, true)
+                || in_array($route->getName(), config('shell.preview_handled', []), true)
                 || ! in_array('web', $route->gatherMiddleware(), true)) {
                 continue;
             }
