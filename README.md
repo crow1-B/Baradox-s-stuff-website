@@ -25,11 +25,11 @@
 | Page | What it's for |
 |---|---|
 | 🔐 **Login** | An animated dusk sky with a flock of birds — and a one-click Guest preview |
-| 🏠 **Home** | Greeting, recently visited pages, and a track to play |
+| 🏠 **Home** | Greeting, *on this day* from earlier years, recent activity, and today's most-played song |
 | 🎵 **Music** | Your library, plus a player that follows you across the whole site |
 | 🖼️ **Photos** | Grid, lightbox, albums, and three levels of protection |
 | 🎬 **Videos** | Multi-gigabyte files registered from the drive, with poster frames |
-| 📔 **Diary** | Entries you can lock, grouped by month, filterable by person |
+| 📔 **Diary** | "Close the day": date, mood, photos, song of the day, then a distraction-free page; entries you can seal |
 | 💬 **Extra Notes** | A chat-style scratchpad with tags, pins and video link chips |
 | 🗂️ **Projects** | Future / In work / Done, with a read-only file browser |
 | 🛠️ **Future Updates** | A checklist of planned improvements, cross-linked with Projects |
@@ -65,15 +65,28 @@ power line and a treeline, with the sign-in form on the dark ground below.
 
 ### 🏠 Home
 
-- A greeting that follows the time of day, with the current time and date.
-- **Recently visited** — your last few pages, each removable, with the full visit history behind it.
-- **Something to hear?** — the newest track, playable with one click.
+- A greeting that follows the time of day, with the current time and date, and a way straight
+  into writing today's entry.
+- **On this day** — entries and photos from the same date in earlier years. A sealed entry only
+  says that it exists.
+- **Recent activity** — what was added lately, across the site.
+- **Most played today** (or the newest song), and **where you've been**, with the full visit
+  history behind it.
+
+### ✨ Everywhere
+
+- The colours follow the time of day — dawn, day, dusk and night — with a manual light/dark
+  override remembered per browser.
+- **Ctrl+K** jumps to any page, memory, song, project, album or video; **?** lists the keyboard
+  shortcuts.
+- Opening an entry morphs the card you clicked into the page (View Transitions), and nothing
+  else moves for decoration. Reduced-motion settings are respected.
 
 ### 🎵 Music
 
 - A compact track list, one row per song: cover slot, title and artist, release date, length,
   date added, favourite toggle, edit and delete.
-- Click a row to play it in the **sitewide player** — a small floating pill that **keeps playing
+- Click a row to play it in the **sitewide player** — a floating dock that **keeps playing
   while you move around the site**. It remembers the track, position and volume across reloads,
   moves to the next track automatically, and works with your keyboard's media keys and the
   operating system's media controls.
@@ -117,17 +130,20 @@ power line and a treeline, with the sign-in form on the dark ground below.
 
 ### 📔 Diary
 
-- Entries with a title, text, an optional date, the people involved, and an optional photo —
-  either one you already have or a new upload.
-- Entries are **grouped by month**. Tap a person chip to filter the list; search covers titles
-  and the text of unlocked entries.
-- **Locking:** an entry can be locked with a key, **choosing from several ciphers**. Opening,
-  unlocking or deleting a locked entry needs both the key and the cipher it was locked with. A
-  locked card shows only its title and date.
+- **Close the day:** pick the day (today by default), a mood, that day's photos (or upload new
+  ones), and the song of the day — the one you played most is suggested. Then a full-screen
+  writing page with typewriter scrolling, a word count, and a draft kept on the device as you type.
+- Entries are listed **month by month**; each one has its own reading page with its mood, song,
+  photos and people, and arrow keys to move to the older or newer entry. Tap a person to filter;
+  search covers titles and the text of unsealed entries.
+- **Sealing:** an entry can be sealed with a key, **choosing from several ciphers**. Opening,
+  unsealing or deleting a sealed entry needs both the key and the cipher it was sealed with. A
+  sealed entry shows only its title and date. Sealing and opening play a short scramble-and-seal
+  animation; it is purely visual, the encryption itself happens on the server.
 - The app can **generate a key** for you. It's shown **once**, and the dialog won't close until
   you confirm you've saved it.
-- A revealed entry's text never goes into the session or a URL, and is removed from the page as
-  soon as the dialog closes.
+- An opened entry's text never goes into the session or a URL, and is removed from the page when
+  you seal it again or leave.
 
 ### 💬 Extra Notes
 
