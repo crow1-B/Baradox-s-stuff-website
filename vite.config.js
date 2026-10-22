@@ -29,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
                     'resources/css/shell.css',
                     'resources/js/shell.js',
                     'resources/css/home.css',
+                    'resources/js/home.js',
                     'resources/css/player.css',
                     'resources/js/player.js',
                     'resources/css/projects.css',
