@@ -109,20 +109,27 @@ ports) starts with `sail up -d`. Its command is:
      through: sleep doesn't restart the container, so the startup check alone would miss it.
 
 It depends only on mysql being healthy, not on `laravel.test`, so backups still run when the
-SSD mount is dead and the app container won't start. It has no restart policy, the same as
-the rest of the Sail stack.
+SSD mount is dead and the app container won't start. It is the only service with a restart
+policy, `on-failure`: if `schedule:work` dies, Docker brings it back, which re-runs the startup
+catch-up. A clean `sail down` still stops it.
 
 Logs: `storage/logs/backups.log` (every success, failure, retention removal and restore) and
 `docker logs baradox-stuff-scheduler-1`.
 
 ## Retention
 
-After each successful backup, `BackupRetention` keeps the newest backup of each of the last
-`BACKUP_KEEP_DAILY` (7) **days that have a backup**, and the newest of each of the last
-`BACKUP_KEEP_WEEKLY` (4) **ISO weeks that have one**, in Asia/Baghdad time. Everything else is
-deleted: all three files, then the row. Days without a backup don't count, so a machine left
-off for a fortnight doesn't come back to an empty folder. Manual and scheduled backups are
-pruned alike. **`prerestore` backups are never pruned.** A file that can't be deleted keeps its
+After each successful backup, `BackupRetention` prunes each trigger on its own:
+
+- **scheduled:** the newest of each of the last `BACKUP_KEEP_DAILY` (7) **days that have a
+  scheduled backup**, and the newest of each of the last `BACKUP_KEEP_WEEKLY` (4) **ISO weeks
+  that have one**, in Asia/Baghdad time. Days without a backup don't count, so a machine left
+  off for a fortnight doesn't come back to an empty folder.
+- **manual:** the newest `BACKUP_KEEP_MANUAL` (10). They are kept out of the day/week buckets
+  on purpose: under one shared policy, a backup taken by hand before a risky change was
+  superseded by the next backup that same day.
+- **prerestore:** never pruned.
+
+Everything else is deleted: all three files, then the row. A file that can't be deleted keeps its
 row and is logged. Files in the folder with no row (copied in by hand) are never touched.
 
 ## Failure visibility
@@ -175,5 +182,5 @@ then restore as above.
 
 `tests/Feature/Backups/*` covers a real dump → zstd → age → sign round trip into a temporary
 folder with a throwaway age identity: verify, tamper detection (6 and 7), a missing recipient,
-a failing dump not being masked by the pipe, `--if-stale`, retention selection, and `openssl`
-reading the PEM keys.
+a failing dump not being masked by the pipe, `--if-stale`, retention selection (including
+manual and prerestore buckets), and `openssl` reading the PEM keys.
