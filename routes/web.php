@@ -29,6 +29,7 @@ Route::delete('/visits', [HomeController::class, 'deleteAllVisits'])->middleware
 
 //? the diary page
 Route::get('/diary', [DiaryController::class, 'showDiaryPage'])->middleware(['auth', 'log.visit'])->name('diary');
+Route::get('/diary/{entry}', [DiaryController::class, 'showEntry'])->middleware(['auth', 'log.visit'])->whereNumber('entry')->name('diary.entry');
 Route::post('/diary', [DiaryController::class, 'storeEntry'])->middleware('auth')->name('diaryPage');
 Route::patch('/diary/{entry}', [DiaryController::class, 'updateEntry'])->middleware('auth');
 Route::delete('/diary/{entry}', [DiaryController::class, 'destroyEntry'])->middleware('auth');

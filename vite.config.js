@@ -39,6 +39,7 @@ export default defineConfig(({ command, mode }) => {
                     'resources/js/music.js',
                     'resources/css/diary.css',
                     'resources/js/diary.js',
+                    'resources/js/diary-entry.js',
                     'resources/css/extra-notes.css',
                     'resources/js/extra-notes.js',
                     'resources/css/future-updates.css',

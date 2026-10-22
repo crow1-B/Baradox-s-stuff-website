@@ -16,6 +16,8 @@ class LogVisit
     // Every route carrying log.visit must have an entry here; LogVisitTest enforces it.
     public const LABELS = [
         'diary' => 'Diary Page.',
+        // No title: a sealed entry's history row would otherwise name it.
+        'diary.entry' => 'Diary Entry Page.',
         'extra-notes' => 'Extra Notes Page.',
         'future-updates' => 'Future Updates Page.',
         'music' => 'Music Page.',
