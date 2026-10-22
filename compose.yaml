@@ -32,6 +32,7 @@ services:
             - selenium
     scheduler:
         image: "sail-8.5/app"
+        restart: on-failure
         environment:
             WWWUSER: "${WWWUSER}"
             LARAVEL_SAIL: 1
