@@ -34,8 +34,10 @@ const paintControls = () => {
     meta.content = getComputedStyle(root).getPropertyValue('--nd-bg').trim() || '#0b1a20';
 };
 
-// Re-resolve the phase. A real change cross-fades the registered colours (tokens.css)
-// unless reduced motion is asked for.
+// Re-resolve the phase. A change of the clock's phase cross-fades the registered colours
+// (tokens.css) unless reduced motion is asked for. A change someone asked for switches at
+// once: every frame of the fade restyles the whole page, and cut short to a few hundred ms it
+// only flickers through its half-way state, where the words briefly vanish.
 export const refresh = ({ animate = true } = {}) => {
     if (!theme()) return;
     const before = root.dataset.phase;
@@ -47,6 +49,10 @@ export const refresh = ({ animate = true } = {}) => {
         root.classList.add('nd-phase-shift');
         clearTimeout(shiftTimer);
         shiftTimer = setTimeout(() => root.classList.remove('nd-phase-shift'), SHIFT_MS);
+    } else if (!animate) {
+        // Stop a fade already running, or this change would fade along with it.
+        clearTimeout(shiftTimer);
+        root.classList.remove('nd-phase-shift');
     }
 
     root.dataset.clock = clock;
@@ -67,7 +73,7 @@ export const cycle = () => {
         // storage blocked: the change holds for this page only
         root.dataset.themePref = next;
     }
-    refresh();
+    refresh({ animate: false });
 };
 
 document.addEventListener('click', (event) => {
@@ -76,7 +82,7 @@ document.addEventListener('click', (event) => {
 
 // Another tab changed it.
 window.addEventListener('storage', (event) => {
-    if (event.key === theme()?.KEY) refresh();
+    if (event.key === theme()?.KEY) refresh({ animate: false });
 });
 
 // The clock moves on while a page stays open all day.
