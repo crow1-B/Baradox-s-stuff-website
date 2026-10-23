@@ -168,7 +168,9 @@ class VideosController extends Controller
             : sprintf('%d:%02d', $minutes, $rest);
     }
 
-    private function albumSummaries($albums)
+    // A cover is never a video whose file has gone from the drive: its poster can't be made,
+    // so the card would show a broken image. Same as gated ones, it's skipped for the next.
+    private function albumSummaries($albums, $missingIds = [])
     {
         $ids = $albums->pluck('id');
 
@@ -186,6 +188,7 @@ class VideosController extends Controller
             ->join('videos', 'videos.id', '=', 'video_album.video_id')
             ->whereIn('video_album.video_album_id', $ids)
             ->where('videos.protection', 'none')
+            ->whereNotIn('videos.id', $missingIds)
             ->select('video_album.video_album_id', 'videos.id as video_id')
             ->selectRaw('ROW_NUMBER() OVER (PARTITION BY video_album.video_album_id ORDER BY videos.created_at DESC, videos.id DESC) AS rn');
 
@@ -258,9 +261,10 @@ class VideosController extends Controller
             ->orderBy('name')
             ->get();
 
-        [$counts, $covers] = $this->albumSummaries($albums);
-
         $onDrive = $this->filesOnDrive();
+        $missingIds = $this->missingIds($videos, $onDrive);
+
+        [$counts, $covers] = $this->albumSummaries($albums, $missingIds);
 
         $highlightId = null;
 
@@ -277,7 +281,7 @@ class VideosController extends Controller
             'albumCovers' => $covers,
             'favoriteAlbumId' => $favoriteAlbumId,
             'videoData' => $this->videoPayload($videos, $favoriteAlbumId, $onDrive),
-            'missingIds' => $this->missingIds($videos, $onDrive),
+            'missingIds' => $missingIds,
             'available' => $this->unregisteredFiles($onDrive),
             'driveReady' => $onDrive !== null,
             'folderLabel' => $this->folderLabel(),
