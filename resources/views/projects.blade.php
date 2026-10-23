@@ -68,7 +68,7 @@
                aria-selected="{{ $tab === $status ? 'true' : 'false' }}"
                class="pj-tab"
                data-pj-tab="{{ $status }}">
-                <span class="pj-dot pj-dot--{{ $status }}" aria-hidden="true"></span>
+                <span class="nd-dot nd-dot--{{ $status }}" aria-hidden="true"></span>
                 {{ $label }}
                 <span class="pj-tab__count">{{ $grouped[$status]->count() }}<span class="nd-sr-only"> {{ Str::plural('project', $grouped[$status]->count()) }}</span></span>
             </a>
@@ -122,7 +122,7 @@
                         <div class="nd-segmented">
                             @foreach ($labels as $status => $label)
                                 <input type="radio" name="status" id="pf-status-{{ $status }}" value="{{ $status }}">
-                                <label for="pf-status-{{ $status }}"><span class="pj-dot pj-dot--{{ $status }}" aria-hidden="true"></span>{{ $label }}</label>
+                                <label for="pf-status-{{ $status }}"><span class="nd-dot nd-dot--{{ $status }}" aria-hidden="true"></span>{{ $label }}</label>
                             @endforeach
                         </div>
                         <p class="nd-error" id="pf-status-error" data-field-error hidden></p>

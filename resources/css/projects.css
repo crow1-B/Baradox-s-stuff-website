@@ -5,13 +5,6 @@
 
 .pj [hidden] { display: none !important; }
 
-/* The one place status colour appears: a dot. Lightness and chroma follow the phase, the
-   same recipe as the Diary's moods, so the three read at one strength by day and by night. */
-.pj-dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--nd-r-pill); background: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--pj-hue, 200)); }
-.pj-dot--future { --pj-hue: 290; }
-.pj-dot--in_work { --pj-hue: 75; }
-.pj-dot--done { --pj-hue: 150; }
-
 .pj-mono { font-family: var(--nd-font-mono); font-size: 0.8rem; }
 .pj-faint { color: var(--nd-ink-3); }
 .pj-overdue {

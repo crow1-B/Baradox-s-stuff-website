@@ -461,3 +461,13 @@ input[type='file'].nd-input::file-selector-button {
     white-space: nowrap;
 }
 .nd-affix > .nd-input { min-width: 0; border-radius: 0 var(--nd-r) var(--nd-r) 0; }
+
+/* ------------------------------------------------------------------ project status dot */
+
+/* The one place a project's status has a colour (Projects, Future Updates). Lightness and
+   chroma follow the phase, the same recipe as the moods, so the three read at one strength
+   by day and by night. */
+.nd-dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--nd-r-pill); background: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--nd-dot-hue, 200)); }
+.nd-dot--future { --nd-dot-hue: 290; }
+.nd-dot--in_work { --nd-dot-hue: 75; }
+.nd-dot--done { --nd-dot-hue: 150; }

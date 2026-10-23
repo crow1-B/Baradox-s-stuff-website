@@ -8,72 +8,78 @@ const initFutureUpdates = () => {
 
     // ---------------------------------------------------------------- dialogs
 
-    const editDialog = document.getElementById('fu-edit-dialog');
-    const deleteDialog = document.getElementById('fu-delete-dialog');
-    const editForm = editDialog.querySelector('form');
-    const deleteForm = deleteDialog.querySelector('form');
-    let returnFocusTo = null;
+    // Guest's page renders no dialogs, the capture bar or the done boxes.
+    const setupDialogs = () => {
+        const editDialog = document.getElementById('fu-edit-dialog');
+        const deleteDialog = document.getElementById('fu-delete-dialog');
+        const editForm = editDialog.querySelector('form');
+        const deleteForm = deleteDialog.querySelector('form');
+        let returnFocusTo = null;
 
-    for (const dialog of [editDialog, deleteDialog]) {
-        let pressedBackdrop = false;
-        dialog.addEventListener('mousedown', (event) => (pressedBackdrop = event.target === dialog));
-        dialog.addEventListener('click', (event) => {
-            if (pressedBackdrop && event.target === dialog) dialog.close();
-        });
+        for (const dialog of [editDialog, deleteDialog]) {
+            let pressedBackdrop = false;
+            dialog.addEventListener('mousedown', (event) => (pressedBackdrop = event.target === dialog));
+            dialog.addEventListener('click', (event) => {
+                if (pressedBackdrop && event.target === dialog) dialog.close();
+            });
 
-        dialog.addEventListener('close', () => {
-            const submit = dialog.querySelector('[type="submit"]');
-            if (submit) submit.disabled = false;
-            if (returnFocusTo?.isConnected) returnFocusTo.focus();
-            returnFocusTo = null;
-        });
+            dialog.addEventListener('close', () => {
+                const submit = dialog.querySelector('[type="submit"]');
+                if (submit) submit.disabled = false;
+                if (returnFocusTo?.isConnected) returnFocusTo.focus();
+                returnFocusTo = null;
+            });
 
-        dialog.querySelector('form').addEventListener('submit', () => {
-            dialog.querySelector('[type="submit"]').disabled = true;
-        });
-    }
-
-    const editContent = editForm.querySelector('#fu-edit-content');
-    const editProject = editForm.querySelector('#fu-edit-project');
-    const editErrors = editForm.querySelector('[data-fu-errors]');
-    const orphanNote = editForm.querySelector('[data-fu-orphan-note]');
-    const plainNote = editForm.querySelector('[data-fu-plain-note]');
-
-    const openEditDialog = (update, { values = null, errors = null, opener = null } = {}) => {
-        editForm.action = update.urls.update;
-        editForm.elements._modal.value = `edit:${update.id}`;
-
-        const source = values ?? update;
-        editContent.value = source.content ?? '';
-        editProject.value = source.project_id == null ? '' : String(source.project_id);
-        const orphanedTitle = update.orphaned_project_title;
-        orphanNote.textContent = orphanedTitle
-            ? `This was planned for “${orphanedTitle}”, which has been deleted. Saving files it under whatever you pick here.`
-            : '';
-        orphanNote.hidden = !orphanedTitle;
-        plainNote.hidden = Boolean(orphanedTitle);
-
-        editErrors.replaceChildren();
-        editErrors.hidden = !(errors && errors.length);
-        if (errors) {
-            for (const message of errors) {
-                const item = document.createElement('li');
-                item.textContent = message;
-                editErrors.append(item);
-            }
+            dialog.querySelector('form').addEventListener('submit', () => {
+                dialog.querySelector('[type="submit"]').disabled = true;
+            });
         }
 
-        returnFocusTo = opener;
-        editDialog.showModal();
-        editContent.focus();
-    };
+        const editContent = editForm.querySelector('#fu-edit-content');
+        const editProject = editForm.querySelector('#fu-edit-project');
+        const editErrors = editForm.querySelector('[data-fu-errors]');
+        const orphanNote = editForm.querySelector('[data-fu-orphan-note]');
+        const plainNote = editForm.querySelector('[data-fu-plain-note]');
 
-    const openDeleteDialog = (update, opener) => {
-        deleteForm.action = update.urls.destroy;
-        deleteForm.querySelector('[data-fu-delete-preview]').textContent = update.content;
-        returnFocusTo = opener;
-        deleteDialog.showModal();
+        const openEditDialog = (update, { values = null, errors = null, opener = null } = {}) => {
+            editForm.action = update.urls.update;
+            editForm.elements._modal.value = `edit:${update.id}`;
+
+            const source = values ?? update;
+            editContent.value = source.content ?? '';
+            editProject.value = source.project_id == null ? '' : String(source.project_id);
+            const orphanedTitle = update.orphaned_project_title;
+            orphanNote.textContent = orphanedTitle
+                ? `This was planned for “${orphanedTitle}”, which has been deleted. Saving files it under whatever you pick here.`
+                : '';
+            orphanNote.hidden = !orphanedTitle;
+            plainNote.hidden = Boolean(orphanedTitle);
+
+            editErrors.replaceChildren();
+            editErrors.hidden = !(errors && errors.length);
+            if (errors) {
+                for (const message of errors) {
+                    const item = document.createElement('li');
+                    item.textContent = message;
+                    editErrors.append(item);
+                }
+            }
+
+            returnFocusTo = opener;
+            editDialog.showModal();
+            editContent.focus();
+        };
+
+        const openDeleteDialog = (update, opener) => {
+            deleteForm.action = update.urls.destroy;
+            deleteForm.querySelector('[data-fu-delete-preview]').textContent = update.content;
+            returnFocusTo = opener;
+            deleteDialog.showModal();
+        };
+
+        return { openEditDialog, openDeleteDialog };
     };
+    const dialogs = document.getElementById('fu-edit-dialog') ? setupDialogs() : null;
 
     // ---------------------------------------------------------------- view state
 
@@ -137,10 +143,10 @@ const initFutureUpdates = () => {
         const opener = event.target.closest('[data-fu-open]');
         if (opener) {
             const update = updates[opener.dataset.update];
-            if (!update) return;
+            if (!update || !dialogs) return;
 
-            if (opener.dataset.fuOpen === 'edit') openEditDialog(update, { opener });
-            else openDeleteDialog(update, opener);
+            if (opener.dataset.fuOpen === 'edit') dialogs.openEditDialog(update, { opener });
+            else dialogs.openDeleteDialog(update, opener);
             return;
         }
 
@@ -158,8 +164,8 @@ const initFutureUpdates = () => {
 
     paintEmptyStates();
     const [kind, id] = (data.context ?? '').split(':');
-    if (kind === 'edit' && updates[id]) {
-        openEditDialog(updates[id], { values: data.old ?? {}, errors: data.errors });
+    if (dialogs && kind === 'edit' && updates[id]) {
+        dialogs.openEditDialog(updates[id], { values: data.old ?? {}, errors: data.errors });
     }
 };
 
