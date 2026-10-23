@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Album;
-use App\Models\Visit;
 use App\Models\VideoAlbum;
+use App\Support\Http\DeferredWrites;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +31,10 @@ class LogVisit
     // Routes that carry log.visit but are deliberately not recorded.
     public const SKIPPED = ['homepage'];
 
+    public function __construct(private DeferredWrites $writes)
+    {
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -49,10 +53,15 @@ class LogVisit
             return $next($request);
         }
 
-        Visit::create([
+        // Queued, not written: the row goes in after the response has been sent
+        // (FlushDeferredWrites). The label is worked out now, while the route is at hand.
+        $now = now();
+        $this->writes->insert('visits', [
             'user_id' => Auth::user()->id,
             'page_name' => $this->label($request, $routeName),
             'path' => $request->path(),
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
 
         return $next($request);

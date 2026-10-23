@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
         'log.visit' => \App\Http\Middleware\LogVisit::class,
     ]);
-    $middleware->web(append: [\App\Http\Middleware\RejectPreviewWrites::class]);
+    $middleware->web(
+        prepend: [\App\Http\Middleware\FlushDeferredWrites::class],
+        append: [\App\Http\Middleware\RejectPreviewWrites::class],
+    );
     $middleware->appendToPriorityList(\Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\RejectPreviewWrites::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
