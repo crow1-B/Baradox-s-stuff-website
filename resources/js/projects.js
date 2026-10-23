@@ -59,8 +59,7 @@ const initProjects = () => {
             const area = el('textarea');
             area.value = text;
             area.setAttribute('readonly', '');
-            area.style.position = 'fixed';
-            area.style.opacity = '0';
+            area.className = 'nd-sr-only';
             document.body.append(area);
             area.select();
             document.execCommand('copy');
@@ -88,7 +87,7 @@ const initProjects = () => {
         url.searchParams.set('tab', tab.dataset.pjTab);
         history.replaceState(history.state, '', url);
 
-        createButton.dataset.status = tab.dataset.pjTab;
+        if (createButton) createButton.dataset.status = tab.dataset.pjTab;
     };
 
     for (const tab of tabs) {
@@ -121,229 +120,236 @@ const initProjects = () => {
 
     // ---------------------------------------------------------------- dialogs
 
-    const projectDialog = document.getElementById('pj-project-dialog');
-    const projectForm = projectDialog.querySelector('form');
-    const statusDialog = document.getElementById('pj-status-dialog');
-    const statusForm = statusDialog.querySelector('form');
-    const deleteDialog = document.getElementById('pj-delete-dialog');
-    const deleteForm = deleteDialog.querySelector('form');
+    // Guest's page renders no dialogs: there is nothing for it to create, move or delete.
+    const setupDialogs = () => {
 
-    for (const dialog of [projectDialog, statusDialog, deleteDialog]) {
-        let pressedBackdrop = false;
-        dialog.addEventListener('mousedown', (event) => (pressedBackdrop = event.target === dialog));
-        dialog.addEventListener('click', (event) => {
-            if (pressedBackdrop && event.target === dialog) dialog.close();
-        });
+        const projectDialog = document.getElementById('pj-project-dialog');
+        const projectForm = projectDialog.querySelector('form');
+        const statusDialog = document.getElementById('pj-status-dialog');
+        const statusForm = statusDialog.querySelector('form');
+        const deleteDialog = document.getElementById('pj-delete-dialog');
+        const deleteForm = deleteDialog.querySelector('form');
 
-        dialog.addEventListener('close', () => {
-            const submit = dialog.querySelector('[type="submit"]');
-            if (submit) submit.disabled = false;
-        });
+        for (const dialog of [projectDialog, statusDialog, deleteDialog]) {
+            let pressedBackdrop = false;
+            dialog.addEventListener('mousedown', (event) => (pressedBackdrop = event.target === dialog));
+            dialog.addEventListener('click', (event) => {
+                if (pressedBackdrop && event.target === dialog) dialog.close();
+            });
 
-        dialog.querySelector('form').addEventListener('submit', () => {
-            const submit = dialog.querySelector('[type="submit"]');
-            submit.disabled = true;
-        });
-    }
+            dialog.addEventListener('close', () => {
+                const submit = dialog.querySelector('[type="submit"]');
+                if (submit) submit.disabled = false;
+            });
 
-    const control = (form, prefix, name) => form.querySelector(`#${prefix}-${name}`);
-    const wrapper = (form, name) => form.querySelector(`[data-pj-field="${name}"]`);
-
-    const clearErrors = (form) => {
-        for (const node of form.querySelectorAll('[data-pj-error]')) {
-            node.hidden = true;
-            node.textContent = '';
+            dialog.querySelector('form').addEventListener('submit', () => {
+                const submit = dialog.querySelector('[type="submit"]');
+                submit.disabled = true;
+            });
         }
-        for (const node of form.querySelectorAll('[aria-invalid]')) node.removeAttribute('aria-invalid');
-        const other = form.querySelector('[data-pj-other-errors]');
-        if (other) {
-            other.hidden = true;
-            other.replaceChildren();
-        }
-    };
 
-    const showErrors = (form, prefix, errors) => {
-        let first = null;
-        const leftovers = [];
+        const control = (form, prefix, name) => form.querySelector(`#${prefix}-${name}`);
+        const wrapper = (form, name) => form.querySelector(`[data-field="${name}"]`);
 
-        for (const [field, messages] of Object.entries(errors ?? {})) {
-            const errorNode = form.querySelector(`#${prefix}-${field}-error`);
-            const fieldWrapper = wrapper(form, field);
+        const clearErrors = (form) => {
+            for (const node of form.querySelectorAll('[data-field-error]')) {
+                node.hidden = true;
+                node.textContent = '';
+            }
+            for (const node of form.querySelectorAll('[aria-invalid]')) node.removeAttribute('aria-invalid');
+            const other = form.querySelector('[data-pj-other-errors]');
+            if (other) {
+                other.hidden = true;
+                other.replaceChildren();
+            }
+        };
 
-            if (!errorNode || fieldWrapper?.hidden) {
-                leftovers.push(messages[0]);
-                continue;
+        const showErrors = (form, prefix, errors) => {
+            let first = null;
+            const leftovers = [];
+
+            for (const [field, messages] of Object.entries(errors ?? {})) {
+                const errorNode = form.querySelector(`#${prefix}-${field}-error`);
+                const fieldWrapper = wrapper(form, field);
+
+                if (!errorNode || fieldWrapper?.hidden) {
+                    leftovers.push(messages[0]);
+                    continue;
+                }
+
+                errorNode.textContent = messages[0];
+                errorNode.hidden = false;
+
+                const input = control(form, prefix, field) ?? form.querySelector(`[name="${field}"]:checked`);
+                if (input) {
+                    if (input.type !== 'radio') input.setAttribute('aria-invalid', 'true');
+                    first ??= input;
+                }
             }
 
-            errorNode.textContent = messages[0];
-            errorNode.hidden = false;
-
-            const input = control(form, prefix, field) ?? form.querySelector(`[name="${field}"]:checked`);
-            if (input) {
-                if (input.type !== 'radio') input.setAttribute('aria-invalid', 'true');
-                first ??= input;
+            const other = form.querySelector('[data-pj-other-errors]');
+            if (other && leftovers.length) {
+                other.replaceChildren(...leftovers.map((message) => el('li', '', message)));
+                other.hidden = false;
             }
-        }
 
-        const other = form.querySelector('[data-pj-other-errors]');
-        if (other && leftovers.length) {
-            other.replaceChildren(...leftovers.map((message) => el('li', '', message)));
-            other.hidden = false;
-        }
+            return first;
+        };
 
-        return first;
-    };
+        const setRequired = (form, prefix, name, required) => {
+            const fieldWrapper = wrapper(form, name);
+            fieldWrapper.querySelector('[data-field-req]')?.toggleAttribute('hidden', !required);
+            const input = control(form, prefix, name);
+            if (input) input.setAttribute('aria-required', String(required));
+        };
 
-    const setRequired = (form, prefix, name, required) => {
-        const fieldWrapper = wrapper(form, name);
-        fieldWrapper.querySelector('[data-pj-req]')?.toggleAttribute('hidden', !required);
-        const input = control(form, prefix, name);
-        if (input) input.setAttribute('aria-required', String(required));
-    };
-
-    const setDateLabels = (form, status) => {
-        for (const name of ['start_date', 'finish_date']) {
-            const label = wrapper(form, name)?.querySelector('[data-pj-label]');
-            if (label) label.textContent = DATE_LABELS[status][name];
-        }
-    };
-
-    // ---- create / edit
-
-    let projectMode = 'create';
-
-    const applyProjectStatus = (status) => {
-        for (const name of FORM_FIELDS) {
-            const visible = VISIBLE[status].includes(name);
-            const fieldWrapper = wrapper(projectForm, name);
-            fieldWrapper.hidden = !visible;
-            control(projectForm, 'pf', name).disabled = projectMode === 'create' && !visible;
-
-            setRequired(projectForm, 'pf', name, data.required[status].includes(name));
-        }
-        setDateLabels(projectForm, status);
-    };
-
-    const checkedStatus = () => projectForm.querySelector('input[name="status"]:checked')?.value ?? 'future';
-
-    for (const radio of projectForm.querySelectorAll('input[name="status"]')) {
-        radio.addEventListener('change', () => {
-            applyProjectStatus(radio.value);
-            const start = control(projectForm, 'pf', 'start_date');
-            if (radio.value === 'in_work' && !start.value) start.value = today();
-        });
-    }
-
-    const openProjectDialog = (mode, { project = null, status = 'future', values = null, errors = null } = {}) => {
-        projectMode = mode;
-        projectForm.reset();
-        clearErrors(projectForm);
-
-        const methodInput = projectForm.querySelector('input[name="_method"]');
-        const isEdit = mode === 'edit';
-
-        projectForm.action = isEdit ? project.urls.update : data.storeUrl;
-        methodInput.disabled = !isEdit;
-        methodInput.value = isEdit ? 'PATCH' : 'POST';
-        projectForm.elements._modal.value = isEdit ? `edit:${project.id}` : 'create';
-
-        document.getElementById('pj-project-dialog-title').textContent = isEdit ? 'Edit project' : 'New project';
-        projectForm.querySelector('[data-pj-submit]').textContent = isEdit ? 'Save changes' : 'Create project';
-        projectForm.querySelector('[data-pj-create-only]').hidden = isEdit;
-
-        const source = values ?? project ?? {};
-        for (const name of FORM_FIELDS) {
-            control(projectForm, 'pf', name).value = source[name] ?? '';
-        }
-
-        const effectiveStatus = isEdit ? project.status : (values?.status ?? status);
-        if (!isEdit) {
-            const radio = projectForm.querySelector(`input[name="status"][value="${effectiveStatus}"]`);
-            if (radio) radio.checked = true;
-            if (effectiveStatus === 'in_work' && !values && !control(projectForm, 'pf', 'start_date').value) {
-                control(projectForm, 'pf', 'start_date').value = today();
+        const setDateLabels = (form, status) => {
+            for (const name of ['start_date', 'finish_date']) {
+                const label = wrapper(form, name)?.querySelector('[data-field-label]');
+                if (label) label.textContent = DATE_LABELS[status][name];
             }
-        }
+        };
 
-        applyProjectStatus(isEdit ? project.status : checkedStatus());
-        const firstInvalid = showErrors(projectForm, 'pf', errors);
+        // ---- create / edit
 
-        projectDialog.showModal();
-        (firstInvalid ?? control(projectForm, 'pf', 'title')).focus();
-    };
+        let projectMode = 'create';
 
-    // ---- status transition
+        const applyProjectStatus = (status) => {
+            for (const name of FORM_FIELDS) {
+                const visible = VISIBLE[status].includes(name);
+                const fieldWrapper = wrapper(projectForm, name);
+                fieldWrapper.hidden = !visible;
+                control(projectForm, 'pf', name).disabled = projectMode === 'create' && !visible;
 
-    const transitionFields = (from, to) => {
-        const fields = new Set(data.required[to].filter((name) => !data.required[from].includes(name)));
-        if (to === 'in_work' && from === 'future') fields.add('start_date');
-        if (to === 'done' && from === 'future') fields.add('start_date');
-        if (to === 'done') fields.add('finish_date');
-        return TRANSITION_FIELDS.filter((name) => fields.has(name));
-    };
-
-    const prefillsToday = (from, to, name) =>
-        (name === 'start_date' && from === 'future' && to === 'in_work') || (name === 'finish_date' && to === 'done');
-
-    const transitionCopy = (from, to) => {
-        if (from === 'future' && to === 'in_work') {
-            return ['Start work', 'The start date becomes the real one, and an expected finish date is now required. Today is filled in — change it if you started earlier.'];
-        }
-        if (to === 'done' && from === 'in_work') {
-            return ['Mark done', 'The finish date becomes the real one. A done project also needs its folder and a final line count.'];
-        }
-        if (to === 'done') {
-            return ['Mark done', 'Skipping straight to done — confirm the real dates, the folder and the final line count.'];
-        }
-        if (to === 'in_work') {
-            return ['Reopen', 'Nothing is cleared. The finish date goes back to meaning “expected”, and the line count is kept but hidden until the project is done again.'];
-        }
-        return ['Move to Future', 'Nothing is cleared. The start date goes back to meaning “planned”.'];
-    };
-
-    const openStatusDialog = (project, to, { values = null, errors = null } = {}) => {
-        const from = project.status;
-        const fields = transitionFields(from, to);
-        const [action, note] = transitionCopy(from, to);
-
-        statusForm.reset();
-        clearErrors(statusForm);
-        statusForm.action = project.urls.status;
-        statusForm.elements._modal.value = `status:${project.id}:${to}`;
-        statusForm.elements.status.value = to;
-
-        document.getElementById('pj-status-dialog-title').textContent = `${action}: ${project.title}`;
-        document.getElementById('pj-status-note').textContent = note;
-        statusForm.querySelector('[data-pj-submit]').textContent = action;
-
-        for (const name of TRANSITION_FIELDS) {
-            const shown = fields.includes(name);
-            const input = control(statusForm, 'sf', name);
-            wrapper(statusForm, name).hidden = !shown;
-            input.disabled = !shown;
-            setRequired(statusForm, 'sf', name, shown && data.required[to].includes(name));
-
-            if (values) {
-                input.value = values[name] ?? '';
-            } else {
-                input.value = prefillsToday(from, to, name) ? today() : (project[name] ?? '');
+                setRequired(projectForm, 'pf', name, data.required[status].includes(name));
             }
+            setDateLabels(projectForm, status);
+        };
+
+        const checkedStatus = () => projectForm.querySelector('input[name="status"]:checked')?.value ?? 'future';
+
+        for (const radio of projectForm.querySelectorAll('input[name="status"]')) {
+            radio.addEventListener('change', () => {
+                applyProjectStatus(radio.value);
+                const start = control(projectForm, 'pf', 'start_date');
+                if (radio.value === 'in_work' && !start.value) start.value = today();
+            });
         }
-        setDateLabels(statusForm, to);
 
-        const firstInvalid = showErrors(statusForm, 'sf', errors);
+        const openProjectDialog = (mode, { project = null, status = 'future', values = null, errors = null } = {}) => {
+            projectMode = mode;
+            projectForm.reset();
+            clearErrors(projectForm);
 
-        statusDialog.showModal();
-        (firstInvalid ?? statusForm.querySelector('.pj-field:not([hidden]) .pj-input') ?? statusForm.querySelector('[data-pj-submit]')).focus();
+            const methodInput = projectForm.querySelector('input[name="_method"]');
+            const isEdit = mode === 'edit';
+
+            projectForm.action = isEdit ? project.urls.update : data.storeUrl;
+            methodInput.disabled = !isEdit;
+            methodInput.value = isEdit ? 'PATCH' : 'POST';
+            projectForm.elements._modal.value = isEdit ? `edit:${project.id}` : 'create';
+
+            document.getElementById('pj-project-dialog-title').textContent = isEdit ? 'Edit project' : 'New project';
+            projectForm.querySelector('[data-pj-submit]').textContent = isEdit ? 'Save changes' : 'Create project';
+            projectForm.querySelector('[data-pj-create-only]').hidden = isEdit;
+
+            const source = values ?? project ?? {};
+            for (const name of FORM_FIELDS) {
+                control(projectForm, 'pf', name).value = source[name] ?? '';
+            }
+
+            const effectiveStatus = isEdit ? project.status : (values?.status ?? status);
+            if (!isEdit) {
+                const radio = projectForm.querySelector(`input[name="status"][value="${effectiveStatus}"]`);
+                if (radio) radio.checked = true;
+                if (effectiveStatus === 'in_work' && !values && !control(projectForm, 'pf', 'start_date').value) {
+                    control(projectForm, 'pf', 'start_date').value = today();
+                }
+            }
+
+            applyProjectStatus(isEdit ? project.status : checkedStatus());
+            const firstInvalid = showErrors(projectForm, 'pf', errors);
+
+            projectDialog.showModal();
+            (firstInvalid ?? control(projectForm, 'pf', 'title')).focus();
+        };
+
+        // ---- status transition
+
+        const transitionFields = (from, to) => {
+            const fields = new Set(data.required[to].filter((name) => !data.required[from].includes(name)));
+            if (to === 'in_work' && from === 'future') fields.add('start_date');
+            if (to === 'done' && from === 'future') fields.add('start_date');
+            if (to === 'done') fields.add('finish_date');
+            return TRANSITION_FIELDS.filter((name) => fields.has(name));
+        };
+
+        const prefillsToday = (from, to, name) =>
+            (name === 'start_date' && from === 'future' && to === 'in_work') || (name === 'finish_date' && to === 'done');
+
+        const transitionCopy = (from, to) => {
+            if (from === 'future' && to === 'in_work') {
+                return ['Start work', 'The start date becomes the real one, and an expected finish date is now required. Today is filled in — change it if you started earlier.'];
+            }
+            if (to === 'done' && from === 'in_work') {
+                return ['Mark done', 'The finish date becomes the real one. A done project also needs its folder and a final line count.'];
+            }
+            if (to === 'done') {
+                return ['Mark done', 'Skipping straight to done — confirm the real dates, the folder and the final line count.'];
+            }
+            if (to === 'in_work') {
+                return ['Reopen', 'Nothing is cleared. The finish date goes back to meaning “expected”, and the line count is kept but hidden until the project is done again.'];
+            }
+            return ['Move to Future', 'Nothing is cleared. The start date goes back to meaning “planned”.'];
+        };
+
+        const openStatusDialog = (project, to, { values = null, errors = null } = {}) => {
+            const from = project.status;
+            const fields = transitionFields(from, to);
+            const [action, note] = transitionCopy(from, to);
+
+            statusForm.reset();
+            clearErrors(statusForm);
+            statusForm.action = project.urls.status;
+            statusForm.elements._modal.value = `status:${project.id}:${to}`;
+            statusForm.elements.status.value = to;
+
+            document.getElementById('pj-status-dialog-title').textContent = `${action}: ${project.title}`;
+            document.getElementById('pj-status-note').textContent = note;
+            statusForm.querySelector('[data-pj-submit]').textContent = action;
+
+            for (const name of TRANSITION_FIELDS) {
+                const shown = fields.includes(name);
+                const input = control(statusForm, 'sf', name);
+                wrapper(statusForm, name).hidden = !shown;
+                input.disabled = !shown;
+                setRequired(statusForm, 'sf', name, shown && data.required[to].includes(name));
+
+                if (values) {
+                    input.value = values[name] ?? '';
+                } else {
+                    input.value = prefillsToday(from, to, name) ? today() : (project[name] ?? '');
+                }
+            }
+            setDateLabels(statusForm, to);
+
+            const firstInvalid = showErrors(statusForm, 'sf', errors);
+
+            statusDialog.showModal();
+            (firstInvalid ?? statusForm.querySelector('.nd-field:not([hidden]) .nd-input') ?? statusForm.querySelector('[data-pj-submit]')).focus();
+        };
+
+        // ---- delete
+
+        const openDeleteDialog = (project) => {
+            deleteForm.action = project.urls.destroy;
+            deleteForm.querySelector('[data-pj-delete-title]').textContent = project.title;
+            deleteDialog.showModal();
+        };
+
+        return { openProjectDialog, openStatusDialog, openDeleteDialog };
     };
-
-    // ---- delete
-
-    const openDeleteDialog = (project) => {
-        deleteForm.action = project.urls.destroy;
-        deleteForm.querySelector('[data-pj-delete-title]').textContent = project.title;
-        deleteDialog.showModal();
-    };
+    const dialogs = document.getElementById('pj-project-dialog') ? setupDialogs() : null;
 
     // ------------------------------------------------------------ file tree
 
@@ -359,13 +365,13 @@ const initProjects = () => {
 
         const actions = el('div', 'pj-tree__actions');
 
-        const open = el('a', 'pj-btn pj-btn--ghost pj-btn--sm');
+        const open = el('a', 'nd-btn nd-btn--ghost nd-btn--sm');
         open.href = entry.vscode;
         open.title = 'Open in VS Code';
         open.setAttribute('aria-label', `Open ${entry.name} in VS Code`);
         open.append(icon('code'), el('span', 'pj-tree__label-long', 'VS Code'));
 
-        const copy = el('button', 'pj-btn pj-btn--ghost pj-btn--sm pj-btn--icon');
+        const copy = el('button', 'nd-icon-btn nd-icon-btn--sm');
         copy.type = 'button';
         copy.title = 'Copy path';
         copy.dataset.pjCopy = entry.wsl;
@@ -415,7 +421,7 @@ const initProjects = () => {
             body = await response.json();
         } catch (error) {
             list.removeAttribute('aria-busy');
-            const retry = el('button', 'pj-linkbtn ml-1', 'Retry');
+            const retry = el('button', 'pj-linkbtn', 'Retry');
             retry.type = 'button';
             retry.addEventListener('click', () => loadFolder(list, url, path));
             const item = note(error instanceof TypeError ? 'Couldn’t reach the server.' : error.message, 'pj-tree__note--error');
@@ -470,10 +476,11 @@ const initProjects = () => {
             const project = projects[opener.dataset.project];
             const kind = opener.dataset.pjOpen;
 
-            if (kind === 'create') openProjectDialog('create', { status: opener.dataset.status ?? 'future' });
-            else if (kind === 'edit' && project) openProjectDialog('edit', { project });
-            else if (kind === 'status' && project) openStatusDialog(project, opener.dataset.target);
-            else if (kind === 'delete' && project) openDeleteDialog(project);
+            if (!dialogs) return;
+            if (kind === 'create') dialogs.openProjectDialog('create', { status: opener.dataset.status ?? 'future' });
+            else if (kind === 'edit' && project) dialogs.openProjectDialog('edit', { project });
+            else if (kind === 'status' && project) dialogs.openStatusDialog(project, opener.dataset.target);
+            else if (kind === 'delete' && project) dialogs.openDeleteDialog(project);
             return;
         }
 
@@ -523,17 +530,17 @@ const initProjects = () => {
     // ------------------------------------- reopen the dialog a failed submit came from
 
     const context = data.context;
-    if (context) {
+    if (context && dialogs) {
         const old = data.old ?? {};
         const errors = data.errors ?? {};
         const [kind, id, target] = context.split(':');
 
         if (kind === 'create') {
-            openProjectDialog('create', { values: old, errors });
+            dialogs.openProjectDialog('create', { values: old, errors });
         } else if (kind === 'edit' && projects[id]) {
-            openProjectDialog('edit', { project: projects[id], values: old, errors });
+            dialogs.openProjectDialog('edit', { project: projects[id], values: old, errors });
         } else if (kind === 'status' && projects[id]) {
-            openStatusDialog(projects[id], target, { values: old, errors });
+            dialogs.openStatusDialog(projects[id], target, { values: old, errors });
         }
     }
 };

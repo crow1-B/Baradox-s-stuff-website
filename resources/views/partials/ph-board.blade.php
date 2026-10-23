@@ -13,7 +13,7 @@
 @endphp
 
 @if ($photos->isEmpty())
-    <div class="nd-empty nd-empty--block ph-empty">
+    <div class="nd-empty nd-empty--block">
         @if ($context === 'album')
             <p class="nd-empty__line">This album is empty.</p>
             <p>Nothing has been put in “{{ $album->name }}” yet.@if ($canWrite) Select photos on the Photos page and add them to it.@endif</p>
