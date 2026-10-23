@@ -115,6 +115,15 @@
     --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
     --nd-mood-l: 0.78;
     --nd-mood-c: 0.09;
+
+    /* Scrollbar thumb: the ink at low strength, stronger under the pointer and while dragged.
+       Declared here, beside .nd-dark, and only ever derived from --nd-ink, so every phase (and
+       a dark room by day) resolves its own: the var() is read on the element that declares
+       it, which an inherited, pre-mixed colour would not be. */
+    --nd-scroll-thumb: color-mix(in oklab, var(--nd-ink) 20%, transparent);
+    --nd-scroll-thumb-hover: color-mix(in oklab, var(--nd-ink) 36%, transparent);
+    --nd-scroll-thumb-active: color-mix(in oklab, var(--nd-ink) 48%, transparent);
+    --nd-scroll-size: 10px;
 }
 
 /* Dusk: the amber haze is still on the horizon, so the room warms toward the floor. */

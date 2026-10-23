@@ -12,6 +12,39 @@
     outline-offset: 2px;
 }
 
+/* ------------------------------------------------------------------ scrollbars */
+
+/* Every scrollbar on the site: thin, a rounded thumb on a track you can't see, a little
+   stronger under the pointer and while dragged. Chromium paints the ::-webkit-scrollbar parts;
+   it ignores them on any element that sets scrollbar-width or scrollbar-color (Chrome 121+),
+   so the standard properties are kept for engines without the pseudo-elements and nothing
+   else on the site may set them, except scrollbar-width: none to hide one. Only colours change
+   on hover, never sizes, so nothing moves; the thumb is a plain fill, nothing blurred. Not
+   under forced colours: there the system's own scrollbars follow the user's palette. */
+@media not (forced-colors: active) {
+    @supports selector(::-webkit-scrollbar) {
+        ::-webkit-scrollbar { width: var(--nd-scroll-size); height: var(--nd-scroll-size); background: transparent; }
+        ::-webkit-scrollbar-track,
+        ::-webkit-scrollbar-corner { background: transparent; }
+        ::-webkit-scrollbar-button { display: none; }
+        ::-webkit-scrollbar-thumb {
+            min-width: 2.5rem;
+            min-height: 2.5rem;
+            border: 2px solid transparent; /* the gap that makes the thumb float in the track */
+            border-radius: var(--nd-r-pill);
+            background: var(--nd-scroll-thumb) padding-box;
+        }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--nd-scroll-thumb-hover); }
+        ::-webkit-scrollbar-thumb:active { background-color: var(--nd-scroll-thumb-active); }
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        :root,
+        .nd-dark { scrollbar-color: var(--nd-scroll-thumb) transparent; }
+        * { scrollbar-width: thin; }
+    }
+}
+
 /* ------------------------------------------------------------------ buttons */
 
 .nd-btn {

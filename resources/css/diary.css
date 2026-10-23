@@ -459,7 +459,7 @@
 
 /* The desk: nothing but the page. */
 .dy-write { height: 100%; }
-.dy-write__scroller { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.dy-write__scroller { height: 100%; overflow-y: auto; overscroll-behavior: contain; }
 .dy-write__page {
     position: relative;
     width: min(40rem, 100%);

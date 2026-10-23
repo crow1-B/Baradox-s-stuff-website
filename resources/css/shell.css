@@ -59,7 +59,6 @@
     background: color-mix(in oklab, var(--nd-bg-deep) 82%, transparent);
     color: var(--nd-ink);
     overscroll-behavior: contain;
-    scrollbar-width: thin;
 }
 
 .app-sidebar__head {
