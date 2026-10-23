@@ -118,12 +118,44 @@ const paint = (nodes, chars, p, direction) => {
 
 // The words are the point of both animations, so they are brought on screen first: an
 // entry with photos above its text would otherwise seal below the fold.
-const bringIntoView = async (text) => {
+const needsScroll = (text) => {
     const top = text.getBoundingClientRect().top;
-    if (top > 0 && top < window.innerHeight * 0.55) return;
+    return !(top > 0 && top < window.innerHeight * 0.55);
+};
+
+const bringIntoView = async (text) => {
+    if (!needsScroll(text)) return;
     text.scrollIntoView({ block: 'start', behavior: 'smooth' });
     await run(450, () => {});
 };
+
+// Where the page will be once bringIntoView has run, so the paragraphs that are going to be
+// seen can be picked before it starts scrolling.
+const landing = (text) => {
+    if (!needsScroll(text)) return window.scrollY;
+    const margin = parseFloat(getComputedStyle(text).scrollMarginTop) || 0;
+    const target = window.scrollY + text.getBoundingClientRect().top - margin;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    return Math.max(0, Math.min(target, max));
+};
+
+// Only paragraphs on screen there, or within a quarter of a screen of it, scramble; the rest
+// switch in one go where nobody is looking. Every rewritten paragraph is laid out and painted
+// again on every frame, and on a phone a long entry's off-screen paragraphs were most of that
+// work for nothing anyone could see.
+const MARGIN = 0.25;
+
+const onScreen = (nodes, scrollY) => {
+    const top = scrollY - window.innerHeight * MARGIN;
+    const bottom = scrollY + window.innerHeight * (1 + MARGIN);
+    return nodes.map((node) => {
+        const box = node.parentElement.getBoundingClientRect();
+        const y = box.top + window.scrollY;
+        return y + box.height > top && y < bottom;
+    });
+};
+
+const scrambled = (text) => [...text].map((char) => (char === '\n' ? char : glyph())).join('');
 
 // The seal lands over the middle of whatever part of the text is on screen, not the middle
 // of a text that may be several screens long. Placed in px, measured at the moment it lands.
@@ -147,12 +179,17 @@ export const seal = async (text, sheet) => {
 
     const nodes = textNodes(text);
     if (!nodes.length) return;
-    const { chars } = plan(nodes);
+    const shown = onScreen(nodes, landing(text));
+    const moving = nodes.filter((_, n) => shown[n]);
+    const { chars } = plan(moving);
 
     await bringIntoView(text);
     pinDirection(text);
+    nodes.forEach((node, n) => {
+        if (!shown[n]) node.data = scrambled(node.data);
+    });
     text.classList.add('is-sealing');
-    await run(1500, (p) => paint(nodes, chars, p, 'seal'));
+    await run(1500, (p) => paint(moving, chars, p, 'seal'));
 
     text.classList.add('is-sealed-out');
     sheet?.classList.add('is-sealing');
@@ -171,18 +208,20 @@ export const unseal = async (text) => {
     }
 
     const nodes = textNodes(text);
-    const { originals, chars } = plan(nodes);
+    const shown = onScreen(nodes, landing(text));
+    const moving = nodes.filter((_, n) => shown[n]);
+    const { originals, chars } = plan(moving);
 
     pinDirection(text);
-    paint(nodes, chars, 0, 'unseal');
+    paint(moving, chars, 0, 'unseal');
     text.classList.add('is-unsealing');
     await bringIntoView(text);
 
     const lifting = wax(text);
     lifting?.classList.replace('dy-wax--stamp', 'dy-wax--lift');
 
-    await run(1700, (p) => paint(nodes, chars, p, 'unseal'));
-    nodes.forEach((node, n) => (node.data = originals[n]));
+    await run(1700, (p) => paint(moving, chars, p, 'unseal'));
+    moving.forEach((node, n) => (node.data = originals[n]));
     unpinDirection(text);
     text.classList.remove('is-unsealing');
     text.classList.add('is-unsealed');
