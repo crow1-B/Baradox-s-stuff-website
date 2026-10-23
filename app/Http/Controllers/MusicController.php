@@ -18,7 +18,10 @@ class MusicController extends Controller
 
     public function viewMusicPage()
     {
-        return view('music', ['tracks' => $this->tracksForUser()]);
+        return view('music', [
+            'tracks' => $this->tracksForUser(),
+            'canWrite' => !Auth::user()->isPreview(),
+        ]);
     }
 
 

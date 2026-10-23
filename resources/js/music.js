@@ -35,16 +35,17 @@ const initMusic = () => {
 
     // ------------------------------------------------------------ dialogs
 
+    // Guest gets the list without the dialogs: there is nothing to add, edit or delete.
     const addDialog = document.getElementById('mu-add-dialog');
     const editDialog = document.getElementById('mu-edit-dialog');
     const deleteDialog = document.getElementById('mu-delete-dialog');
-    const addForm = addDialog.querySelector('form');
-    const editForm = editDialog.querySelector('form');
-    const deleteForm = deleteDialog.querySelector('form');
+    const addForm = addDialog?.querySelector('form');
+    const editForm = editDialog?.querySelector('form');
+    const deleteForm = deleteDialog?.querySelector('form');
 
     let returnFocusTo = null;
 
-    for (const dialog of [addDialog, editDialog, deleteDialog]) {
+    for (const dialog of [addDialog, editDialog, deleteDialog].filter(Boolean)) {
         let pressedBackdrop = false;
         dialog.addEventListener('mousedown', (event) => (pressedBackdrop = event.target === dialog));
         dialog.addEventListener('click', (event) => {
@@ -66,7 +67,7 @@ const initMusic = () => {
     const control = (form, prefix, name) => form.querySelector(`#${prefix}-${name}`);
 
     const clearErrors = (form) => {
-        for (const node of form.querySelectorAll('[data-mu-error]')) {
+        for (const node of form.querySelectorAll('[data-field-error]')) {
             node.hidden = true;
             node.textContent = '';
         }
@@ -331,6 +332,7 @@ const initMusic = () => {
             const kind = opener.dataset.muOpen;
             const track = tracks[opener.dataset.track];
 
+            if (!addDialog) return;
             if (kind === 'add') openAddDialog({ opener });
             else if (kind === 'edit' && track) openEditDialog(track, { opener });
             else if (kind === 'delete' && track) openDeleteDialog(track, opener);
@@ -361,9 +363,9 @@ const initMusic = () => {
 
     // Reopen the dialog a failed submit came from, with what was typed and why it failed.
     const [kind, id] = (data.context ?? '').split(':');
-    if (kind === 'add') {
+    if (addDialog && kind === 'add') {
         openAddDialog({ values: data.old ?? {}, errors: data.errors });
-    } else if (kind === 'edit' && tracks[id]) {
+    } else if (addDialog && kind === 'edit' && tracks[id]) {
         openEditDialog(tracks[id], { values: data.old ?? {}, errors: data.errors });
     }
 };
