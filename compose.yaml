@@ -60,6 +60,9 @@ services:
                 condition: service_healthy
     mysql:
         image: "mysql:8.4"
+        # No binary log: nothing replicates from this server and backups are dumps, so it was
+        # only a second disk sync on every commit. InnoDB still syncs its redo log per commit.
+        command: --disable-log-bin
         ports:
             - "${FORWARD_DB_PORT:-3306}:3306"
         environment:
