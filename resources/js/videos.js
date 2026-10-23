@@ -3,6 +3,8 @@ let page = null;
 const SEEK_STEP = 5;
 const COPIED_MS = 1600;
 
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const initVideos = () => {
     const root = document.getElementById('vd-root');
     if (!root || root.dataset.vdReady === 'true') return;
@@ -67,6 +69,7 @@ const initVideos = () => {
     const tearDown = () => {
         video.pause();
         video.removeAttribute('src');
+        video.removeAttribute('poster');
         video.load();
         video.hidden = true;
     };
@@ -109,8 +112,31 @@ const initVideos = () => {
         }
 
         gate.hidden = true;
-        openDialog(playerDialog);
-        play(info.urls.stream);
+
+        // The card's poster grows into the player: the <video> borrows the same (cached) frame
+        // as its poster for the new snapshot, so both ends of the morph show one picture.
+        const poster = document.getElementById(`video-${id}`)?.querySelector('[data-vd-poster]');
+        const morph = poster && !poster.hidden && poster.complete && poster.naturalWidth > 0
+            && document.startViewTransition && !reducedMotion();
+
+        if (!morph) {
+            openDialog(playerDialog);
+            play(info.urls.stream);
+            return;
+        }
+
+        poster.style.viewTransitionName = 'vd-screen';
+        const transition = document.startViewTransition(() => {
+            poster.style.viewTransitionName = '';
+            video.poster = poster.currentSrc;
+            openDialog(playerDialog);
+            play(info.urls.stream);
+            video.style.viewTransitionName = 'vd-screen';
+        });
+        transition.finished.finally(() => {
+            poster.style.viewTransitionName = '';
+            video.style.viewTransitionName = '';
+        });
     };
 
     gateForm.addEventListener('submit', (event) => {
@@ -229,7 +255,7 @@ const initVideos = () => {
             const scratch = document.createElement('textarea');
             scratch.value = url;
             scratch.setAttribute('readonly', '');
-            scratch.className = 'vd-sr';
+            scratch.className = 'nd-sr-only';
             root.appendChild(scratch);
             scratch.select();
             try {

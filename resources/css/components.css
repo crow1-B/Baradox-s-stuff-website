@@ -199,6 +199,8 @@ input[type='date'].nd-input { color-scheme: inherit; }
 .nd-banner p, .nd-banner ul { margin: 0; }
 .nd-banner--success { border-color: color-mix(in oklab, var(--nd-success) 30%, transparent); background: var(--nd-success-soft); color: var(--nd-success); }
 .nd-banner--error { border-color: color-mix(in oklab, var(--nd-danger) 30%, transparent); background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-banner--warn { border-color: color-mix(in oklab, var(--nd-warn) 30%, transparent); background: var(--nd-warn-soft); color: var(--nd-warn); }
+.nd-banner code, .nd-note code { -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 0.05rem 0.3rem; border-radius: var(--nd-r-xs); background: var(--nd-surface-2); color: var(--nd-ink); font: 0.85em var(--nd-font-mono); }
 .nd-banner__text { flex: 1; color: var(--nd-ink); }
 
 .nd-note {
@@ -215,6 +217,8 @@ input[type='date'].nd-input { color-scheme: inherit; }
 .nd-note--warn { background: var(--nd-warn-soft); color: var(--nd-ink); }
 .nd-note--warn > i { color: var(--nd-warn); }
 .nd-note--error { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-note--info { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-note--info > i { color: var(--nd-accent); }
 
 /* ------------------------------------------------------------------ chips, badges, keys */
 

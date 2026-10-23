@@ -264,6 +264,7 @@ class VideosController extends Controller
             'driveReady' => $onDrive !== null,
             'folderLabel' => $this->folderLabel(),
             'highlightId' => $highlightId,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -299,6 +300,7 @@ class VideosController extends Controller
             'driveReady' => $onDrive !== null,
             'folderLabel' => $this->folderLabel(),
             'highlightId' => null,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
