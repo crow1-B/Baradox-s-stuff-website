@@ -541,7 +541,7 @@
 
 /* Touch targets: see components.css. */
 @media (pointer: coarse), (max-width: 639.98px) {
-    .dy-steps__step { min-height: 2.75rem; }
+    .dy-steps__step { min-width: 2.75rem; min-height: 2.75rem; justify-content: center; }
     /* The whole card is the way in; the person chips stay their own buttons above it. */
     .dy-card__link::after { content: ''; position: absolute; inset: 0; }
     .dy-card__people { position: relative; z-index: 1; }

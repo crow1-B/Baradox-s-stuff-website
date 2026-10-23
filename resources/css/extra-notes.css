@@ -439,6 +439,7 @@ html[data-bs-player='handle'] .xn { --xn-player: calc(36px + 32px); }
 /* Touch targets: see components.css. */
 @media (pointer: coarse), (max-width: 639.98px) {
     .xn-send { width: 2.75rem; height: 2.75rem; }
+    .xn-composer__input { min-height: 2.75rem; }
     .xn-composer__tags label, .xn-pinned__jump, .xn-link { position: relative; }
     .xn-composer__tags label::after,
     .xn-pinned__jump::after,
