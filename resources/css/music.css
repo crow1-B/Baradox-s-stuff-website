@@ -227,3 +227,6 @@
     .mu-eq i:nth-child(1) { transform: scaleY(0.7); }
     .mu-eq i:nth-child(3) { transform: scaleY(0.4); }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.mu-sort, .mu-row, .mu-fav) { transition: none !important; }

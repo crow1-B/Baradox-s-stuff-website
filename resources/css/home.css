@@ -251,3 +251,6 @@ a.home-visit__page:focus-visible { outline: 2px solid var(--nd-accent); outline-
 @media (prefers-reduced-motion: reduce) {
     .home-slip, .home-song__play { transition: none; }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.home-slip) { transition: none !important; }

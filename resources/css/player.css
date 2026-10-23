@@ -280,3 +280,6 @@ html[data-bs-player='full'] { scroll-padding-bottom: 96px; }
     .bsp-icon-loading { animation-duration: 2.4s; }
     .bsp-toggle, .bsp-icon-btn, .bsp-range::-webkit-slider-thumb { transition: none; }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.bsp-icon-btn) { transition: none !important; }

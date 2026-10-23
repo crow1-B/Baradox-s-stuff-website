@@ -433,3 +433,6 @@ html[data-bs-player='handle'] .xn { --xn-player: calc(36px + 32px); }
     .xn-composer { flex-wrap: wrap; padding-top: 0.3rem; }
     .xn-composer__tags { order: -1; width: 100%; padding: 0 0 0.2rem; border-bottom: 1px solid var(--nd-line); }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.xn-composer, .xn-composer__tags label, .xn-send, .xn-tagpick label) { transition: none !important; }

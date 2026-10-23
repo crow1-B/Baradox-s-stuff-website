@@ -452,3 +452,6 @@
     height: 100%;
     object-fit: cover;
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.ph-album, .ph-act, .ph-drop, .ph-lb__nav) { transition: none !important; }

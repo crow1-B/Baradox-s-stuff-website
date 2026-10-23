@@ -11,6 +11,24 @@ const theme = () => window.ndTheme;
 const root = document.documentElement;
 
 let shiftTimer = null;
+let snapTimer = null;
+let snapFrame = 0;
+
+// While the phase changes, nothing runs its own colour transition (each file's
+// :root[data-phase-snap] rule). A colour transition starting on hundreds of buttons is most of
+// what a phase change used to cost, and a fade should move the room as one: during the
+// clock's cross-fade every frame would otherwise restart them. The rules name the
+// transitioned classes rather than `*`, so taking the attribute off again restyles only
+// those elements.
+const snap = (ms) => {
+    clearTimeout(snapTimer);
+    cancelAnimationFrame(snapFrame);
+    root.setAttribute('data-phase-snap', '');
+    const release = () => root.removeAttribute('data-phase-snap');
+    if (ms) snapTimer = setTimeout(release, ms);
+    // Two frames: the change is styled in the first with the transitions off.
+    else snapFrame = requestAnimationFrame(() => (snapFrame = requestAnimationFrame(release)));
+};
 
 const paintControls = () => {
     const { phase, themePref: pref } = root.dataset;
@@ -49,10 +67,14 @@ export const refresh = ({ animate = true } = {}) => {
         root.classList.add('nd-phase-shift');
         clearTimeout(shiftTimer);
         shiftTimer = setTimeout(() => root.classList.remove('nd-phase-shift'), SHIFT_MS);
-    } else if (!animate) {
-        // Stop a fade already running, or this change would fade along with it.
-        clearTimeout(shiftTimer);
-        root.classList.remove('nd-phase-shift');
+        snap(SHIFT_MS);
+    } else {
+        if (!animate) {
+            // Stop a fade already running, or this change would fade along with it.
+            clearTimeout(shiftTimer);
+            root.classList.remove('nd-phase-shift');
+        }
+        if (phase !== before) snap(0);
     }
 
     root.dataset.clock = clock;

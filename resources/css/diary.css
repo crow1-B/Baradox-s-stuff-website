@@ -535,3 +535,6 @@
     .dy-card, .dy-text, .dy-flow__head, .dy-flow__foot, .dy-moods__item, .dy-ptile img { transition: none; }
     .dy-wax--stamp, .dy-wax--lift { animation: none; }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.dy-card, .dy-text, .dy-moods__item) { transition: none !important; }

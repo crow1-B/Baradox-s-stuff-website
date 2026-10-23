@@ -363,3 +363,6 @@
 @media (prefers-reduced-motion: reduce) {
     .app-sidebar, .app-nav__link, .app-jump { transition: none !important; }
 }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.app-nav__link, .app-nav__icon, .app-jump) { transition: none !important; }

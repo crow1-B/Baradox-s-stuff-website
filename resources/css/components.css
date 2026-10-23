@@ -499,3 +499,6 @@ input[type='file'].nd-input::file-selector-button {
 .nd-dot--future { --nd-dot-hue: 290; }
 .nd-dot--in_work { --nd-dot-hue: 75; }
 .nd-dot--done { --nd-dot-hue: 150; }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.nd-btn, .nd-icon-btn, .nd-input, .nd-chip, .nd-secret__toggle) { transition: none !important; }

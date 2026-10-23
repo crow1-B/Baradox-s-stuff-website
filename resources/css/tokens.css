@@ -236,6 +236,12 @@
         --nd-haze var(--nd-dur-phase) var(--nd-ease-in-out);
 }
 
+/* While theme.js holds data-phase-snap on the root, the elements that transition a colour
+   stop doing it. Each stylesheet lists its own (`:root[data-phase-snap] :is(...)`, at its
+   foot); PhaseSnapTest fails when a colour transition is not covered. Starting a transition
+   is far more expensive than restyling, and a phase change used to start one on every
+   button, chip and row on the page. */
+
 /* ------------------------------------------------------------------ the room */
 
 /* Opted into by layouts/app and by the login layout. */
@@ -269,7 +275,12 @@
     background-blend-mode: overlay, normal, normal, normal;
 }
 
-.nd-room ::selection { background: var(--nd-accent-soft); color: var(--nd-ink); }
+/* On the room and on each dark room only; everything inside takes it by highlight
+   inheritance. `.nd-room ::selection` matched every element, and Chromium then computed a
+   ::selection style for each of them on every full restyle (a modal opening, a phase
+   change): roughly two-thirds of what those cost. Same pixels either way. */
+.nd-room::selection,
+.nd-dark::selection { background: var(--nd-accent-soft); color: var(--nd-ink); }
 
 /* What Baradox wrote is set in the serif; the interface around it is not. */
 .nd-written {
