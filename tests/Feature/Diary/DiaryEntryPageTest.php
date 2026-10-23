@@ -5,6 +5,7 @@ namespace Tests\Feature\Diary;
 use App\Models\DiaryEntry;
 use App\Models\Track;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -94,5 +95,24 @@ class DiaryEntryPageTest extends TestCase
         $this->actingAs($this->user)->from(route('diary.entry', $entry))->delete('/diary/' . $entry->id)
             ->assertRedirect(route('diary'));
         $this->assertNull($entry->fresh());
+    }
+
+    public function test_a_failed_reveal_records_no_extra_visit(): void
+    {
+        $entry = $this->entry();
+        $this->seal($entry, 'aes');
+        $page = route('diary.entry', $entry);
+        $frame = ['Turbo-Frame' => "dy-reveal-frame-{$entry->id}"];
+
+        $this->actingAs($this->user)->get($page)->assertOk();
+        $this->assertSame(1, Visit::where('user_id', $this->user->id)->count());
+
+        // What Turbo does for the frame: the POST, then the redirect's GET with the same header.
+        $this->actingAs($this->user)->from($page)->withHeaders($frame)
+            ->post(route('diary.reveal', $entry), ['algorithm' => 'aes', 'key' => 'wrong-key-here'])
+            ->assertRedirect($page);
+        $this->actingAs($this->user)->withHeaders($frame)->get($page)->assertOk()->assertSee('Incorrect key or algorithm.');
+
+        $this->assertSame(1, Visit::where('user_id', $this->user->id)->count());
     }
 }

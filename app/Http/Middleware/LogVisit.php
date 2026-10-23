@@ -47,6 +47,12 @@ class LogVisit
             return $next($request);
         }
 
+        // A Turbo frame loading into a page is part of the page already recorded, not a visit:
+        // the Diary reveal's frame follows a failed attempt's redirect back to the entry.
+        if ($request->hasHeader('Turbo-Frame')) {
+            return $next($request);
+        }
+
         $routeName = $request->route()?->getName();
 
         if (in_array($routeName, self::SKIPPED, true)) {
