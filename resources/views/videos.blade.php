@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     @vite(['resources/css/videos.css', 'resources/js/videos.js'])
     {{-- The watch dialog can be holding a gated stream (the key rides in the src), so this

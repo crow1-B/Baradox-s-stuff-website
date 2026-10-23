@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     @vite(['resources/css/future-updates.css', 'resources/js/future-updates.js'])
 @endpush

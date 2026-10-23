@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     @vite(['resources/css/photos.css', 'resources/js/photos.js'])
     {{-- The lightbox can hold a decrypted photo, so this page must never be restored from a

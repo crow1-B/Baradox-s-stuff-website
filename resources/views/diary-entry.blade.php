@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     {{-- Never kept for Back/Forward: this page can be holding a decrypted entry. --}}
     <meta name="turbo-cache-control" content="no-cache">

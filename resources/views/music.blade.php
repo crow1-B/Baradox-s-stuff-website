@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     @vite(['resources/css/music.css', 'resources/js/music.js'])
 @endpush
@@ -112,7 +110,7 @@
                 <button type="button" class="mu-sort" data-mu-sort="artist">Artist<i class="fa-solid fa-chevron-down mu-sort__caret" aria-hidden="true"></i></button>
             </span>
             <span class="mu-col--release mu-head__label">Released</span>
-            <span class="mu-col--duration">
+            <span>
                 <button type="button" class="mu-sort mu-sort--end" data-mu-sort="duration">Length<i class="fa-solid fa-chevron-down mu-sort__caret" aria-hidden="true"></i></button>
             </span>
             <span class="mu-col--added">
@@ -164,7 +162,7 @@
                         <span class="nd-sr-only">Released </span>{{ $track->song_date ?: '—' }}
                     </span>
 
-                    <span class="mu-col--duration mu-meta mu-meta--end">
+                    <span class="mu-meta mu-meta--end">
                         <span class="nd-sr-only">Length </span>{{ $track->durationForHumans() ?: '—' }}
                     </span>
 

@@ -27,12 +27,6 @@
     @stack('head')
 </head>
 
-@php
-    // A redesigned page says so with @section('surface', 'nd'); everything else still renders
-    // inside the pinned legacy room (app.css) until its own phase moves it over.
-    $redesigned = trim($__env->yieldContent('surface')) === 'nd';
-@endphp
-
 <body class="nd-room">
     <a class="app-skip" href="#main">Skip to content</a>
 
@@ -43,7 +37,7 @@
         <div class="app-column">
             @include('partials.topbar')
 
-            <main class="app-main @unless ($redesigned) app-legacy @endunless" id="main" tabindex="-1">
+            <main class="app-main" id="main" tabindex="-1">
                 @yield('content')
             </main>
         </div>

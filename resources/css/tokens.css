@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Night desk — the one token system every redesigned page reads.
+   Night desk — the one token system every page reads.
 
    The palette is the login's sky carried indoors: night is its teal-ink zenith, dusk keeps
    the amber haze on the horizon, dawn and day are the mist over the treeline. The phase is
@@ -229,7 +229,7 @@
 
 /* ------------------------------------------------------------------ the room */
 
-/* Opted into by layouts/app on redesigned pages and by the login layout. */
+/* Opted into by layouts/app and by the login layout. */
 .nd-room {
     min-height: 100dvh;
     background: var(--nd-bg);

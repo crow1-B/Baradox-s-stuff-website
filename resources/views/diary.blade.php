@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     {{-- Don't keep a Back/Forward snapshot of this page: its search can hold anything typed. --}}
     <meta name="turbo-cache-control" content="no-cache">

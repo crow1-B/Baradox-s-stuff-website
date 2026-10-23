@@ -1,7 +1,5 @@
 @extends('layouts.app')
 
-@section('surface', 'nd')
-
 @push('head')
     @vite(['resources/css/extra-notes.css', 'resources/js/extra-notes.js'])
 @endpush

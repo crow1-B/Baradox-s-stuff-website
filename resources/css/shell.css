@@ -3,56 +3,6 @@
    Reads the night-desk tokens (tokens.css).
    ========================================================================== */
 
-/* The old --bs-* names, kept as aliases so pages and local-only code written against them
-   still resolve. Outside <main> they follow the phase; inside the legacy room they are
-   pinned to the values those pages were designed with. Remove once nothing reads them. */
-:root {
-    --bs-bg: var(--nd-bg);
-    --bs-sidebar: var(--nd-bg-deep);
-    --bs-surface: var(--nd-surface);
-    --bs-surface-2: var(--nd-surface-2);
-    --bs-surface-3: var(--nd-raised);
-    --bs-border: var(--nd-line);
-    --bs-border-strong: var(--nd-line-strong);
-    --bs-text: var(--nd-ink);
-    --bs-text-muted: var(--nd-ink-2);
-    --bs-text-faint: var(--nd-ink-3);
-    --bs-accent: var(--nd-accent-strong);
-    --bs-accent-hover: var(--nd-accent);
-    --bs-accent-soft: var(--nd-accent-soft);
-    --bs-accent-text: var(--nd-accent);
-    --bs-on-accent: var(--nd-on-accent);
-    --bs-danger: var(--nd-danger);
-    --bs-radius-sm: 6px;
-    --bs-radius: 10px;
-    --bs-radius-lg: 14px;
-    --bs-ring: 0 0 0 2px var(--nd-bg), 0 0 0 4px var(--nd-accent);
-    --bs-ease: var(--nd-ease);
-    --bs-topbar-h: var(--nd-topbar-h);
-    --bs-sidebar-w: var(--nd-sidebar-w);
-}
-
-.app-legacy {
-    --bs-bg: #121212;
-    --bs-sidebar: #161618;
-    --bs-surface: #1a1a1d;
-    --bs-surface-2: #222226;
-    --bs-surface-3: #2a2a2f;
-    --bs-border: #2c2c32;
-    --bs-border-strong: #3a3a42;
-    --bs-text: #ececf1;
-    --bs-text-muted: #a3a3ad;
-    --bs-text-faint: #75757f;
-    --bs-accent: #29a1a1;
-    --bs-accent-hover: #33b8b8;
-    --bs-accent-soft: rgb(41 161 161 / 0.14);
-    --bs-accent-text: #6fd6d6;
-    --bs-on-accent: #041414;
-    --bs-danger: #f87171;
-    --bs-ring: 0 0 0 2px #121212, 0 0 0 4px #6fd6d6;
-    color-scheme: dark;
-}
-
 /* ---------------------------------------------------------------- skip link */
 
 .app-skip {
@@ -241,12 +191,6 @@
 
 .app-topbar__menu,
 .app-topbar__brand { display: none !important; }
-
-/* Pages not yet redesigned were laid out without a desktop top bar (Extra Notes sizes itself
-   to the viewport), so over them it stays hidden on desktop; Ctrl+K still opens the palette. */
-@media (min-width: 1024px) {
-    .app-column:has(> .app-legacy) > .app-topbar { display: none; }
-}
 
 .app-topbar__tools { display: flex; align-items: center; gap: var(--nd-space-1); margin-left: auto; }
 

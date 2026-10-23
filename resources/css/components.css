@@ -1,10 +1,9 @@
 /* ==========================================================================
    Shared components on the night-desk tokens. Plain, unlayered, scoped class names (the
    same reasoning as every page so far: unlayered rules beat Tailwind's layered utilities),
-   used by every redesigned page instead of a per-page copy.
+   used by every page instead of a per-page copy.
    ========================================================================== */
 
-.nd-focus:focus-visible,
 .nd-btn:focus-visible,
 .nd-icon-btn:focus-visible,
 .nd-chip:focus-visible,
@@ -328,9 +327,8 @@ input[type='date'].nd-input { color-scheme: inherit; }
 
 /* ------------------------------------------------------------------ show/hide on a secret field */
 
-/* x-nd-secret, secret-fields.js. The button takes its colour from the field around it, so it
-   reads right on night-desk pages and on the legacy ones. Selectors carry the element names to
-   outrank the legacy bare input/button rules and the per-page input classes. */
+/* x-nd-secret, secret-fields.js. The button takes its colour from the field around it (the
+   login page's fields too). Selectors carry the element names to outrank .nd-input's padding. */
 .nd-secret { position: relative; display: block; min-width: 0; }
 .nd-secret > input.nd-secret__input { width: 100%; padding-right: 2.75rem; }
 .nd-secret > button.nd-secret__toggle {
@@ -364,7 +362,7 @@ input[type='date'].nd-input { color-scheme: inherit; }
 /* ------------------------------------------------------------------ page frame */
 
 /* The column every page sits in, its header (serif title, italic serif line), and the
-   banners under it. Diary and Home predate these and keep their own copies. */
+   banners under it. Diary and Home predate these and keep their own (.dy-head, .home-hero). */
 .nd-page {
     position: relative;
     z-index: 1;
@@ -431,9 +429,6 @@ input[type='file'].nd-input::file-selector-button {
 /* A pressed toggle button (filters): the chip's active look on a full-size button. */
 .nd-btn[aria-pressed='true'] { border-color: var(--nd-accent); background: var(--nd-accent-soft); color: var(--nd-ink); }
 .nd-btn[aria-pressed='true'] > i { color: var(--nd-accent); }
-
-/* Read-only notice for Guest, where write controls would otherwise be. */
-.nd-readonly { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
 
 /* ------------------------------------------------------------------ field layout (x-nd-field) */
 
