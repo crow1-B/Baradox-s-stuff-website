@@ -498,12 +498,14 @@ const initPhotos = () => {
     lbPrev.addEventListener('click', () => move(-1));
     lbNext.addEventListener('click', () => move(1));
 
+    // Capture, so the page is rendered again before the shared close handler hands focus
+    // back to the tile: a skipped (content-visibility) subtree can't take focus.
     lightbox.addEventListener('close', () => {
         delete root.dataset.viewing;
         clearStage();
         lbIndex = -1;
         lbKey = null;
-    });
+    }, { capture: true });
 
     // ------------------------------------------------------------ upload
 

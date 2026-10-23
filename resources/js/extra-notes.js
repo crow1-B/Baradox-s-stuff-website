@@ -520,7 +520,7 @@ const initExtraNotes = () => {
             return;
         }
 
-        card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        card.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         card.classList.add('xn-msg--flash');
         setTimeout(() => card.classList.remove('xn-msg--flash'), 1200);
     };

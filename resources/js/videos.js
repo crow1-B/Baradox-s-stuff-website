@@ -170,6 +170,8 @@ const initVideos = () => {
         showFailure('The file could not be read from the drive. It may have been renamed or moved, or the drive may not be mounted.');
     });
 
+    // Capture, so the page is rendered again before the shared close handler hands focus
+    // back to the card: a skipped (content-visibility) subtree can't take focus.
     playerDialog.addEventListener('close', () => {
         delete root.dataset.viewing;
         tearDown();
@@ -177,7 +179,7 @@ const initVideos = () => {
         keyError.hidden = true;
         failed.hidden = true;
         current = null;
-    });
+    }, { capture: true });
 
     // ------------------------------------------------------------ register dialog
 
@@ -411,7 +413,7 @@ const initVideos = () => {
             url.searchParams.delete('highlight');
             history.replaceState(history.state, '', url);
 
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
             card.classList.add('vd-flash');
         }
     }

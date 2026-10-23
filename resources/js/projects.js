@@ -520,7 +520,7 @@ const initProjects = () => {
             if (tab) activateTab(tab);
         }
 
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
         card.classList.add('pj-flash');
         card.addEventListener('animationend', () => card.classList.remove('pj-flash'), { once: true });
     };
