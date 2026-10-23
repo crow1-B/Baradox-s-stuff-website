@@ -35,9 +35,22 @@
             root.dataset.themePref = pref;
             root.dataset.phase = resolve(pref, clock);
         };
+        // The browser's own chrome (address bar on a phone) takes the room's colour before
+        // first paint too. tokens.css's --nd-bg per phase; theme.js keeps it current after.
+        const ROOM = { dawn: '#e4ebe9', day: '#ebefee', dusk: '#11232c', night: '#0b1a20' };
+        const paintChrome = () => {
+            let meta = document.querySelector('meta[name="theme-color"]');
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.name = 'theme-color';
+                document.head.append(meta);
+            }
+            meta.content = ROOM[document.documentElement.dataset.phase] ?? ROOM.night;
+        };
         window.ndTheme = { KEY, clockPhase, resolve, readPref, apply };
         // Lets CSS hold back what a script is about to animate in, only when one will.
         document.documentElement.dataset.js = '';
         apply();
+        paintChrome();
     })();
 </script>
