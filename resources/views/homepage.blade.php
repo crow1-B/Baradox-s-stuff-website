@@ -11,13 +11,14 @@
 
     // [from hour, greeting, line]. home.js re-picks by the browser's clock, the same clock
     // the light follows, so the words and the room always agree.
+    // Guest can't write, so the lines that ask for writing get a quieter version.
     $greetings = [
-        [0, "Still up, {$name}?", 'The house is asleep. Write it down before it fades.'],
+        [0, "Still up, {$name}?", $canWrite ? 'The house is asleep. Write it down before it fades.' : 'The house is asleep.'],
         [5, "Good morning, {$name}.", 'Early light. Nothing has asked for you yet.'],
         [8, "Good morning, {$name}.", 'The day is still open.'],
         [12, "Good afternoon, {$name}.", 'Half the day behind you.'],
         [17, "Good evening, {$name}.", 'The light is going amber.'],
-        [20, "Good evening, {$name}.", 'The desk is lit. A good hour to close the day.'],
+        [20, "Good evening, {$name}.", $canWrite ? 'The desk is lit. A good hour to close the day.' : 'The desk is lit.'],
     ];
     $hour = (int) $now->format('G');
     [, $greeting, $line] = collect($greetings)->last(fn ($g) => $g[0] <= $hour);
@@ -61,8 +62,10 @@
 
         @if ($onThisDay['entries']->isEmpty() && $onThisDay['photos']->isEmpty())
             <p class="home-quiet">
-                Nothing from {{ $now->format('j F') }} in earlier years yet. Whatever you write today
-                will be waiting here next year.
+                Nothing from {{ $now->format('j F') }} in earlier years yet.
+                @if ($canWrite)
+                    Whatever you write today will be waiting here next year.
+                @endif
             </p>
         @else
             <ol class="home-otd__list" role="list">
