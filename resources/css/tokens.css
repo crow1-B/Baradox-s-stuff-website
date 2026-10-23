@@ -77,9 +77,12 @@
 
 /* ------------------------------------------------------------------ phases */
 
-/* Night (default, and what a page without the boot script gets): the login's zenith. */
+/* Night (default, and what a page without the boot script gets): the login's zenith.
+   .nd-dark scopes the same values to one element whatever the phase: the photo viewer and
+   the video player are dark rooms by day too. */
 :root,
-:root[data-phase='night'] {
+:root[data-phase='night'],
+.nd-dark {
     color-scheme: dark;
     --nd-bg: #0b1a20;
     --nd-bg-deep: #081317;

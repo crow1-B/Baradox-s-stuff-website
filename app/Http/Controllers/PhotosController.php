@@ -102,6 +102,7 @@ class PhotosController extends Controller
             'albumCovers' => $covers,
             'favoriteAlbumId' => $favoriteAlbumId,
             'photoData' => $this->photoPayload($photos, $favoriteAlbumId),
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -130,6 +131,7 @@ class PhotosController extends Controller
             'albums' => $albums,
             'favoriteAlbumId' => $favoriteAlbumId,
             'photoData' => $this->photoPayload($photos, $favoriteAlbumId),
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 

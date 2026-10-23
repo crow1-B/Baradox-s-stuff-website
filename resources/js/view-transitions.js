@@ -5,6 +5,9 @@
 //   <a data-morph="dy-entry-7">   the element you clicked, on the old page
 //   [data-morph-target="dy-entry-7"]   what it becomes, on the new page
 //
+// data-morph-from="<selector>" on the clicked element hands the name to a sibling instead,
+// for a link stretched over a card whose picture is what should travel (Photos' albums).
+//
 // Names are applied at the last moment and removed afterwards: two elements sharing a name
 // in one snapshot abort the transition.
 
@@ -19,9 +22,11 @@ document.addEventListener('click', (event) => {
         named.style.viewTransitionName = '';
         delete named.dataset.morphNamed;
     }
+    const from = source.dataset.morphFrom ? source.parentElement?.querySelector(source.dataset.morphFrom) : source;
+    if (!from) return;
     pending = source.dataset.morph;
-    source.style.viewTransitionName = pending;
-    source.dataset.morphNamed = '';
+    from.style.viewTransitionName = pending;
+    from.dataset.morphNamed = '';
 }, true);
 
 document.addEventListener('turbo:before-render', (event) => {
