@@ -108,7 +108,7 @@
     --nd-shadow-1: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.35);
     --nd-shadow-2: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 10px 30px -12px rgb(0 0 0 / 0.6);
     --nd-shadow-3: 0 30px 80px -20px rgb(0 0 0 / 0.75);
-    --nd-grain-opacity: 0.07;
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
     --nd-mood-l: 0.78;
     --nd-mood-c: 0.09;
 }
@@ -168,7 +168,7 @@
     --nd-shadow-1: 0 1px 2px rgb(16 35 42 / 0.08);
     --nd-shadow-2: 0 12px 30px -14px rgb(16 35 42 / 0.28);
     --nd-shadow-3: 0 30px 80px -24px rgb(16 35 42 / 0.4);
-    --nd-grain-opacity: 0.05;
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
     --nd-mood-l: 0.55;
     --nd-mood-c: 0.11;
 }
@@ -204,7 +204,7 @@
     --nd-shadow-1: 0 1px 2px rgb(15 33 40 / 0.07);
     --nd-shadow-2: 0 12px 30px -14px rgb(15 33 40 / 0.24);
     --nd-shadow-3: 0 30px 80px -24px rgb(15 33 40 / 0.35);
-    --nd-grain-opacity: 0.04;
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
     --nd-mood-l: 0.55;
     --nd-mood-c: 0.11;
 }
@@ -228,12 +228,7 @@
 /* Opted into by layouts/app on redesigned pages and by the login layout. */
 .nd-room {
     min-height: 100dvh;
-    /* Fixed to the viewport: the lamp stays in its corner and the horizon on the floor
-       however far the page scrolls. */
-    background:
-        radial-gradient(60rem 40rem at 12% -8%, var(--nd-lamp), transparent 70%) fixed,
-        radial-gradient(90rem 34rem at 50% 118%, var(--nd-haze), transparent 72%) fixed,
-        linear-gradient(180deg, var(--nd-bg) 0%, var(--nd-floor) 100%) fixed;
+    background: var(--nd-bg);
     color: var(--nd-ink);
     font-family: var(--nd-font-sans);
     line-height: var(--nd-leading-ui);
@@ -241,16 +236,24 @@
     text-rendering: optimizeLegibility;
 }
 
-/* Paper grain. A tiled SVG noise, fixed so it doesn't crawl when the page scrolls. */
+/* The room's light and the paper grain, as one layer fixed to the viewport: the lamp stays in
+   its corner and the horizon on the floor however far the page scrolls, and the grain doesn't
+   crawl. One static layer under everything is painted once and composited for free; the
+   fixed-attachment backgrounds and a mix-blend-mode overlay it replaced were repainted or
+   re-blended on every scroll and animation frame. The grain is the same overlay, blended
+   inside this background instead (its opacity is baked into --nd-grain's alpha). */
 .nd-room::before {
     content: '';
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
-    opacity: var(--nd-grain-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-    mix-blend-mode: overlay;
+    background:
+        var(--nd-grain),
+        radial-gradient(60rem 40rem at 12% -8%, var(--nd-lamp), transparent 70%),
+        radial-gradient(90rem 34rem at 50% 118%, var(--nd-haze), transparent 72%),
+        linear-gradient(180deg, var(--nd-bg) 0%, var(--nd-floor) 100%);
+    background-blend-mode: overlay, normal, normal, normal;
 }
 
 .nd-room ::selection { background: var(--nd-accent-soft); color: var(--nd-ink); }
