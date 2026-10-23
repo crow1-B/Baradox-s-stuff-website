@@ -63,19 +63,29 @@ const unpinDirection = (root) => {
 
 // One plan per character: when it starts flickering, and the glyph it lands on. A sweep from
 // the first character to the last with some scatter, so it reads as a wave, not a wipe.
+// Each node also keeps the window its characters move in, so a frame can skip every node the
+// wave hasn't reached or has finished with — rewriting a text node relays its whole paragraph.
 const plan = (nodes) => {
     const originals = nodes.map((node) => node.data);
     const total = originals.reduce((sum, text) => sum + text.length, 0);
     const span = Math.min(total, MAX_ANIMATED);
     let index = 0;
-    const chars = originals.map((text) =>
-        [...text].map((char) => {
+    const chars = originals.map((text) => {
+        const list = [...text].map((char) => {
             const at = index++;
             const keep = char === '\n';
             const start = at < span ? (at / span) * 0.72 + Math.random() * 0.12 : 0.84;
             return { char, keep, start, final: keep ? char : glyph() };
-        }),
-    );
+        });
+        const starts = list.filter((c) => !c.keep).map((c) => c.start);
+        return {
+            list,
+            first: starts.length ? Math.min(...starts) : 1,
+            last: starts.length ? Math.max(...starts) : 0,
+            sealed: list.map((c) => c.final).join(''),
+            settled: false,
+        };
+    });
     return { originals, chars };
 };
 
@@ -83,8 +93,16 @@ const FLICKER = 0.16;
 
 const paint = (nodes, chars, p, direction) => {
     nodes.forEach((node, n) => {
+        const plan = chars[n];
+        if (plan.settled) return;
+        if (direction === 'seal' && p < plan.first) return;
+        if (p >= plan.last + FLICKER) {
+            node.data = direction === 'seal' ? plan.sealed : plan.list.map((c) => c.char).join('');
+            plan.settled = true;
+            return;
+        }
         let out = '';
-        for (const c of chars[n]) {
+        for (const c of plan.list) {
             if (c.keep) out += c.char;
             else if (direction === 'seal') {
                 if (p < c.start) out += c.char;
@@ -94,7 +112,7 @@ const paint = (nodes, chars, p, direction) => {
             else if (p < c.start + FLICKER) out += glyph();
             else out += c.char;
         }
-        node.data = out;
+        if (node.data !== out) node.data = out;
     });
 };
 
