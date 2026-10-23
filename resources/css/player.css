@@ -281,5 +281,11 @@ html[data-bs-player='full'] { scroll-padding-bottom: 96px; }
     .bsp-toggle, .bsp-icon-btn, .bsp-range::-webkit-slider-thumb { transition: none; }
 }
 
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .bsp-icon-btn,
+    .bsp-toggle { width: 2.75rem; height: 2.75rem; }
+}
+
 /* No colour transitions while the phase changes (theme.js, tokens.css). */
 :root[data-phase-snap] :is(.bsp-icon-btn) { transition: none !important; }

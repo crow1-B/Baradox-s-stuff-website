@@ -228,5 +228,23 @@
     .mu-eq i:nth-child(3) { transform: scaleY(0.4); }
 }
 
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    /* 44px buttons need 44px columns; the length column and the gaps give the room back. */
+    .mu-grid { --mu-actions: calc(5.5rem + 0.15rem); grid-template-columns: 40px minmax(0, 1fr) 2.75rem 2.75rem var(--mu-actions); gap: 0 0.5rem; }
+    .mu--readonly .mu-grid { grid-template-columns: 40px minmax(0, 1fr) 2.75rem 2.75rem; }
+    .mu-sort { position: relative; }
+    .mu-sort::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+    .mu-cover__btn::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+}
+
 /* No colour transitions while the phase changes (theme.js, tokens.css). */
 :root[data-phase-snap] :is(.mu-sort, .mu-row, .mu-fav) { transition: none !important; }

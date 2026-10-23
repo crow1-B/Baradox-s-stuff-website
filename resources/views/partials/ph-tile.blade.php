@@ -34,7 +34,8 @@
             aria-label="Open photo {{ $position }}{{ $locked ? ' (protected)' : '' }}"></button>
 
     @if ($canWrite)
-        <input type="checkbox" class="ph-pick" data-ph-pick aria-label="Select photo {{ $position }}">
+        {{-- The label is only reach: the checkbox's own size here, 44px on touch (photos.css). --}}
+        <label class="ph-pick-hit"><input type="checkbox" class="ph-pick" data-ph-pick aria-label="Select photo {{ $position }}"></label>
     @endif
 
     @if ($locked)

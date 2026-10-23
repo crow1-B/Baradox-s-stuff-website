@@ -15,12 +15,15 @@
         @endif
 
         @if ($entry->track)
-            <button type="button" class="dy-song" data-player-play="{{ json_encode($entry->track->playerPayload()) }}" aria-label="Play {{ $entry->track->title }}, the song of that day">
+            {{-- Named by its visible words (title, artist), so speech input can say what it shows. --}}
+            <button type="button" class="dy-song" data-player-play="{{ json_encode($entry->track->playerPayload()) }}">
                 <span class="dy-song__icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                <span class="nd-sr-only">Play </span>
                 <span class="dy-song__title" dir="auto">{{ $entry->track->title }}</span>
                 @if ($entry->track->artist_name)
                     <span class="dy-song__artist" dir="auto">{{ $entry->track->artist_name }}</span>
                 @endif
+                <span class="nd-sr-only">, the song of that day</span>
             </button>
         @endif
 

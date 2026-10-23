@@ -74,7 +74,7 @@
 .nd-btn--primary {
     border-color: transparent;
     background: var(--nd-accent-strong);
-    color: #f4fbfa;
+    color: var(--nd-on-accent-strong);
 }
 .nd-btn--primary:hover { border-color: transparent; background: var(--nd-accent); color: var(--nd-on-accent); }
 
@@ -502,3 +502,27 @@ input[type='file'].nd-input::file-selector-button {
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */
 :root[data-phase-snap] :is(.nd-btn, .nd-icon-btn, .nd-input, .nd-chip, .nd-secret__toggle) { transition: none !important; }
+
+/* ------------------------------------------------------------------ touch targets */
+
+/* On a phone, or any coarse pointer, nothing you can press is smaller than 44px. Controls
+   that look like controls grow to it. Small marks that read as text or as a tag (chips,
+   column headings, links in a list) keep their look, and an invisible ::after reaches the
+   rest of the 44px: the same split as a 32px chip with a 48px touch target. Files with
+   their own small controls list them beside these. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .nd-btn,
+    .nd-btn--sm { min-height: 2.75rem; }
+    .nd-icon-btn,
+    .nd-icon-btn--sm { width: 2.75rem; height: 2.75rem; }
+    .nd-input { min-height: 2.75rem; }
+    .nd-secret > input.nd-secret__input { padding-right: 3rem; }
+    .nd-secret > button.nd-secret__toggle { right: 0; width: 2.75rem; height: 2.75rem; }
+
+    .nd-chip { position: relative; }
+    .nd-chip::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+}

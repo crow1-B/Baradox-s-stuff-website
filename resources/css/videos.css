@@ -183,7 +183,7 @@
     border-radius: var(--nd-r-xs);
     background: rgb(4 12 15 / 0.78);
     color: #ebe5d9;
-    font-size: 0.72rem;
+    font-size: var(--nd-text-xs);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     pointer-events: none;
@@ -453,6 +453,11 @@
 @media (prefers-reduced-motion: reduce) {
     .vd-flash::after { animation: none; opacity: 0; }
     .vd-card__play-dot, .vd-album__manage { transition: none; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .vd-act { width: 2.75rem; height: 2.75rem; font-size: 0.9rem; }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */

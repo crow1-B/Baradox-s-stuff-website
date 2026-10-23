@@ -127,7 +127,7 @@
     border-radius: var(--nd-r-xs);
     background: rgb(4 12 15 / 0.6);
     color: #ebe5d9;
-    font-size: 0.68rem;
+    font-size: var(--nd-text-xs);
 }
 .home-otd__photo:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
 
@@ -199,7 +199,7 @@
     border: 0;
     border-radius: 999px;
     background: var(--nd-accent-strong);
-    color: #f4fbfa;
+    color: var(--nd-on-accent-strong);
     cursor: pointer;
     transition: transform var(--nd-dur-1) var(--nd-ease);
 }
@@ -250,6 +250,18 @@ a.home-visit__page:focus-visible { outline: 2px solid var(--nd-accent); outline-
 
 @media (prefers-reduced-motion: reduce) {
     .home-slip, .home-song__play { transition: none; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .home-timeline__text, .home-visit__page, .home-visits__all { position: relative; }
+    .home-timeline__text::after,
+    .home-visit__page::after,
+    .home-visits__all::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */

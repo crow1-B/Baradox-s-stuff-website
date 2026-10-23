@@ -246,5 +246,17 @@
     .pj-tab, .pj-tree__chevron, .pj-toast { transition: none; }
 }
 
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .pj-tab { min-height: 2.75rem; }
+    .pj-linkbtn, .pj-updates { position: relative; }
+    .pj-linkbtn::after,
+    .pj-updates::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+}
+
 /* No colour transitions while the phase changes (theme.js, tokens.css). */
 :root[data-phase-snap] :is(.pj-tab) { transition: none !important; }

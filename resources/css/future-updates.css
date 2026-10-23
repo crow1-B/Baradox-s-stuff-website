@@ -179,8 +179,8 @@
     content: '';
     width: 0.55rem;
     height: 0.3rem;
-    border-bottom: 2px solid #f4fbfa;
-    border-left: 2px solid #f4fbfa;
+    border-bottom: 2px solid var(--nd-on-accent-strong);
+    border-left: 2px solid var(--nd-on-accent-strong);
     opacity: 0;
     transform: translateY(-1px) rotate(-45deg) scale(0.4);
     transition: opacity var(--nd-dur-1) var(--nd-ease), transform var(--nd-dur-1) var(--nd-ease);
@@ -221,6 +221,23 @@
 
 @media (prefers-reduced-motion: reduce) {
     .fu-row, .fu-row__actions, .fu-seg, .fu-check, .fu-check::after { transition: none; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .fu-seg { min-height: 2.75rem; }
+    .fu-check { position: relative; }
+    .fu-check::before {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+    .fu-link { position: relative; }
+    .fu-link::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */

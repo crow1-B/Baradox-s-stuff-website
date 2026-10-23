@@ -13,7 +13,7 @@
     padding: 0.5rem 0.9rem;
     border-radius: var(--nd-r);
     background: var(--nd-accent-strong);
-    color: #f4fbfa;
+    color: var(--nd-on-accent-strong);
     font-weight: 600;
     text-decoration: none;
     transform: translateY(-200%);
@@ -242,7 +242,8 @@
     .app-topbar__brand { display: inline !important; }
 
     .app-jump { min-width: 0; width: 2.25rem; padding: 0; justify-content: center; border-color: transparent; background: transparent; color: var(--nd-ink-2); }
-    .app-jump__label,
+    /* The label stays as the button's name, only out of sight. */
+    .app-jump__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .app-jump__keys { display: none; }
     .app-topbar__keys { display: none; }
 
@@ -362,6 +363,13 @@
 
 @media (prefers-reduced-motion: reduce) {
     .app-sidebar, .app-nav__link, .app-jump { transition: none !important; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .app-jump { width: 2.75rem; height: 2.75rem; }
+    .app-skip { min-height: 2.75rem; display: inline-flex; align-items: center; }
+    .app-topbar__brand { padding-block: 0.75rem; }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */

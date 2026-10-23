@@ -173,7 +173,7 @@
 }
 .dy-song:hover { background: var(--nd-accent-soft); }
 .dy-song:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
-.dy-song__icon { display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 999px; background: var(--nd-accent-strong); color: #f4fbfa; font-size: 0.55rem; }
+.dy-song__icon { display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 999px; background: var(--nd-accent-strong); color: var(--nd-on-accent-strong); font-size: 0.55rem; }
 .dy-song__icon i { margin-left: 1px; }
 .dy-song__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dy-song__artist { color: var(--nd-ink-3); font-weight: 400; white-space: nowrap; }
@@ -525,7 +525,10 @@
     .dy-flow__save { grid-column: 1 / -1; justify-self: center; max-width: none; text-align: center; }
     .dy-flow__save:empty { display: none; }
     .dy-steps { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
-    .dy-steps__step:not([aria-current='step']) .dy-steps__label { display: none; }
+    /* Hidden, not removed: the label is the button's name. */
+    .dy-steps__step:not([aria-current='step']) .dy-steps__label {
+        position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+    }
     .dy-moods { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dy-flow__foot { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.5rem; padding-inline: 0.75rem; }
     .dy-flow__foot .nd-btn { padding-inline: 0.8rem; }
@@ -534,6 +537,20 @@
 @media (prefers-reduced-motion: reduce) {
     .dy-card, .dy-text, .dy-flow__head, .dy-flow__foot, .dy-moods__item, .dy-ptile img { transition: none; }
     .dy-wax--stamp, .dy-wax--lift { animation: none; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .dy-steps__step { min-height: 2.75rem; }
+    /* The whole card is the way in; the person chips stay their own buttons above it. */
+    .dy-card__link::after { content: ''; position: absolute; inset: 0; }
+    .dy-card__people { position: relative; z-index: 1; }
+    .dy-song { position: relative; }
+    .dy-song::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */
