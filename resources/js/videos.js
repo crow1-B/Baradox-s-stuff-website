@@ -104,9 +104,12 @@ const initVideos = () => {
         keyError.hidden = true;
         failed.hidden = true;
 
+        // The player covers the page, which stops being rendered while it is open (videos.css,
+        // [data-viewing]): showModal() would otherwise restyle every card to make it inert.
         if (info.protection === 'gated') {
             tearDown();
             gate.hidden = false;
+            root.dataset.viewing = '';
             openDialog(playerDialog, keyInput);
             return;
         }
@@ -120,6 +123,7 @@ const initVideos = () => {
             && document.startViewTransition && !reducedMotion();
 
         if (!morph) {
+            root.dataset.viewing = '';
             openDialog(playerDialog);
             play(info.urls.stream);
             return;
@@ -129,6 +133,7 @@ const initVideos = () => {
         const transition = document.startViewTransition(() => {
             poster.style.viewTransitionName = '';
             video.poster = poster.currentSrc;
+            root.dataset.viewing = '';
             openDialog(playerDialog);
             play(info.urls.stream);
             video.style.viewTransitionName = 'vd-screen';
@@ -166,6 +171,7 @@ const initVideos = () => {
     });
 
     playerDialog.addEventListener('close', () => {
+        delete root.dataset.viewing;
         tearDown();
         keyInput.value = '';
         keyError.hidden = true;
@@ -449,6 +455,7 @@ const resetForCache = () => {
     for (const dialog of document.querySelectorAll('.vd dialog[open]')) dialog.close();
     for (const flashed of root.querySelectorAll('.vd-flash')) flashed.classList.remove('vd-flash');
 
+    delete root.dataset.viewing;
     delete root.dataset.vdReady;
     page = null;
 };

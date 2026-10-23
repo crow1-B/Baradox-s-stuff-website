@@ -431,6 +431,15 @@
     object-fit: cover;
 }
 
+/* ---------------------------------------------------------------- behind the player */
+
+/* While the player is open it covers everything, so the page under it is not rendered:
+   opening a modal makes the rest of the document inert, and restyling every card for that
+   is what made the player take ~0.6s to open at phone speed (skipped subtrees aren't
+   restyled). Remembered sizes keep the page's height, so the scroll position survives. */
+.vd > :not(dialog) { contain-intrinsic-size: auto none; }
+.vd[data-viewing] > :not(dialog) { content-visibility: hidden; }
+
 /* ---------------------------------------------------------------- touch, motion */
 
 @media (hover: none) {

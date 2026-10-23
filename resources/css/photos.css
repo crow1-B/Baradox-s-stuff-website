@@ -412,6 +412,15 @@
     .ph-lb__nav { top: auto; bottom: 0.75rem; transform: none; }
 }
 
+/* ---------------------------------------------------------------- behind the viewer */
+
+/* While the viewer is open it covers everything, so the page under it is not rendered:
+   opening a modal makes the rest of the document inert, and restyling every tile for that
+   is what made the viewer take ~0.8s to open at phone speed (skipped subtrees aren't
+   restyled). Remembered sizes keep the page's height, so the scroll position survives. */
+.ph > :not(dialog) { contain-intrinsic-size: auto none; }
+.ph[data-viewing] > :not(dialog) { content-visibility: hidden; }
+
 /* ---------------------------------------------------------------- touch */
 
 @media (hover: none) {

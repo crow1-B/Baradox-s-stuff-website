@@ -419,6 +419,14 @@ const initPhotos = () => {
         showAt(next);
     };
 
+    // The viewer covers the whole page, so the page stops being rendered while it is open
+    // (photos.css, [data-viewing]). That is what makes opening cheap: showModal() makes
+    // everything behind the dialog inert, and restyling every tile for that cost ~0.8s at
+    // phone speed; skipped subtrees aren't restyled.
+    const coverPage = () => {
+        root.dataset.viewing = '';
+    };
+
     // The thumbnail grows into the viewer: one same-page View Transition with the tile's image
     // and the viewer's image sharing a name. Protected photos open without it — there is no
     // picture to carry, only the key prompt.
@@ -434,6 +442,7 @@ const initPhotos = () => {
             && document.startViewTransition && !reducedMotion();
 
         if (!morph) {
+            coverPage();
             lightbox.showModal();
             showAt(index);
             return;
@@ -442,6 +451,7 @@ const initPhotos = () => {
         thumb.style.viewTransitionName = 'ph-photo';
         const transition = document.startViewTransition(async () => {
             thumb.style.viewTransitionName = '';
+            coverPage();
             lightbox.showModal();
             showAt(index, { placeholder: thumb.currentSrc });
             lbImg.style.viewTransitionName = 'ph-photo';
@@ -473,6 +483,7 @@ const initPhotos = () => {
     lbNext.addEventListener('click', () => move(1));
 
     lightbox.addEventListener('close', () => {
+        delete root.dataset.viewing;
         clearStage();
         lbIndex = -1;
         lbKey = null;
@@ -854,6 +865,7 @@ const resetForCache = () => {
     for (const tile of root.querySelectorAll('.ph-tile--picked')) tile.classList.remove('ph-tile--picked');
     for (const box of root.querySelectorAll('[data-ph-pick]')) box.checked = false;
     delete root.dataset.selecting;
+    delete root.dataset.viewing;
     delete root.dataset.phReady;
     page = null;
 };
