@@ -174,7 +174,8 @@ In order:
 
 **Not atomic.** mysql applies the dump statement by statement, so a failure midway leaves a
 partly restored database. The error message names the pre-restore backup, which holds the
-state from just before. Sessions and the database cache come back as they were at backup time.
+state from just before. The database cache comes back as it was at backup time; sessions
+live in Redis, not in the dump, so a restore leaves everyone signed in as they were.
 
 ### Fresh machine
 

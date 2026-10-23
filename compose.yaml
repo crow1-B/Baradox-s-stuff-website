@@ -88,6 +88,9 @@ services:
             timeout: 5s
     redis:
         image: "redis:alpine"
+        # Sessions live here: the append-only file (synced every second) keeps them across a
+        # restart, so a crash costs at most the last second of session writes.
+        command: redis-server --appendonly yes --appendfsync everysec
         ports:
             - "${FORWARD_REDIS_PORT:-6379}:6379"
         volumes:
