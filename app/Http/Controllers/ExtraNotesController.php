@@ -33,6 +33,7 @@ class ExtraNotesController extends Controller
             'query' => $this->searchTerm($request),
             'activeTags' => $this->requestedTags($request),
             'totalCount' => ExtraNote::where('user_id', Auth::user()->id)->count(),
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -398,6 +399,7 @@ class ExtraNotesController extends Controller
             'note' => $note,
             'formatter' => $formatter,
             'tags' => config('extra_notes.tags'),
+            'canWrite' => !Auth::user()->isPreview(),
         ])->render())->implode('');
     }
 
@@ -432,6 +434,7 @@ class ExtraNotesController extends Controller
         return $this->fragment('replace', 'xn-pinned', view('partials.xn-pinned', [
             'pinned' => $this->pinnedNotes(),
             'tags' => config('extra_notes.tags'),
+            'canWrite' => !Auth::user()->isPreview(),
         ])->render());
     }
 

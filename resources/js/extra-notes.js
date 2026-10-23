@@ -12,7 +12,7 @@ const copyText = async (value) => {
         const area = document.createElement('textarea');
         area.value = value;
         area.setAttribute('readonly', '');
-        area.className = 'xn-offscreen';
+        area.className = 'nd-sr-only';
         document.body.append(area);
         area.select();
         const ok = document.execCommand('copy');
@@ -62,7 +62,8 @@ const initExtraNotes = () => {
     const deleteDialog = document.getElementById('xn-delete-dialog');
     const bulkDeleteDialog = document.getElementById('xn-bulk-delete-dialog');
     const bulkTagsDialog = document.getElementById('xn-bulk-tags-dialog');
-    const dialogs = [editDialog, tagsDialog, deleteDialog, bulkDeleteDialog, bulkTagsDialog];
+    // Guest's page has no composer, dialogs or shared forms: it can read, search and copy.
+    const dialogs = [editDialog, tagsDialog, deleteDialog, bulkDeleteDialog, bulkTagsDialog].filter(Boolean);
 
     // ------------------------------------------------------------ state
 
@@ -102,19 +103,20 @@ const initExtraNotes = () => {
     // ------------------------------------------------------------ flash
     const flash = (message, kind = 'success') => {
         const banner = document.createElement('div');
-        banner.className = `xn-banner xn-banner--${kind}`;
+        banner.className = `nd-banner nd-banner--${kind}`;
         banner.dataset.xnBanner = '';
 
         const icon = document.createElement('i');
-        icon.className = `fa-solid ${kind === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}`;
+        icon.className = `fa-solid ${kind === 'success' ? 'fa-check' : 'fa-triangle-exclamation'}`;
         icon.setAttribute('aria-hidden', 'true');
 
         const text = document.createElement('p');
+        text.className = 'nd-banner__text';
         text.textContent = message;
 
         const dismiss = document.createElement('button');
         dismiss.type = 'button';
-        dismiss.className = 'xn-act';
+        dismiss.className = 'nd-icon-btn nd-icon-btn--sm nd-banner__close';
         dismiss.dataset.xnDismiss = '';
         dismiss.setAttribute('aria-label', 'Dismiss');
         dismiss.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
@@ -165,9 +167,9 @@ const initExtraNotes = () => {
         if (selecting) root.dataset.selecting = 'true';
         else delete root.dataset.selecting;
 
-        selectToggle.setAttribute('aria-pressed', selecting ? 'true' : 'false');
-        selbar.hidden = selected.size === 0;
-        selcount.textContent = `${selected.size} selected`;
+        selectToggle?.setAttribute('aria-pressed', selecting ? 'true' : 'false');
+        if (selbar) selbar.hidden = selected.size === 0;
+        if (selcount) selcount.textContent = `${selected.size} selected`;
     };
 
     const clearSelection = ({ keepMode = false } = {}) => {
@@ -349,12 +351,12 @@ const initExtraNotes = () => {
         for (const input of inputs) input.disabled = !input.checked && chosen >= max;
     };
 
-    const tagsDialogInputs = [...tagsDialog.querySelectorAll('[data-xn-tagpick]')];
+    const tagsDialogInputs = tagsDialog ? [...tagsDialog.querySelectorAll('[data-xn-tagpick]')] : [];
 
     for (const [inputs, container] of [
         [composerTags, composer],
         [tagsDialogInputs, tagsDialog],
-    ]) {
+    ].filter(([, container]) => container)) {
         container.addEventListener('change', (event) => {
             if (inputs.includes(event.target)) capPicker(inputs, data.maxTags);
         });
@@ -381,49 +383,50 @@ const initExtraNotes = () => {
         refreshSend();
     };
 
-    composerInput.addEventListener('input', () => {
-        growComposer();
-        refreshSend();
-    });
+    if (composer) {
+        composerInput.addEventListener('input', () => {
+            growComposer();
+            refreshSend();
+        });
 
-    composerInput.addEventListener('keydown', (event) => {
-        if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+        composerInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
 
-        event.preventDefault();
-        if (composerInput.value.trim() !== '') composer.requestSubmit();
-    });
+            event.preventDefault();
+            if (composerInput.value.trim() !== '') composer.requestSubmit();
+        });
 
-    composer.addEventListener('submit', (event) => {
-        if (composerInput.value.trim() === '') event.preventDefault();
-    });
+        composer.addEventListener('submit', (event) => {
+            if (composerInput.value.trim() === '') event.preventDefault();
+        });
 
-    composer.addEventListener('turbo:submit-end', (event) => {
-        if (!event.detail.success) return;
+        composer.addEventListener('turbo:submit-end', (event) => {
+            if (!event.detail.success) return;
 
-        resetComposer();
-        composerInput.focus();
-        if (isFiltering()) {
-            query = '';
-            if (search) search.value = '';
-            activeTags.clear();
-            for (const button of root.querySelectorAll('[data-xn-tagfilter]')) {
-                button.classList.remove('xn-tagbtn--on');
-                button.setAttribute('aria-pressed', 'false');
+            resetComposer();
+            composerInput.focus();
+            if (isFiltering()) {
+                query = '';
+                if (search) search.value = '';
+                activeTags.clear();
+                for (const button of root.querySelectorAll('[data-xn-tagfilter]')) {
+                    button.setAttribute('aria-pressed', 'false');
+                }
+                applyFilter();
+                return;
             }
-            applyFilter();
-            return;
-        }
 
-        followBottom();
-    });
+            followBottom();
+        });
+    }
 
     // ------------------------------------------------------------ the shared forms
 
-    const editForm = editDialog.querySelector('form');
-    const tagsForm = tagsDialog.querySelector('form');
-    const deleteForm = deleteDialog.querySelector('form');
-    const bulkDeleteForm = bulkDeleteDialog.querySelector('form');
-    const bulkTagsForm = bulkTagsDialog.querySelector('form');
+    const editForm = editDialog?.querySelector('form');
+    const tagsForm = tagsDialog?.querySelector('form');
+    const deleteForm = deleteDialog?.querySelector('form');
+    const bulkDeleteForm = bulkDeleteDialog?.querySelector('form');
+    const bulkTagsForm = bulkTagsDialog?.querySelector('form');
 
     for (const [form, dialog] of [
         [editForm, editDialog],
@@ -431,7 +434,7 @@ const initExtraNotes = () => {
         [deleteForm, deleteDialog],
         [bulkDeleteForm, bulkDeleteDialog],
         [bulkTagsForm, bulkTagsDialog],
-    ]) {
+    ].filter(([form]) => form)) {
         form.addEventListener('turbo:submit-end', (event) => {
             if (!event.detail.success) return;
             dialog.close();
@@ -548,7 +551,6 @@ const initExtraNotes = () => {
             if (search) search.value = '';
             activeTags.clear();
             for (const button of root.querySelectorAll('[data-xn-tagfilter]')) {
-                button.classList.remove('xn-tagbtn--on');
                 button.setAttribute('aria-pressed', 'false');
             }
             applyFilter();
@@ -561,7 +563,6 @@ const initExtraNotes = () => {
             const on = !activeTags.has(key);
             if (on) activeTags.add(key);
             else activeTags.delete(key);
-            tagFilter.classList.toggle('xn-tagbtn--on', on);
             tagFilter.setAttribute('aria-pressed', on ? 'true' : 'false');
             applyFilter();
             return;
@@ -668,8 +669,10 @@ const initExtraNotes = () => {
         },
     };
 
-    refreshSend();
-    growComposer();
+    if (composer) {
+        refreshSend();
+        growComposer();
+    }
     refreshEmpty();
     refreshTop();
     paintSelection();
@@ -685,8 +688,9 @@ const resetForCache = () => {
 
     for (const box of root.querySelectorAll('[data-xn-pick]')) box.checked = false;
     for (const card of root.querySelectorAll('[data-xn-msg]')) card.classList.remove('xn-msg--picked');
-    root.querySelector('[data-xn-selbar]').hidden = true;
-    root.querySelector('[data-xn-select-toggle]').setAttribute('aria-pressed', 'false');
+    const selbar = root.querySelector('[data-xn-selbar]');
+    if (selbar) selbar.hidden = true;
+    root.querySelector('[data-xn-select-toggle]')?.setAttribute('aria-pressed', 'false');
     delete root.dataset.selecting;
 
     page?.teardown();
@@ -698,13 +702,13 @@ document.addEventListener('keydown', (event) => {
     if (!page) return;
 
     if (event.key === 'Escape') {
-        if (document.querySelector('.xn-dialog[open]')) return;
+        if (document.querySelector('#xn-root dialog[open]')) return;
         if (page.exitSelection()) event.preventDefault();
         return;
     }
 
     if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
-    if (event.key === 'c' || event.key === 'C') {
+    if ((event.key === 'c' || event.key === 'C') && page.composerInput) {
         event.preventDefault();
         page.composerInput.focus();
     } else if (event.key === '/') {
