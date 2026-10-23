@@ -101,9 +101,13 @@ lock.
 The `scheduler` service in `compose.yaml` (the same `sail-8.5/app` image, no SSD mount, no
 ports) starts with `sail up -d`. Its command is:
 
-1. **Startup catch-up:** `backup:run --scheduled --if-stale`. A failure is printed and recorded,
+1. **Wait for mysql:** `mysqladmin ping` over TCP every 2s, for up to 120s. `depends_on` is not
+   enough on its own: after a crash or power loss, Docker restarts the scheduler itself (it was
+   running and has a restart policy) without going through compose, so it can come up before
+   mysql does. If mysql never answers, the container exits 1 and the restart policy tries again.
+2. **Startup catch-up:** `backup:run --scheduled --if-stale`. A failure is printed and recorded,
    and the scheduler starts anyway.
-2. `exec php artisan schedule:work`, which runs `routes/console.php`:
+3. `exec php artisan schedule:work`, which runs `routes/console.php`:
    - `backup:run --scheduled` daily at `BACKUP_DAILY_AT` (03:00) Asia/Baghdad
    - `backup:run --scheduled --if-stale` hourly at :30. This catches a 03:00 the machine slept
      through: sleep doesn't restart the container, so the startup check alone would miss it.

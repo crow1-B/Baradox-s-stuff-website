@@ -42,7 +42,17 @@ services:
         command:
             - bash
             - -c
-            - 'php artisan backup:run --scheduled --if-stale || echo "startup catch-up backup failed (exit $$?); see storage/logs/backups.log" >&2; exec php artisan schedule:work'
+            - |
+              deadline=$$((SECONDS + 120))
+              until mysqladmin ping -h mysql --protocol=tcp --connect-timeout=2 --silent >/dev/null 2>&1; do
+                  if (( SECONDS >= deadline )); then
+                      echo "mysql did not answer within 120s; exiting so Docker restarts the scheduler" >&2
+                      exit 1
+                  fi
+                  sleep 2
+              done
+              php artisan backup:run --scheduled --if-stale || echo "startup catch-up backup failed (exit $$?); see storage/logs/backups.log" >&2
+              exec php artisan schedule:work
         networks:
             - sail
         depends_on:
