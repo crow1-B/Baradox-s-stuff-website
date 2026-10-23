@@ -37,9 +37,9 @@
                     </div>
                     <div class="lg-field">
                         <label class="lg-label" for="password">Password</label>
-                        <input class="lg-input" type="password" id="password" name="password"
+                        <x-nd-secret what="password" class="lg-input" id="password" name="password"
                                autocomplete="current-password" required
-                               @if ($loginError) aria-describedby="lg-error" aria-invalid="true" @endif>
+                               :aria-describedby="$loginError ? 'lg-error' : null" :aria-invalid="$loginError ? 'true' : null" />
                     </div>
 
                     <p class="lg-error" id="lg-error" role="alert" data-lg-error @unless ($loginError) hidden @endunless>{{ $loginError }}</p>

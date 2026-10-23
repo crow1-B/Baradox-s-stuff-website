@@ -321,3 +321,38 @@ input[type='date'].nd-input { color-scheme: inherit; }
 @media (prefers-reduced-motion: reduce) {
     .nd-btn, .nd-icon-btn, .nd-chip, .nd-input { transition: none; }
 }
+
+/* ------------------------------------------------------------------ show/hide on a secret field */
+
+/* x-nd-secret, secret-fields.js. The button takes its colour from the field around it, so it
+   reads right on night-desk pages and on the legacy ones. Selectors carry the element names to
+   outrank the legacy bare input/button rules and the per-page input classes. */
+.nd-secret { position: relative; display: block; min-width: 0; }
+.nd-secret > input.nd-secret__input { width: 100%; padding-right: 2.75rem; }
+.nd-secret > button.nd-secret__toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.3rem;
+    translate: 0 -50%;
+    display: inline-grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r-sm);
+    background: transparent;
+    color: inherit;
+    font-size: 0.95rem;
+    opacity: 0.62;
+    cursor: pointer;
+    transition: opacity var(--nd-dur-1) var(--nd-ease), background-color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-secret > button.nd-secret__toggle:hover { opacity: 1; background: color-mix(in oklab, currentColor 10%, transparent); }
+.nd-secret > button.nd-secret__toggle[aria-pressed='true'] { opacity: 1; }
+.nd-secret > button.nd-secret__toggle:focus-visible { opacity: 1; outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+.nd-secret[hidden], .nd-secret:has(> input:disabled) > button.nd-secret__toggle { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nd-secret > button.nd-secret__toggle { transition: none; }
+}

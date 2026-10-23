@@ -41,8 +41,8 @@
                 </p>
             </div>
             <form data-vd-key-form data-turbo="false">
-                <input type="password" class="vd-input" data-vd-key autocomplete="off"
-                       placeholder="Key" aria-label="Key for this video">
+                <x-nd-secret class="vd-input" data-vd-key autocomplete="off"
+                       placeholder="Key" aria-label="Key for this video" />
                 <button type="submit" class="vd-btn vd-btn--primary">Play video</button>
             </form>
             <p class="vd-error" data-vd-key-error role="alert" hidden></p>
@@ -186,8 +186,8 @@
         <div class="vd-dialog__body">
             <div class="vd-field">
                 <label class="vd-label" for="vd-lock-key">Key<span class="vd-req" aria-hidden="true">*</span></label>
-                <input class="vd-input" id="vd-lock-key" name="key" type="password" required minlength="8"
-                       autocomplete="new-password" aria-describedby="vd-lock-hint">
+                <x-nd-secret class="vd-input" id="vd-lock-key" name="key" required minlength="8"
+                       autocomplete="new-password" aria-describedby="vd-lock-hint" />
                 <p class="vd-hint" id="vd-lock-hint">
                     At least 8 characters, and it is never stored — only a hash of it is. Gating is access
                     control, <strong>not</strong> encryption: the file stays readable on the drive and only
@@ -216,7 +216,7 @@
         <div class="vd-dialog__body">
             <div class="vd-field">
                 <label class="vd-label" for="vd-unlock-key">Key<span class="vd-req" aria-hidden="true">*</span></label>
-                <input class="vd-input" id="vd-unlock-key" name="key" type="password" required autocomplete="off">
+                <x-nd-secret class="vd-input" id="vd-unlock-key" name="key" required autocomplete="off" />
                 <p class="vd-hint">The video goes back to being played by anyone signed in here.</p>
             </div>
         </div>

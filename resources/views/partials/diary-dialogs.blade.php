@@ -26,8 +26,8 @@
 
                 <div class="nd-field" data-dy-field="key" data-dy-lock-keyfield>
                     <label class="nd-label" for="lf-key">Key</label>
-                    <input class="nd-input nd-input--mono" type="password" id="lf-key" name="key" minlength="8"
-                           autocomplete="new-password" aria-describedby="lf-key-hint lf-key-error" data-dy-lock-key>
+                    <x-nd-secret class="nd-input nd-input--mono" id="lf-key" name="key" minlength="8"
+                           autocomplete="new-password" aria-describedby="lf-key-hint lf-key-error" data-dy-lock-key />
                     <p class="nd-hint" id="lf-key-hint">At least 8 characters.</p>
                     <p class="nd-error" id="lf-key-error" data-dy-error hidden></p>
                 </div>
@@ -69,8 +69,8 @@
                 <x-dy-algorithm form="uf" placeholder />
                 <div class="nd-field" data-dy-field="key">
                     <label class="nd-label" for="uf-key">Key</label>
-                    <input class="nd-input nd-input--mono" type="password" id="uf-key" name="key" required aria-required="true"
-                           autocomplete="off" aria-describedby="uf-key-error">
+                    <x-nd-secret class="nd-input nd-input--mono" id="uf-key" name="key" required aria-required="true"
+                           autocomplete="off" aria-describedby="uf-key-error" />
                     <p class="nd-error" id="uf-key-error" data-dy-error hidden></p>
                 </div>
             </div>
@@ -109,8 +109,8 @@
                 <x-dy-algorithm form="df" placeholder />
                 <div class="nd-field" data-dy-field="key">
                     <label class="nd-label" for="df-key">Key</label>
-                    <input class="nd-input nd-input--mono" type="password" id="df-key" name="key" required aria-required="true"
-                           autocomplete="off" aria-describedby="df-key-error">
+                    <x-nd-secret class="nd-input nd-input--mono" id="df-key" name="key" required aria-required="true"
+                           autocomplete="off" aria-describedby="df-key-error" />
                     <p class="nd-error" id="df-key-error" data-dy-error hidden></p>
                 </div>
             </div>

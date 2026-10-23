@@ -60,8 +60,8 @@
             {{-- data-turbo="false" and preventDefault(): this form has nowhere to go, it just
                  gives Enter something to do. --}}
             <form data-ph-lb-key-form data-turbo="false">
-                <input type="password" class="ph-input" data-ph-lb-key autocomplete="off"
-                       placeholder="Key" aria-label="Key for this photo">
+                <x-nd-secret class="ph-input" data-ph-lb-key autocomplete="off"
+                       placeholder="Key" aria-label="Key for this photo" />
                 <button type="submit" class="ph-btn ph-btn--primary">Show photo</button>
             </form>
             <p class="ph-error" data-ph-lb-key-error role="alert" hidden></p>
@@ -107,8 +107,8 @@
             <div class="flex flex-col gap-4">
                 <div class="ph-field">
                     <label class="ph-label" for="ph-lock-key">Key<span class="ph-req" aria-hidden="true">*</span></label>
-                    <input class="ph-input" id="ph-lock-key" name="key" type="password" required minlength="8"
-                           autocomplete="new-password" aria-describedby="ph-lock-key-hint">
+                    <x-nd-secret class="ph-input" id="ph-lock-key" name="key" required minlength="8"
+                           autocomplete="new-password" aria-describedby="ph-lock-key-hint" />
                     <p class="ph-hint" id="ph-lock-key-hint">
                         At least 8 characters. The key is never stored — lose it and the photo is gone for good.
                     </p>
@@ -148,7 +148,7 @@
         <div class="ph-dialog__body">
             <div class="ph-field">
                 <label class="ph-label" for="ph-unlock-key">Key<span class="ph-req" aria-hidden="true">*</span></label>
-                <input class="ph-input" id="ph-unlock-key" name="key" type="password" required autocomplete="off">
+                <x-nd-secret class="ph-input" id="ph-unlock-key" name="key" required autocomplete="off" />
                 <p class="ph-hint">The photo goes back to being served to anyone signed in here.</p>
             </div>
         </div>

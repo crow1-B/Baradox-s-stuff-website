@@ -1,3 +1,5 @@
+import './secret-fields.js';
+
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 function init() {

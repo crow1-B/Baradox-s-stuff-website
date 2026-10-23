@@ -22,8 +22,8 @@
             <x-dy-algorithm form="rf{{ $entry->id }}" placeholder />
             <div class="nd-field" data-dy-field="key">
                 <label class="nd-label" for="rf{{ $entry->id }}-key">Key</label>
-                <input class="nd-input nd-input--mono" type="password" id="rf{{ $entry->id }}-key" name="key" required aria-required="true"
-                       autocomplete="off" aria-describedby="rf{{ $entry->id }}-key-error">
+                <x-nd-secret class="nd-input nd-input--mono" id="rf{{ $entry->id }}-key" name="key" required aria-required="true"
+                       autocomplete="off" aria-describedby="rf{{ $entry->id }}-key-error" />
                 <p class="nd-error" id="rf{{ $entry->id }}-key-error" data-dy-error hidden></p>
             </div>
         </div>
