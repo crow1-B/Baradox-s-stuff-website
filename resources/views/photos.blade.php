@@ -52,13 +52,13 @@
                 @foreach ($albums as $entry)
                     @php
                         $count = (int) ($albumCounts[$entry->id] ?? 0);
-                        $coverId = $albumCovers[$entry->id] ?? null;
+                        $cover = $albumCovers[$entry->id] ?? null;
                     @endphp
                     <li class="ph-album">
-                        @if ($coverId)
+                        @if ($cover)
                             {{-- The cover morphs into the same photo's tile on the album's page. --}}
                             <img class="ph-album__cover"
-                                 src="{{ route('photo.thumbnail', $coverId) }}"
+                                 src="{{ $cover->thumbnailUrl() }}"
                                  alt=""
                                  width="300" height="225"
                                  loading="lazy"
@@ -74,7 +74,7 @@
                         @endif
 
                         <a class="ph-album__link ph-album__body" href="{{ route('albums.show', $entry->id) }}"
-                           @if ($coverId) data-morph="ph-album-{{ $entry->id }}" data-morph-from="[data-ph-album-cover]" @endif>
+                           @if ($cover) data-morph="ph-album-{{ $entry->id }}" data-morph-from="[data-ph-album-cover]" @endif>
                             <span class="ph-album__name">
                                 @if ($entry->is_system)
                                     <i class="fa-solid fa-star" aria-hidden="true"></i>

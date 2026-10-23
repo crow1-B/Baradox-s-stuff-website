@@ -20,7 +20,7 @@
     {{-- width/height match the tile's aspect-ratio box, so the grid never reflows as
          thumbnails arrive; loading="lazy" keeps a long library off the first paint. --}}
     <img class="ph-tile__img"
-         src="{{ route('photo.thumbnail', $photo->id) }}"
+         src="{{ $photo->thumbnailUrl() }}"
          alt=""
          width="300" height="300"
          loading="lazy"

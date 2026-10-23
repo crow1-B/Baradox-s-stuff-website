@@ -100,7 +100,7 @@
                     @foreach ($onThisDay['photos'] as $photo)
                         <li>
                             <a class="home-otd__photo" href="{{ route('photos') }}" title="{{ $yearsAgo($photo->created_at) }}">
-                                <img src="{{ route('photo.thumbnail', $photo->id) }}" alt="Photo from {{ $photo->created_at->format('j F Y') }}" loading="lazy">
+                                <img src="{{ $photo->thumbnailUrl() }}" alt="Photo from {{ $photo->created_at->format('j F Y') }}" loading="lazy">
                                 <span>{{ $photo->created_at->year }}</span>
                             </a>
                         </li>

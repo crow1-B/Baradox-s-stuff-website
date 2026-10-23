@@ -189,7 +189,7 @@ const initPhotos = () => {
             });
         }
     }
-    for (const dialog of [lockDialog, unlockDialog].filter(Boolean)) {
+    for (const dialog of [lockDialog, unlockDialog, deleteDialog].filter(Boolean)) {
         dialog.addEventListener('close', () => dialog.querySelector('form')?.reset());
     }
 
@@ -218,8 +218,16 @@ const initPhotos = () => {
             return;
         }
         if (action === 'delete') {
+            // A protected photo is only deleted with its key; the server checks it.
+            const locked = meta.get(id).protection !== 'none';
+            const keyField = deleteDialog.querySelector('[data-ph-delete-key]');
+            const keyInput = deleteDialog.querySelector('#ph-delete-key');
+            keyField.hidden = !locked;
+            keyInput.disabled = !locked;
+            keyInput.required = locked;
             deleteDialog.querySelector('form').action = photoUrl(id);
             openDialog(deleteDialog, opener);
+            if (locked) keyInput.focus();
         }
     };
 
@@ -243,6 +251,14 @@ const initPhotos = () => {
             fillIds(bulkDeleteDialog.querySelector('form'));
             bulkDeleteDialog.querySelector('[data-ph-bulk-count]').textContent =
                 `${selected.size} ${selected.size === 1 ? 'photo' : 'photos'}`;
+            // One key can't vouch for a selection: the server refuses any with a protected
+            // photo in it, so say so here rather than after the round trip.
+            const locked = [...selected].filter((id) => meta.get(id)?.protection !== 'none').length;
+            const lockedNote = bulkDeleteDialog.querySelector('[data-ph-bulk-locked]');
+            lockedNote.hidden = locked === 0;
+            lockedNote.textContent = locked === 0 ? '' : `${locked} of these ${locked === 1 ? 'is' : 'are'} protected. `
+                + 'Protected photos are only deleted one at a time, with their key — take them out of the selection first.';
+            bulkDeleteDialog.querySelector('[data-ph-bulk-delete-submit]').disabled = locked > 0;
             openDialog(bulkDeleteDialog, opener);
             return;
         }

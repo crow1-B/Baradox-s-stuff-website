@@ -15,6 +15,7 @@
 .ph-section__note { margin-top: 0.25rem; font-size: var(--nd-text-sm); }
 
 .ph-dialog-note { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); line-height: 1.55; }
+.ph-dialog-note + .nd-field { margin-top: var(--nd-space-4); }
 
 /* ---------------------------------------------------------------- albums strip */
 
@@ -124,6 +125,9 @@
 
 .ph-tile__img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .ph-tile--encrypted .ph-tile__img { padding: 22%; object-fit: contain; opacity: 0.85; }
+/* A layer over the server's obscured thumbnail (app/Support/Obscure.php), never the protection
+   itself. Scaled so the blur's soft rim falls outside the tile's clip. */
+.ph-tile[data-protection='gated'] .ph-tile__img { filter: blur(6px); transform: scale(1.12); }
 
 .ph-tile__scrim {
     position: absolute;

@@ -174,8 +174,14 @@
             <div class="nd-dialog__body">
                 <p class="ph-dialog-note" id="ph-delete-note">
                     The file and its thumbnail are removed from the drive. There is no undo.
-                    A protected photo needs no key to be deleted — deleting is not reading it.
                 </p>
+                {{-- Shown for a protected photo: it stays locked until its key is given,
+                     deleting included. The server checks the key, not this field. --}}
+                <div class="nd-field" data-ph-delete-key hidden>
+                    <label class="nd-label" for="ph-delete-key">Key<span class="nd-req" aria-hidden="true">*</span></label>
+                    <x-nd-secret class="nd-input" id="ph-delete-key" name="key" autocomplete="off" disabled aria-describedby="ph-delete-key-hint" />
+                    <p class="nd-hint" id="ph-delete-key-hint">This photo is locked. It is only deleted with its key.</p>
+                </div>
             </div>
             <div class="nd-dialog__foot">
                 <button type="button" class="nd-btn nd-btn--ghost" data-ph-close autofocus>Cancel</button>
@@ -195,10 +201,11 @@
             </div>
             <div class="nd-dialog__body">
                 <p class="ph-dialog-note">Their files and thumbnails are removed from the drive. There is no undo.</p>
+                <p class="nd-note nd-note--warn" data-ph-bulk-locked hidden></p>
             </div>
             <div class="nd-dialog__foot">
                 <button type="button" class="nd-btn nd-btn--ghost" data-ph-close autofocus>Cancel</button>
-                <button type="submit" class="nd-btn nd-btn--danger">Delete</button>
+                <button type="submit" class="nd-btn nd-btn--danger" data-ph-bulk-delete-submit>Delete</button>
             </div>
         </form>
     </dialog>

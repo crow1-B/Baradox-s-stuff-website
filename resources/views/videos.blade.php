@@ -52,12 +52,12 @@
                 @foreach ($albums as $entry)
                     @php
                         $count = (int) ($albumCounts[$entry->id] ?? 0);
-                        $coverId = $albumCovers[$entry->id] ?? null;
+                        $cover = $albumCovers[$entry->id] ?? null;
                     @endphp
                     <li class="vd-album">
-                        @if ($coverId)
+                        @if ($cover)
                             <img class="vd-album__cover"
-                                 src="{{ route('video.poster', $coverId) }}"
+                                 src="{{ $cover->posterUrl() }}"
                                  alt=""
                                  width="640" height="360"
                                  loading="lazy"

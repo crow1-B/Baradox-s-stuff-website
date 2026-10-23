@@ -377,10 +377,18 @@ const initVideos = () => {
                 unlockForm.action = `${urls.video}/${id}/unlock`;
                 openDialog(unlockDialog, document.getElementById('vd-unlock-key'));
                 break;
-            case 'delete':
+            case 'delete': {
+                // A gated video is only removed with its key; the server checks it.
+                const locked = meta.get(id)?.protection !== 'none';
+                const keyInput = document.getElementById('vd-delete-key');
+                deleteForm.reset();
+                deleteDialog.querySelector('[data-vd-delete-key]').hidden = !locked;
+                keyInput.disabled = !locked;
+                keyInput.required = locked;
                 deleteForm.action = `${urls.video}/${id}`;
-                openDialog(deleteDialog);
+                openDialog(deleteDialog, locked ? keyInput : null);
                 break;
+            }
         }
     });
 

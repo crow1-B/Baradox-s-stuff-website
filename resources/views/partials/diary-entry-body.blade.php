@@ -38,7 +38,7 @@
             <li>
                 @if ($photo->protection === 'none')
                     <button type="button" class="dy-gallery__item" data-dy-photo="{{ route('photo.view', $photo->id) }}" aria-label="Open photo {{ $loop->iteration }} of {{ $loop->count }}">
-                        <img src="{{ route('photo.thumbnail', $photo->id) }}" alt="" loading="lazy">
+                        <img src="{{ $photo->thumbnailUrl() }}" alt="" loading="lazy">
                     </button>
                 @else
                     {{-- Protected since it was attached: its key belongs to the Photos page. --}}

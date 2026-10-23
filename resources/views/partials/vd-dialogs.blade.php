@@ -241,9 +241,15 @@
         <div class="nd-dialog__body">
             <p class="vd-dialog-note" id="vd-delete-note">
                 The entry and its cached poster go. <strong>The video file stays on the drive</strong> —
-                it was put there by hand and this site has never owned it. A gated video needs no key
-                to be removed; removing is not watching it.
+                it was put there by hand and this site has never owned it.
             </p>
+            {{-- Shown for a gated video: it stays gated until its key is given, removing
+                 included. The server checks the key, not this field. --}}
+            <div class="nd-field" data-vd-delete-key hidden>
+                <label class="nd-label" for="vd-delete-key">Key<span class="nd-req" aria-hidden="true">*</span></label>
+                <x-nd-secret class="nd-input" id="vd-delete-key" name="key" autocomplete="off" disabled aria-describedby="vd-delete-key-hint" />
+                <p class="nd-hint" id="vd-delete-key-hint">This video is gated. It is only removed with its key.</p>
+            </div>
         </div>
         <div class="nd-dialog__foot">
             <button type="button" class="nd-btn nd-btn--ghost" data-vd-close autofocus>Cancel</button>

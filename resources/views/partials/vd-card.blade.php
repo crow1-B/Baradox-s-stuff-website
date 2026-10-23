@@ -24,7 +24,7 @@
         @else
             {{-- The poster grows into the player when an unprotected video is opened. --}}
             <img class="vd-card__poster"
-                 src="{{ route('video.poster', $video->id) }}"
+                 src="{{ $video->posterUrl() }}"
                  alt=""
                  width="640" height="360"
                  loading="lazy"

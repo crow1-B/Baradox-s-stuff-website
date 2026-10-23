@@ -15,6 +15,7 @@
 .vd-section__note { margin-top: 0.25rem; font-size: var(--nd-text-sm); }
 
 .vd-dialog-note { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); line-height: 1.55; }
+.vd-dialog-note + .nd-field { margin-top: var(--nd-space-4); }
 .vd-form { display: flex; flex-direction: column; gap: 1rem; }
 .vd-manual { margin-top: 0.25rem; }
 .vd-textarea { min-height: 5.5rem; }
@@ -125,6 +126,9 @@
 
 .vd-card__tile { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--nd-bg-deep); }
 .vd-card__poster { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* A layer over the server's obscured poster (app/Support/Obscure.php), never the protection
+   itself. Scaled so the blur's soft rim falls outside the tile's clip. */
+.vd-card[data-protection='gated'] .vd-card__poster { filter: blur(8px); transform: scale(1.12); }
 .vd-card__blank {
     position: absolute;
     inset: 0;

@@ -404,6 +404,9 @@
 .dy-ptile__tick { position: absolute; right: 0.4rem; top: 0.4rem; display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 1.5px solid rgb(255 255 255 / 0.85); border-radius: 999px; background: rgb(4 12 15 / 0.35); color: transparent; font-size: 0.65rem; }
 .dy-ptile:has(input:checked) { outline: 3px solid var(--nd-accent); outline-offset: -3px; }
 .dy-ptile:has(input:checked) img { transform: scale(0.94); }
+/* Over the server's obscured thumbnail, never the protection itself (app/Support/Obscure.php). */
+.dy-ptile--gated img { filter: blur(6px); transform: scale(1.12); }
+.dy-ptile--gated:has(input:checked) img { transform: scale(1.06); }
 .dy-ptile:has(input:checked) .dy-ptile__tick { border-color: var(--nd-accent); background: var(--nd-accent); color: var(--nd-on-accent); }
 .dy-ptile:has(input:focus-visible) { box-shadow: 0 0 0 3px var(--nd-bg), 0 0 0 5px var(--nd-accent); }
 

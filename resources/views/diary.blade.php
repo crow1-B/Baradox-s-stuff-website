@@ -166,7 +166,7 @@
                             @elseif ($entry->photos->isNotEmpty())
                                 @php $cover = $entry->photos->firstWhere('protection', 'none'); @endphp
                                 @if ($cover)
-                                    <img class="dy-card__cover" src="{{ route('photo.thumbnail', $cover->id) }}" alt="" loading="lazy">
+                                    <img class="dy-card__cover" src="{{ $cover->thumbnailUrl() }}" alt="" loading="lazy">
                                 @endif
                             @endif
                         </li>

@@ -91,12 +91,12 @@
 
                     <div class="dy-ptiles" data-dy-photos role="group" aria-labelledby="dy-step-photos">
                         @foreach ($photos as $photo)
-                            <label class="dy-ptile" data-day="{{ $photo->created_at->toDateString() }}" data-photo-id="{{ $photo->id }}">
+                            <label class="dy-ptile @if ($photo->protection === 'gated') dy-ptile--gated @endif" data-day="{{ $photo->created_at->toDateString() }}" data-photo-id="{{ $photo->id }}">
                                 <input type="checkbox" name="photo_ids[]" value="{{ $photo->id }}" aria-label="Photo added {{ $photo->created_at->format('j F Y, H:i') }}">
                                 @if ($photo->protection === 'encrypted')
                                     <span class="dy-ptile__locked"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
                                 @else
-                                    <img src="{{ route('photo.thumbnail', $photo->id) }}" alt="" loading="lazy">
+                                    <img src="{{ $photo->thumbnailUrl() }}" alt="" loading="lazy">
                                 @endif
                                 <span class="dy-ptile__tick" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
                             </label>
