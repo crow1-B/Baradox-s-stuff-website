@@ -103,8 +103,10 @@
     padding: 1.1rem 0.8rem 1.25rem;
     overflow-y: auto;
     border-right: 1px solid var(--nd-line);
+    /* No backdrop-filter: on desktop only the static room is behind the sidebar, where a blur
+       under this fill changes nothing you can see, and the drawer's fill is opaque. It cost a
+       re-blur of the whole strip on every scroll frame. */
     background: color-mix(in oklab, var(--nd-bg-deep) 82%, transparent);
-    backdrop-filter: blur(14px);
     color: var(--nd-ink);
     overscroll-behavior: contain;
     scrollbar-width: thin;
