@@ -519,6 +519,8 @@ input[type='file'].nd-input::file-selector-button {
     .nd-secret > input.nd-secret__input { padding-right: 3rem; }
     .nd-secret > button.nd-secret__toggle { right: 0; width: 2.75rem; height: 2.75rem; }
 
+    .nd-segmented label { display: inline-flex; align-items: center; min-height: 2.75rem; }
+
     .nd-chip { position: relative; }
     .nd-chip::after {
         content: '';
