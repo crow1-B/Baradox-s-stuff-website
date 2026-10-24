@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-// Writes whatever DeferredWrites collected once the response is out. First in the web group,
-// so it sees the response last on the way out.
+// Writes whatever DeferredWrites collected once the response is out. First in the global
+// stack, so it sees the response last on the way out, whether or not a route matched.
 class FlushDeferredWrites
 {
     public function __construct(private DeferredWrites $writes)

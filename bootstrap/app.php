@@ -16,10 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         'log.visit' => \App\Http\Middleware\LogVisit::class,
         'backups.owner' => \App\Http\Middleware\EnsureBackupOwner::class,
     ]);
-    $middleware->web(
-        prepend: [\App\Http\Middleware\FlushDeferredWrites::class],
-        append: [\App\Http\Middleware\RejectPreviewWrites::class],
-    );
+    // Global, not web-only: a row queued for a request no route matched is still written.
+    $middleware->prepend(\App\Http\Middleware\FlushDeferredWrites::class);
+    $middleware->web(append: [\App\Http\Middleware\RejectPreviewWrites::class]);
     // Written by calendar.js so the server can render the chosen layers; see CalendarController.
     $middleware->encryptCookies(except: [\App\Http\Controllers\CalendarController::LAYER_COOKIE]);
     $middleware->appendToPriorityList(\Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\RejectPreviewWrites::class);
