@@ -10,20 +10,22 @@
          data-tags="{{ implode(',', $keys) }}"
          data-content="{{ $note->content }}">
 
-    <label class="xn-msg__pick">
-        <input type="checkbox" data-xn-pick aria-label="Select this message">
-        <span class="xn-msg__box" aria-hidden="true"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
-    </label>
+    @if ($canWrite)
+        <label class="xn-msg__pick">
+            <input type="checkbox" data-xn-pick aria-label="Select this message">
+            <span class="xn-msg__box" aria-hidden="true"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+        </label>
+    @endif
 
     <div class="xn-msg__bubble">
         @if ($note->is_pinned)
             <span class="xn-msg__pin" title="Pinned">
                 <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-                <span class="xn-sr">Pinned</span>
+                <span class="nd-sr-only">Pinned</span>
             </span>
         @endif
 
-        <div class="xn-msg__text" dir="auto">{!! $formatter->render($note->content) !!}</div>
+        <div class="xn-msg__text nd-written" dir="auto">{!! $formatter->render($note->content) !!}</div>
 
         <footer class="xn-msg__foot">
             @if ($keys !== [])
@@ -31,7 +33,7 @@
                     @foreach ($keys as $key)
                         <span class="xn-tag" title="{{ $tags[$key]['label'] }}">
                             <i class="{{ $tags[$key]['icon'] }}" aria-hidden="true"></i>
-                            <span class="xn-sr">{{ $tags[$key]['label'] }}</span>
+                            <span class="nd-sr-only">{{ $tags[$key]['label'] }}</span>
                         </span>
                     @endforeach
                 </span>
@@ -47,24 +49,26 @@
         </footer>
 
         <div class="xn-msg__actions" data-xn-actions>
-            <button type="button" class="xn-act" data-xn-act="copy" data-id="{{ $note->id }}" title="Copy" aria-label="Copy this message">
-                <i class="fa-solid fa-copy" aria-hidden="true"></i>
+            <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-xn-act="copy" data-id="{{ $note->id }}" title="Copy" aria-label="Copy this message">
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
             </button>
-            <button type="button" class="xn-act" data-xn-act="edit" data-id="{{ $note->id }}" title="Edit" aria-label="Edit this message">
-                <i class="fa-solid fa-pen" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="xn-act" data-xn-act="tags" data-id="{{ $note->id }}" title="Tags" aria-label="Change the tags on this message">
-                <i class="fa-solid fa-tag" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="xn-act @if ($note->is_pinned) xn-act--on @endif" data-xn-act="pin" data-id="{{ $note->id }}"
-                    title="{{ $note->is_pinned ? 'Unpin' : 'Pin' }}"
-                    aria-pressed="{{ $note->is_pinned ? 'true' : 'false' }}"
-                    aria-label="{{ $note->is_pinned ? 'Unpin this message' : 'Pin this message' }}">
-                <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="xn-act xn-act--danger" data-xn-act="delete" data-id="{{ $note->id }}" title="Delete" aria-label="Delete this message">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-            </button>
+            @if ($canWrite)
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-xn-act="edit" data-id="{{ $note->id }}" title="Edit" aria-label="Edit this message">
+                    <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-xn-act="tags" data-id="{{ $note->id }}" title="Tags" aria-label="Change the tags on this message">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm @if ($note->is_pinned) xn-act--on @endif" data-xn-act="pin" data-id="{{ $note->id }}"
+                        title="{{ $note->is_pinned ? 'Unpin' : 'Pin' }}"
+                        aria-pressed="{{ $note->is_pinned ? 'true' : 'false' }}"
+                        aria-label="{{ $note->is_pinned ? 'Unpin this message' : 'Pin this message' }}">
+                    <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm nd-icon-btn--danger" data-xn-act="delete" data-id="{{ $note->id }}" title="Delete" aria-label="Delete this message">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+            @endif
         </div>
     </div>
 </article>

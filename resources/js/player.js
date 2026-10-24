@@ -19,10 +19,14 @@ if (root) {
     const menu = $('[data-bsp-menu]');
     const menuItems = [...menu.querySelectorAll('[role="menuitem"]')];
     const handle = $('[data-bsp-handle]');
+    const prevButton = $('[data-bsp-prev]');
+    const nextButton = $('[data-bsp-next]');
 
     const STORAGE_KEY = `bs-player:${root.dataset.user}`;
     const RESTART_THRESHOLD = 3; // seconds in: "previous" restarts the track instead
     const SAVE_INTERVAL = 2000;
+    const PLAY_THRESHOLD = 30; // seconds of real listening before a play counts
+    const LOGGED_KEY = `bs-player-logged:${root.dataset.user}`;
 
     // ------------------------------------------------------------- persisted state
 
@@ -143,6 +147,57 @@ if (root) {
     window.bsPlayer = {
         state: snapshot,
         toggle: () => togglePlay(),
+        pick: (track) => pick(track),
+    };
+
+    // ------------------------------------------------------------ play counting
+
+    // Feeds "most played today" (track_plays). Once per track per browser-tab session, and
+    // only after PLAY_THRESHOLD seconds actually heard: seeking forward doesn't count.
+    let listened = 0;
+    let lastTick = null;
+
+    const readLogged = () => {
+        try {
+            return new Set(JSON.parse(sessionStorage.getItem(LOGGED_KEY)) ?? []);
+        } catch {
+            return new Set();
+        }
+    };
+
+    const logged = readLogged();
+
+    const countPlay = (track) => {
+        if (root.dataset.canWrite !== 'true' || logged.has(track.id)) return;
+        logged.add(track.id);
+        try {
+            sessionStorage.setItem(LOGGED_KEY, JSON.stringify([...logged]));
+        } catch {
+            // storage blocked: at worst a reload counts the track once more
+        }
+        fetch(root.dataset.playUrl.replace('__TRACK__', encodeURIComponent(track.id)), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'X-Requested-With': 'XMLHttpRequest',
+                Accept: 'application/json',
+            },
+            credentials: 'same-origin',
+            keepalive: true,
+        }).catch(() => {});
+    };
+
+    const trackListening = () => {
+        if (!current || audio.paused) {
+            lastTick = null;
+            return;
+        }
+        const now = audio.currentTime;
+        // Small forward steps are playback; anything else is a seek.
+        if (lastTick !== null && now > lastTick && now - lastTick < 1.5) listened += now - lastTick;
+        lastTick = now;
+        const needed = Number.isFinite(audio.duration) ? Math.min(PLAY_THRESHOLD, audio.duration * 0.9) : PLAY_THRESHOLD;
+        if (listened >= needed) countPlay(current);
     };
 
     const render = () => {
@@ -204,6 +259,8 @@ if (root) {
 
     const load = (track, { autoplay = false, startAt = 0 } = {}) => {
         current = track;
+        listened = 0;
+        lastTick = null;
         errorMessage = null;
         loading = autoplay;
         pendingSeek = startAt > 0 ? startAt : null;
@@ -344,6 +401,8 @@ if (root) {
     // -------------------------------------------------------------------- controls
 
     toggleButton.addEventListener('click', togglePlay);
+    prevButton.addEventListener('click', () => previous());
+    nextButton.addEventListener('click', () => next());
 
     handle.addEventListener('click', () => {
         state.hidden = false;
@@ -430,7 +489,10 @@ if (root) {
 
     audio.addEventListener('durationchange', () => paintSeek(audio.currentTime));
 
+    audio.addEventListener('seeking', () => (lastTick = null));
+
     audio.addEventListener('timeupdate', () => {
+        trackListening();
         if (!scrubbing) paintSeek(audio.currentTime);
         if (current && Date.now() - lastSave > SAVE_INTERVAL) {
             lastSave = Date.now();

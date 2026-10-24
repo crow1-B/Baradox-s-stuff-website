@@ -82,6 +82,7 @@ class ProjectsController extends Controller
             'openUpdates' => $openUpdates,
             'required' => self::REQUIRED,
             'projectsData' => $projectsData,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 

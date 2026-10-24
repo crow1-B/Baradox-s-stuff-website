@@ -3,7 +3,7 @@
         <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
         <span>Pinned</span>
         <span class="xn-pinned__count">{{ $pinned->count() }}</span>
-        <button type="button" class="xn-act xn-pinned__toggle" data-xn-pinned-toggle aria-expanded="true" aria-controls="xn-pinned-list" aria-label="Collapse pinned messages">
+        <button type="button" class="nd-icon-btn nd-icon-btn--sm xn-pinned__toggle" data-xn-pinned-toggle aria-expanded="true" aria-controls="xn-pinned-list" aria-label="Collapse pinned messages">
             <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
         </button>
     </div>
@@ -15,7 +15,7 @@
                 $keys = $note->tagKeys();
             @endphp
             <li class="xn-pinned__item">
-                <button type="button" class="xn-pinned__jump" data-xn-jump="{{ $note->id }}" dir="auto">
+                <button type="button" class="xn-pinned__jump nd-written" data-xn-jump="{{ $note->id }}" dir="auto">
                     {{ $preview }}
                 </button>
 
@@ -24,15 +24,17 @@
                         @foreach ($keys as $key)
                             <span class="xn-tag" title="{{ $tags[$key]['label'] }}">
                                 <i class="{{ $tags[$key]['icon'] }}" aria-hidden="true"></i>
-                                <span class="xn-sr">{{ $tags[$key]['label'] }}</span>
+                                <span class="nd-sr-only">{{ $tags[$key]['label'] }}</span>
                             </span>
                         @endforeach
                     </span>
                 @endif
 
-                <button type="button" class="xn-act" data-xn-act="pin" data-id="{{ $note->id }}" title="Unpin" aria-label="Unpin this message">
-                    <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-                </button>
+                @if ($canWrite)
+                    <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-xn-act="pin" data-id="{{ $note->id }}" title="Unpin" aria-label="Unpin this message">
+                        <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                    </button>
+                @endif
             </li>
         @endforeach
     </ul>

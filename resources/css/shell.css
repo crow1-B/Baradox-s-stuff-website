@@ -1,29 +1,7 @@
-:root {
-    --bs-bg: #121212;
-    --bs-sidebar: #161618;
-    --bs-surface: #1a1a1d;
-    --bs-surface-2: #222226;
-    --bs-surface-3: #2a2a2f;
-    --bs-border: #2c2c32;
-    --bs-border-strong: #3a3a42;
-    --bs-text: #ececf1;
-    --bs-text-muted: #a3a3ad;
-    --bs-text-faint: #75757f;
-    --bs-accent: #29a1a1;
-    --bs-accent-hover: #33b8b8;
-    --bs-accent-soft: rgb(41 161 161 / 0.14);
-    --bs-accent-text: #6fd6d6;
-    --bs-on-accent: #041414;
-    --bs-danger: #f87171;
-    --bs-radius-sm: 6px;
-    --bs-radius: 10px;
-    --bs-radius-lg: 14px;
-    --bs-ring: 0 0 0 2px var(--bs-bg), 0 0 0 4px var(--bs-accent-text);
-    --bs-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-
-    --bs-sidebar-w: 15rem;
-    --bs-topbar-h: 3.25rem;
-}
+/* ==========================================================================
+   The app shell: sidebar, top area, drawer, command palette, shortcuts.
+   Reads the night-desk tokens (tokens.css).
+   ========================================================================== */
 
 /* ---------------------------------------------------------------- skip link */
 
@@ -31,68 +9,55 @@
     position: fixed;
     top: 0.75rem;
     left: 0.75rem;
-    z-index: 1200;
+    z-index: var(--nd-z-skip);
     padding: 0.5rem 0.9rem;
-    border-radius: var(--bs-radius);
-    background: var(--bs-accent);
-    color: var(--bs-on-accent);
+    border-radius: var(--nd-r);
+    background: var(--nd-accent-strong);
+    color: var(--nd-on-accent-strong);
     font-weight: 600;
     text-decoration: none;
     transform: translateY(-200%);
 }
-.app-skip:focus-visible { transform: none; outline: none; box-shadow: var(--bs-ring); }
+.app-skip:focus-visible { transform: none; outline: 2px solid var(--nd-ink); outline-offset: 2px; }
 
 .app-main:focus { outline: none; }
 
-/* ---------------------------------------------------------------- shared bits */
+/* ---------------------------------------------------------------- frame */
 
-.app-shell .app-icon-btn {
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0;
-    border: 0;
-    border-radius: var(--bs-radius);
-    background: transparent;
-    color: var(--bs-text-muted);
-    cursor: pointer;
-    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
-}
-.app-shell .app-icon-btn:hover { background: var(--bs-surface-2); color: var(--bs-text); }
-.app-shell .app-icon-btn svg { width: 1.25rem; height: 1.25rem; }
+.app-shell { position: relative; z-index: 1; }
 
-.app-shell .app-icon-btn:focus-visible,
-.app-shell .app-brand:focus-visible,
-.app-shell .app-nav__link:focus-visible {
-    outline: none;
-    box-shadow: var(--bs-ring);
+.app-column {
+    min-width: 0;
+    margin-left: var(--nd-sidebar-w);
 }
 
-.app-shell .app-brand {
-    color: var(--bs-text);
-    font-size: 0.98rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+.app-brand {
+    color: var(--nd-ink);
+    font: 500 1.12rem / 1.1 var(--nd-font-serif);
+    letter-spacing: -0.005em;
     text-decoration: none;
-    border-radius: var(--bs-radius-sm);
+    border-radius: var(--nd-r-xs);
 }
+.app-brand:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 3px; }
 
 /* ---------------------------------------------------------------- sidebar */
 
 .app-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 50;
+    z-index: var(--nd-z-shell);
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
-    width: var(--bs-sidebar-w);
-    padding: 1.1rem 0.75rem 1.5rem;
+    gap: 1.4rem;
+    width: var(--nd-sidebar-w);
+    padding: 1.1rem 0.8rem 1.25rem;
     overflow-y: auto;
-    border-right: 1px solid var(--bs-border);
-    background: var(--bs-sidebar);
-    color: var(--bs-text);
+    border-right: 1px solid var(--nd-line);
+    /* No backdrop-filter: on desktop only the static room is behind the sidebar, where a blur
+       under this fill changes nothing you can see, and the drawer's fill is opaque. It cost a
+       re-blur of the whole strip on every scroll frame. */
+    background: color-mix(in oklab, var(--nd-bg-deep) 82%, transparent);
+    color: var(--nd-ink);
     overscroll-behavior: contain;
 }
 
@@ -102,18 +67,18 @@
     justify-content: space-between;
     gap: 0.5rem;
     min-height: 2.25rem;
-    padding: 0 0.25rem 0 0.6rem;
+    padding: 0 0.25rem 0 0.65rem;
 }
 .app-sidebar__close { display: none !important; }
 
-.app-nav { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.app-nav { display: flex; flex-direction: column; gap: 1px; margin: 0; padding: 0; list-style: none; }
 
-.app-nav-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.app-nav-group { display: flex; flex-direction: column; gap: 0.3rem; }
 .app-nav-group__label {
     margin: 0;
-    padding: 0 0.6rem;
-    color: var(--bs-text-faint);
-    font-size: 0.75rem;
+    padding: 0 0.65rem;
+    color: var(--nd-ink-3);
+    font-size: var(--nd-text-xs);
     font-weight: 500;
 }
 
@@ -121,72 +86,83 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    min-height: 2.25rem;
-    padding: 0 0.6rem;
-    border-radius: 8px;
-    color: var(--bs-text-muted);
+    gap: 0.7rem;
+    min-height: 2.3rem;
+    padding: 0 0.65rem;
+    border-radius: var(--nd-r-sm);
+    color: var(--nd-ink-2);
     font-size: 0.9rem;
     font-weight: 500;
     text-decoration: none;
-    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
 }
-.app-nav__link:hover { background: var(--bs-surface); color: var(--bs-text); }
+.app-nav__link:hover { background: color-mix(in oklab, var(--nd-surface) 80%, transparent); color: var(--nd-ink); }
+.app-nav__link:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: -2px; }
 
-.app-nav__link[aria-current='page'] { background: var(--bs-surface-2); color: var(--bs-text); }
+.app-nav__link[aria-current='page'] { background: var(--nd-surface-2); color: var(--nd-ink); }
+.app-nav__link[aria-current='page'] .app-nav__icon { color: var(--nd-accent); }
+
+/* The lit page: a short warm bar, the one spot of lamplight in the chrome. */
 .app-nav__link[aria-current='page']::before {
     content: '';
     position: absolute;
-    left: -0.75rem;
-    top: 0.5rem;
-    bottom: 0.5rem;
+    left: -0.8rem;
+    top: 0.55rem;
+    bottom: 0.55rem;
     width: 3px;
     border-radius: 0 3px 3px 0;
-    background: var(--bs-accent);
+    background: var(--nd-accent);
 }
 
-/* 20px icon slot; the dot is a placeholder until real icons are dropped in */
 .app-nav__icon {
     display: inline-grid;
     place-items: center;
     flex: none;
     width: 20px;
     height: 20px;
-    color: inherit;
+    color: var(--nd-ink-3);
+    font-size: 0.9rem;
+    transition: color var(--nd-dur-1) var(--nd-ease);
 }
+.app-nav__link:hover .app-nav__icon { color: var(--nd-ink-2); }
 .app-nav__icon > svg { width: 20px; height: 20px; }
+/* A slot something plugged in left empty still shows a mark rather than a hole. */
 .app-nav__icon:empty::before {
     content: '';
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: var(--bs-border-strong);
-    transition: background-color 120ms var(--bs-ease);
+    background: currentColor;
 }
-.app-nav__link:hover .app-nav__icon:empty::before { background: var(--bs-text-faint); }
-.app-nav__link[aria-current='page'] .app-nav__icon:empty::before { background: var(--bs-accent-text); }
 
 .app-nav__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Sign out */
 .app-signout {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     margin-top: auto;
     padding-top: 1rem;
-    border-top: 1px solid var(--bs-border);
+    border-top: 1px solid var(--nd-line);
 }
 .app-signout__who {
     margin: 0;
-    padding: 0 0.6rem;
+    padding: 0 0.65rem;
     overflow: hidden;
-    color: var(--bs-text-faint);
-    font-size: 0.75rem;
+    color: var(--nd-ink-3);
+    font-size: var(--nd-text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.app-signout__who span { color: var(--bs-text-muted); font-weight: 500; }
+.app-signout__who span { color: var(--nd-ink-2); font-weight: 500; }
+.app-signout__who .app-signout__preview {
+    margin-left: 0.3rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--nd-r-pill);
+    background: var(--nd-warn-soft);
+    color: var(--nd-warn);
+    font-weight: 500;
+}
 .app-signout .app-signout__btn {
     width: 100%;
     border: 0;
@@ -197,65 +173,204 @@
     text-align: left;
     cursor: pointer;
 }
-.app-signout .app-signout__btn:hover { background: var(--bs-surface); color: var(--bs-text); }
-.app-signout .app-signout__btn:focus-visible { outline: none; box-shadow: var(--bs-ring); }
-.app-signout__btn .app-nav__icon { font-size: 0.95rem; }
 
-/* ---------------------------------------------------------------- content area */
+/* ---------------------------------------------------------------- top area */
 
-.app-main {
-    display: block;
-    min-width: 0;
-    margin-left: var(--bs-sidebar-w);
+.app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: calc(var(--nd-z-shell) - 1);
+    display: flex;
+    align-items: center;
+    gap: var(--nd-space-2);
+    height: var(--nd-topbar-h);
+    padding: 0 var(--nd-gutter);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--nd-bg) 92%, transparent) 40%, transparent);
 }
 
-.app-topbar,
-.app-backdrop { display: none; }
+.app-topbar__menu,
+.app-topbar__brand { display: none !important; }
+
+.app-topbar__tools { display: flex; align-items: center; gap: var(--nd-space-1); margin-left: auto; }
+
+.app-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 19rem;
+    height: 2.25rem;
+    padding: 0 0.45rem 0 0.8rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: color-mix(in oklab, var(--nd-surface) 75%, transparent);
+    color: var(--nd-ink-3);
+    font: 400 var(--nd-text-sm) / 1 var(--nd-font-sans);
+    cursor: pointer;
+    transition: border-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.app-jump:hover { border-color: var(--nd-line-strong); color: var(--nd-ink-2); }
+.app-jump:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.app-jump__label { flex: 1; text-align: left; }
+.app-jump__keys { display: inline-flex; gap: 3px; }
+
+.app-theme { position: relative; }
+.app-theme__dot {
+    position: absolute;
+    right: 0.42rem;
+    bottom: 0.42rem;
+    width: 6px;
+    height: 6px;
+    border: 1.5px solid var(--nd-bg);
+    border-radius: 999px;
+    background: var(--nd-accent);
+}
 
 /* ---------------------------------------------------------------- below lg: drawer */
 
-@media (max-width: 1023.98px) {
-    .app-topbar {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        height: var(--bs-topbar-h);
-        padding: 0 0.75rem 0 0.5rem;
-        border-bottom: 1px solid var(--bs-border);
-        background: rgb(18 18 18 / 0.92);
-        backdrop-filter: blur(8px);
-    }
+.app-backdrop { display: none; }
 
-    .app-main { margin-left: 0; }
+@media (max-width: 1023.98px) {
+    .app-column { margin-left: 0; }
+
+    .app-topbar {
+        padding: 0 0.6rem 0 0.4rem;
+        border-bottom: 1px solid var(--nd-line);
+        background: color-mix(in oklab, var(--nd-bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+    }
+    .app-topbar__menu { display: inline-grid !important; }
+    .app-topbar__brand { display: inline !important; }
+
+    .app-jump { min-width: 0; width: 2.25rem; padding: 0; justify-content: center; border-color: transparent; background: transparent; color: var(--nd-ink-2); }
+    /* The label stays as the button's name, only out of sight. */
+    .app-jump__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .app-jump__keys { display: none; }
+    .app-topbar__keys { display: none; }
 
     .app-sidebar {
-        z-index: 1100; /* above the player pill (1000) while the drawer is open */
+        z-index: var(--nd-z-drawer);
         width: min(18rem, 85vw);
-        box-shadow: 20px 0 50px -20px rgb(0 0 0 / 0.8);
+        background: var(--nd-bg-deep);
+        box-shadow: 20px 0 50px -20px rgb(0 0 0 / 0.6);
         transform: translateX(-100%);
         visibility: hidden; /* keeps closed-drawer links out of the Tab order */
-        transition: transform 200ms var(--bs-ease), visibility 0s linear 200ms;
+        transition: transform var(--nd-dur-2) var(--nd-ease), visibility 0s linear var(--nd-dur-2);
     }
-    .app-sidebar__close { display: grid !important; }
+    .app-sidebar__close { display: inline-grid !important; }
 
     .app-shell[data-nav-open] .app-sidebar {
         transform: none;
         visibility: visible;
-        transition: transform 200ms var(--bs-ease), visibility 0s;
+        transition: transform var(--nd-dur-2) var(--nd-ease), visibility 0s;
     }
 
     .app-shell[data-nav-open] .app-backdrop {
         position: fixed;
         inset: 0;
-        z-index: 1090;
+        z-index: calc(var(--nd-z-drawer) - 10);
         display: block;
-        background: rgb(0 0 0 / 0.55);
+        background: rgb(4 12 15 / 0.55);
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .app-sidebar, .app-nav__link, .app-shell .app-icon-btn { transition: none !important; }
+/* ---------------------------------------------------------------- command palette */
+
+.nd-palette {
+    width: min(40rem, calc(100vw - 1.5rem));
+    max-height: min(32rem, calc(100dvh - 6rem));
+    margin: 12vh auto auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-lg);
+    background: var(--nd-surface);
+    color: var(--nd-ink);
+    box-shadow: var(--nd-shadow-3);
 }
+.nd-palette[open] { display: flex; flex-direction: column; }
+.nd-palette::backdrop { background: rgb(4 12 15 / 0.5); backdrop-filter: blur(2px); }
+
+.nd-palette__search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--nd-line);
+    color: var(--nd-ink-3);
+}
+.nd-palette__input {
+    flex: 1;
+    min-width: 0;
+    height: 3.4rem;
+    border: 0;
+    background: transparent;
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-md) / 1 var(--nd-font-sans);
+}
+.nd-palette__input:focus { outline: none; }
+.nd-palette__input::placeholder { color: var(--nd-ink-3); }
+
+.nd-palette__list { flex: 1; min-height: 0; margin: 0; padding: 0.4rem; overflow-y: auto; list-style: none; overscroll-behavior: contain; }
+.nd-palette__group {
+    padding: 0.7rem 0.65rem 0.3rem;
+    color: var(--nd-ink-3);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+}
+.nd-palette__option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.6rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--nd-r-sm);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+    cursor: pointer;
+}
+.nd-palette__option[aria-selected='true'] { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-palette__icon { display: inline-grid; place-items: center; flex: none; width: 1.25rem; color: var(--nd-ink-3); }
+.nd-palette__option[aria-selected='true'] .nd-palette__icon { color: var(--nd-accent); }
+.nd-palette__label { flex: 1; min-width: 0; overflow: hidden; color: var(--nd-ink); text-overflow: ellipsis; white-space: nowrap; }
+.nd-palette__label--written { font-family: var(--nd-font-serif); font-size: var(--nd-text-base); }
+.nd-palette__hint { flex: none; max-width: 40%; overflow: hidden; color: var(--nd-ink-3); font-size: var(--nd-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.nd-palette__empty { padding: 1.5rem 1rem; color: var(--nd-ink-3); font-size: var(--nd-text-sm); }
+
+.nd-palette__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.55rem 1rem;
+    border-top: 1px solid var(--nd-line);
+    color: var(--nd-ink-3);
+    font-size: var(--nd-text-xs);
+}
+.nd-palette__foot span { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+@media (max-width: 639.98px) {
+    .nd-palette { margin-top: 0.75rem; max-height: calc(100dvh - 1.5rem); }
+    .nd-palette__foot { display: none; }
+}
+
+/* ---------------------------------------------------------------- shortcuts overlay */
+
+.nd-shortcuts__groups { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.nd-shortcuts__title { margin: 0 0 0.5rem; color: var(--nd-ink-3); font-size: var(--nd-text-xs); font-weight: 500; }
+.nd-shortcuts__list { display: grid; gap: 0.45rem; margin: 0; }
+.nd-shortcuts__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: var(--nd-text-sm); }
+.nd-shortcuts__row dt { color: var(--nd-ink-2); }
+.nd-shortcuts__row dd { display: inline-flex; gap: 3px; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+    .app-sidebar, .app-nav__link, .app-jump { transition: none !important; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .app-jump { width: 2.75rem; height: 2.75rem; }
+    .app-skip { min-height: 2.75rem; display: inline-flex; align-items: center; }
+    .app-topbar__brand { padding-block: 0.75rem; }
+}
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.app-nav__link, .app-nav__icon, .app-jump) { transition: none !important; }

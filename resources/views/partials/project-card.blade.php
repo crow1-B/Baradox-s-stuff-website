@@ -1,8 +1,8 @@
 @php
     $moves = [
-        'future' => [['in_work', 'Start work', 'arrow'], ['done', 'Mark done', 'check']],
-        'in_work' => [['done', 'Mark done', 'check'], ['future', 'Back to future', 'undo']],
-        'done' => [['in_work', 'Reopen', 'undo'], ['future', 'Back to future', 'undo']],
+        'future' => [['in_work', 'Start work', 'fa-arrow-right'], ['done', 'Mark done', 'fa-check']],
+        'in_work' => [['done', 'Mark done', 'fa-check'], ['future', 'Back to future', 'fa-rotate-left']],
+        'done' => [['in_work', 'Reopen', 'fa-rotate-left'], ['future', 'Back to future', 'fa-rotate-left']],
     ][$project->status];
 
     $dateLabels = [
@@ -24,16 +24,18 @@
 @endphp
 
 <article class="pj-card" id="project-{{ $project->id }}" aria-labelledby="{{ $titleId }}">
-    <div class="flex items-start justify-between gap-3">
+    <div class="pj-card__head">
         <h3 class="pj-card__title" id="{{ $titleId }}">{{ $project->title }}</h3>
-        <div class="-mr-1.5 -mt-1 flex shrink-0 gap-0.5">
-            <button type="button" class="pj-btn pj-btn--ghost pj-btn--sm pj-btn--icon" data-pj-open="edit" data-project="{{ $project->id }}" aria-label="Edit {{ $project->title }}" title="Edit">
-                <x-pj-icon name="pencil" />
-            </button>
-            <button type="button" class="pj-btn pj-btn--ghost pj-btn--sm pj-btn--icon" data-pj-open="delete" data-project="{{ $project->id }}" aria-label="Delete {{ $project->title }}" title="Delete">
-                <x-pj-icon name="trash" />
-            </button>
-        </div>
+        @if ($canWrite)
+            <div class="pj-card__tools">
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-pj-open="edit" data-project="{{ $project->id }}" aria-label="Edit {{ $project->title }}" title="Edit">
+                    <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="nd-icon-btn nd-icon-btn--sm nd-icon-btn--danger" data-pj-open="delete" data-project="{{ $project->id }}" aria-label="Delete {{ $project->title }}" title="Delete">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+            </div>
+        @endif
     </div>
 
     @if ($project->description)
@@ -41,7 +43,7 @@
     @endif
 
     @if ($project->languages->isNotEmpty() || $project->people->isNotEmpty())
-        <div class="flex flex-col gap-2">
+        <div class="pj-card__stack">
             @if ($project->languages->isNotEmpty())
                 <ul class="pj-chips" aria-label="Languages">
                     @foreach ($project->languages as $language)
@@ -100,24 +102,24 @@
     </dl>
 
     @if ($github || $project->root_path)
-        <div class="flex flex-col gap-2">
+        <div class="pj-card__stack">
             @if ($github)
                 <div class="pj-resource">
-                    <x-pj-icon name="github" />
-                    <a class="pj-link pj-resource__text" href="{{ $project->github_link }}" target="_blank" rel="noopener noreferrer">
-                        {{ $github }}<span class="pj-sr-only"> on GitHub (opens in a new tab)</span>
+                    <i class="fa-brands fa-github" aria-hidden="true"></i>
+                    <a class="nd-link pj-resource__text" href="{{ $project->github_link }}" target="_blank" rel="noopener noreferrer">
+                        {{ $github }}<span class="nd-sr-only"> on GitHub (opens in a new tab)</span>
                     </a>
                 </div>
             @endif
             @if ($project->root_path)
                 <div class="pj-resource">
-                    <x-pj-icon name="folder" />
+                    <i class="fa-regular fa-folder" aria-hidden="true"></i>
                     <span class="pj-resource__text pj-mono" title="{{ $project->wslPath() }}">{{ $project->wslPath() }}</span>
-                    <button type="button" class="pj-btn pj-btn--ghost pj-btn--sm pj-btn--icon" data-pj-copy="{{ $project->wslPath() }}" aria-label="Copy folder path" title="Copy path">
-                        <x-pj-icon name="copy" />
+                    <button type="button" class="nd-icon-btn nd-icon-btn--sm" data-pj-copy="{{ $project->wslPath() }}" aria-label="Copy folder path" title="Copy path">
+                        <i class="fa-regular fa-copy" aria-hidden="true"></i>
                     </button>
-                    <a class="pj-btn pj-btn--ghost pj-btn--sm pj-btn--icon" href="{{ $project->vscodeUrl() }}" aria-label="Open folder in VS Code" title="Open in VS Code">
-                        <x-pj-icon name="code" />
+                    <a class="nd-icon-btn nd-icon-btn--sm" href="{{ $project->vscodeUrl() }}" aria-label="Open folder in VS Code" title="Open in VS Code">
+                        <i class="fa-solid fa-code" aria-hidden="true"></i>
                     </a>
                 </div>
             @endif
@@ -126,26 +128,30 @@
 
     @if ($project->root_path === null)
         <div class="pj-empty-inline">
-            <x-pj-icon name="folder" />
-            <span>No project folder set.
-                <button type="button" class="pj-linkbtn" data-pj-open="edit" data-project="{{ $project->id }}">Add one</button>
-                to browse its files.</span>
+            <i class="fa-regular fa-folder" aria-hidden="true"></i>
+            @if ($canWrite)
+                <span>No project folder set.
+                    <button type="button" class="pj-linkbtn" data-pj-open="edit" data-project="{{ $project->id }}">Add one</button>
+                    to browse its files.</span>
+            @else
+                <span>No project folder set.</span>
+            @endif
         </div>
     @elseif (!($folderStates[$project->id] ?? false))
-        <div class="pj-banner pj-banner--warn" role="note">
-            <x-pj-icon name="alert" />
-            <div>
-                <p class="font-medium">Folder not found or unreadable.</p>
-                <p class="text-sm opacity-80">Either the folder was moved or renamed, or the projects mount isn’t available. Check that the path above exists.</p>
+        <div class="nd-banner nd-banner--warn" role="note">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <div class="nd-banner__text">
+                <p><strong>Folder not found or unreadable.</strong></p>
+                <p>Either the folder was moved or renamed, or the projects mount isn’t available. Check that the path above exists.</p>
             </div>
         </div>
     @else
         <div class="pj-tree" data-pj-tree data-url="{{ route('projects.files', $project) }}">
-            <button type="button" class="pj-btn pj-btn--sm self-start" data-pj-tree-root aria-expanded="false" aria-controls="tree-{{ $project->id }}">
-                <x-pj-icon name="chevron" class="pj-tree__chevron" />
+            <button type="button" class="nd-btn nd-btn--sm nd-btn--ghost pj-tree__root" data-pj-tree-root aria-expanded="false" aria-controls="tree-{{ $project->id }}">
+                <i class="fa-solid fa-chevron-right pj-tree__chevron" aria-hidden="true"></i>
                 <span>Files</span>
             </button>
-            <div id="tree-{{ $project->id }}" class="mt-2" hidden></div>
+            <div id="tree-{{ $project->id }}" class="pj-tree__region" hidden></div>
         </div>
     @endif
 
@@ -153,18 +159,20 @@
     @if ($openUpdateCount > 0)
         {{-- The other direction of the Future Updates link: you are looking at a project and
              want to know what you planned for it. --}}
-        <a class="pj-link pj-updates" href="{{ route('future-updates') }}?project={{ $project->id }}">
-            <x-pj-icon name="bulb" />
+        <a class="nd-link pj-updates" href="{{ route('future-updates') }}?project={{ $project->id }}">
+            <i class="fa-regular fa-lightbulb" aria-hidden="true"></i>
             {{ $openUpdateCount }} planned {{ Str::plural('update', $openUpdateCount) }}
         </a>
     @endif
 
-    <div class="pj-card__footer">
-        @foreach ($moves as $i => [$target, $label, $icon])
-            <button type="button" class="pj-btn pj-btn--sm {{ $i === 0 ? 'pj-btn--primary' : '' }}" data-pj-open="status" data-project="{{ $project->id }}" data-target="{{ $target }}">
-                <x-pj-icon :name="$icon" />
-                {{ $label }}
-            </button>
-        @endforeach
-    </div>
+    @if ($canWrite)
+        <div class="pj-card__footer">
+            @foreach ($moves as $i => [$target, $label, $icon])
+                <button type="button" class="nd-btn nd-btn--sm {{ $i === 0 ? 'nd-btn--primary' : 'nd-btn--ghost' }}" data-pj-open="status" data-project="{{ $project->id }}" data-target="{{ $target }}">
+                    <i class="fa-solid {{ $icon }}" aria-hidden="true"></i>
+                    {{ $label }}
+                </button>
+            @endforeach
+        </div>
+    @endif
 </article>

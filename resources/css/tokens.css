@@ -1,0 +1,331 @@
+/* ==========================================================================
+   Night desk — the one token system every page reads.
+
+   The palette is the login's sky carried indoors: night is its teal-ink zenith, dusk keeps
+   the amber haze on the horizon, dawn and day are the mist over the treeline. The phase is
+   set on <html data-phase> before first paint by partials/theme-boot and kept current by
+   theme.js; a light/dark override narrows it to the nearest light or dark phase.
+   ========================================================================== */
+
+/* Registered so a phase change can cross-fade instead of snapping (see .nd-phase-shift). */
+@property --nd-bg { syntax: '<color>'; inherits: true; initial-value: #0b1a20; }
+@property --nd-bg-deep { syntax: '<color>'; inherits: true; initial-value: #081317; }
+@property --nd-floor { syntax: '<color>'; inherits: true; initial-value: #081317; }
+@property --nd-surface { syntax: '<color>'; inherits: true; initial-value: #10232a; }
+@property --nd-ink { syntax: '<color>'; inherits: true; initial-value: #ebe5d9; }
+@property --nd-ink-2 { syntax: '<color>'; inherits: true; initial-value: #a3b3b0; }
+@property --nd-line { syntax: '<color>'; inherits: true; initial-value: #1d363e; }
+@property --nd-lamp { syntax: '<color>'; inherits: true; initial-value: rgb(224 163 92 / 0.1); }
+@property --nd-haze { syntax: '<color>'; inherits: true; initial-value: rgb(199 160 122 / 0); }
+
+:root {
+    /* ---------------------------------------------------------------- type */
+    --nd-font-sans: 'Instrument Sans', ui-sans-serif, system-ui, 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+    --nd-font-serif: 'Newsreader', 'Noto Naskh Arabic', 'Iowan Old Style', Georgia, serif;
+    --nd-font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+
+    /* A 1.2 modular scale around a 16px base. */
+    --nd-text-xs: 0.75rem;
+    --nd-text-sm: 0.875rem;
+    --nd-text-base: 1rem;
+    --nd-text-md: 1.125rem;
+    --nd-text-lg: 1.35rem;
+    --nd-text-xl: 1.62rem;
+    --nd-text-2xl: 1.94rem;
+    --nd-text-3xl: clamp(2.1rem, 1.6rem + 2.2vw, 3.1rem);
+    --nd-leading-ui: 1.45;
+    --nd-leading-prose: 1.7;
+    --nd-measure: 66ch;
+
+    /* ---------------------------------------------------------------- space, radius */
+    --nd-space-1: 0.25rem;
+    --nd-space-2: 0.5rem;
+    --nd-space-3: 0.75rem;
+    --nd-space-4: 1rem;
+    --nd-space-5: 1.5rem;
+    --nd-space-6: 2rem;
+    --nd-space-7: 3rem;
+    --nd-space-8: 4.5rem;
+    --nd-gutter: clamp(1rem, 4vw, 2.5rem);
+
+    --nd-r-xs: 4px;
+    --nd-r-sm: 7px;
+    --nd-r: 11px;
+    --nd-r-lg: 18px;
+    --nd-r-pill: 999px;
+
+    /* ---------------------------------------------------------------- motion */
+    --nd-dur-1: 120ms;
+    --nd-dur-2: 220ms;
+    --nd-dur-3: 420ms;
+    --nd-dur-4: 900ms;
+    --nd-dur-morph: 260ms; /* shared-element morphs between pages: quick enough to read as a response, not a wait */
+    --nd-dur-phase: 2400ms;
+    --nd-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --nd-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --nd-ease-settle: cubic-bezier(0.3, 1.35, 0.5, 1);
+
+    /* ---------------------------------------------------------------- layers */
+    --nd-z-shell: 50;
+    --nd-z-dock: 1000;
+    --nd-z-drawer: 1100;
+    --nd-z-skip: 1200;
+
+    --nd-sidebar-w: 15.5rem;
+    --nd-topbar-h: 3.5rem;
+}
+
+/* ------------------------------------------------------------------ phases */
+
+/* Night (default, and what a page without the boot script gets): the login's zenith.
+   .nd-dark scopes the same values to one element whatever the phase: the photo viewer and
+   the video player are dark rooms by day too. */
+:root,
+:root[data-phase='night'],
+.nd-dark {
+    color-scheme: dark;
+    --nd-bg: #0b1a20;
+    --nd-bg-deep: #081317;
+    --nd-floor: #081317;
+    --nd-surface: #10232a;
+    --nd-surface-2: #142b33;
+    --nd-raised: #183239;
+    --nd-line: #1d363e;
+    --nd-line-strong: #2b4a52;
+    --nd-ink: #ebe5d9;
+    --nd-ink-2: #a3b3b0;
+    --nd-ink-3: #889b99;
+    --nd-accent: #5cc4bd;
+    --nd-accent-strong: #29a1a1;
+    --nd-accent-soft: rgb(92 196 189 / 0.13);
+    --nd-on-accent: #04191b;
+    /* Text on --nd-accent-strong (primary buttons). Dark by night: the bright teal under
+       white text was 3:1. */
+    --nd-on-accent-strong: #04191b;
+    --nd-lamp: rgb(224 163 92 / 0.11);
+    --nd-haze: rgb(199 160 122 / 0);
+    --nd-paper: #0e2026;
+    --nd-danger: #ff9f8a;
+    --nd-danger-soft: rgb(255 159 138 / 0.12);
+    --nd-success: #8fd6a8;
+    --nd-success-soft: rgb(143 214 168 / 0.12);
+    --nd-warn: #f2c27b;
+    --nd-warn-soft: rgb(242 194 123 / 0.12);
+    --nd-seal: #b5523b;
+    --nd-shadow-1: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.35);
+    --nd-shadow-2: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 10px 30px -12px rgb(0 0 0 / 0.6);
+    --nd-shadow-3: 0 30px 80px -20px rgb(0 0 0 / 0.75);
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    --nd-mood-l: 0.78;
+    --nd-mood-c: 0.09;
+
+    /* Scrollbar thumb: the ink at low strength, stronger under the pointer and while dragged.
+       Declared here, beside .nd-dark, and only ever derived from --nd-ink, so every phase (and
+       a dark room by day) resolves its own: the var() is read on the element that declares
+       it, which an inherited, pre-mixed colour would not be. */
+    --nd-scroll-thumb: color-mix(in oklab, var(--nd-ink) 20%, transparent);
+    --nd-scroll-thumb-hover: color-mix(in oklab, var(--nd-ink) 36%, transparent);
+    --nd-scroll-thumb-active: color-mix(in oklab, var(--nd-ink) 48%, transparent);
+    --nd-scroll-size: 10px;
+}
+
+/* Dusk: the amber haze is still on the horizon, so the room warms toward the floor. */
+:root[data-phase='dusk'] {
+    color-scheme: dark;
+    --nd-bg: #11232c;
+    --nd-bg-deep: #0b181d;
+    --nd-floor: #2a2420;
+    --nd-surface: #152b32;
+    --nd-surface-2: #1a333a;
+    --nd-raised: #1e3940;
+    --nd-line: #24414a;
+    --nd-line-strong: #34565e;
+    --nd-ink: #efe7da;
+    --nd-ink-2: #b2bcb5;
+    --nd-ink-3: #96a29e;
+    --nd-accent: #62c7bf;
+    --nd-accent-strong: #29a1a1;
+    --nd-accent-soft: rgb(98 199 191 / 0.14);
+    --nd-on-accent: #04191b;
+    --nd-lamp: rgb(230 160 96 / 0.12);
+    --nd-haze: rgb(214 146 98 / 0.3);
+    --nd-paper: #132830;
+    --nd-seal: #b85a40;
+}
+
+/* Dawn: mist over the treeline, a rose-amber edge where the sun is coming up. */
+:root[data-phase='dawn'] {
+    color-scheme: light;
+    --nd-bg: #e4ebe9;
+    --nd-bg-deep: #d8e1df;
+    --nd-floor: #e3e6df;
+    --nd-surface: #f1f5f3;
+    --nd-surface-2: #e9efed;
+    --nd-raised: #f8faf9;
+    --nd-line: #cfdad7;
+    --nd-line-strong: #b4c4c1;
+    --nd-ink: #10232a;
+    --nd-ink-2: #46595d;
+    --nd-ink-3: #576467;
+    --nd-accent: #186865;
+    --nd-accent-strong: #176e6a;
+    --nd-accent-soft: rgb(29 127 123 / 0.11);
+    --nd-on-accent: #f4fbfa;
+    --nd-on-accent-strong: #f4fbfa;
+    --nd-lamp: rgb(236 168 140 / 0.26);
+    --nd-haze: rgb(240 196 160 / 0.22);
+    --nd-paper: #f6f9f8;
+    --nd-danger: #b0371e;
+    --nd-danger-soft: rgb(180 56 31 / 0.09);
+    --nd-success: #2a6e44;
+    --nd-success-soft: rgb(47 122 75 / 0.1);
+    --nd-warn: #7e520f;
+    --nd-warn-soft: rgb(176 120 30 / 0.12);
+    --nd-seal: #a8432d;
+    --nd-shadow-1: 0 1px 2px rgb(16 35 42 / 0.08);
+    --nd-shadow-2: 0 12px 30px -14px rgb(16 35 42 / 0.28);
+    --nd-shadow-3: 0 30px 80px -24px rgb(16 35 42 / 0.4);
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    --nd-mood-l: 0.47; /* the lightest every hue reads at 4.5:1 on paper */
+    --nd-mood-c: 0.11;
+}
+
+/* Day: overcast window light, cooler and flatter than dawn. */
+:root[data-phase='day'] {
+    color-scheme: light;
+    --nd-bg: #ebefee;
+    --nd-bg-deep: #e0e6e4;
+    --nd-floor: #e0e6e4;
+    --nd-surface: #f7f9f8;
+    --nd-surface-2: #eef2f1;
+    --nd-raised: #fdfefd;
+    --nd-line: #d5dedc;
+    --nd-line-strong: #b9c7c4;
+    --nd-ink: #0f2128;
+    --nd-ink-2: #44575b;
+    --nd-ink-3: #59676a;
+    --nd-accent: #166c69;
+    --nd-accent-strong: #146a66;
+    --nd-accent-soft: rgb(26 125 121 / 0.1);
+    --nd-on-accent: #f4fbfa;
+    --nd-on-accent-strong: #f4fbfa;
+    --nd-lamp: rgb(255 236 196 / 0.4);
+    --nd-haze: rgb(255 255 255 / 0);
+    --nd-paper: #fbfcfc;
+    --nd-danger: #b4381f;
+    --nd-danger-soft: rgb(180 56 31 / 0.09);
+    --nd-success: #2c7246;
+    --nd-success-soft: rgb(47 122 75 / 0.1);
+    --nd-warn: #81540f;
+    --nd-warn-soft: rgb(176 120 30 / 0.12);
+    --nd-seal: #a8432d;
+    --nd-shadow-1: 0 1px 2px rgb(15 33 40 / 0.07);
+    --nd-shadow-2: 0 12px 30px -14px rgb(15 33 40 / 0.24);
+    --nd-shadow-3: 0 30px 80px -24px rgb(15 33 40 / 0.35);
+    --nd-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    --nd-mood-l: 0.47; /* the lightest every hue reads at 4.5:1 on paper */
+    --nd-mood-c: 0.11;
+}
+
+/* theme.js adds this for the length of a phase change, so the room dims instead of blinking. */
+:root.nd-phase-shift {
+    transition:
+        --nd-bg var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-bg-deep var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-floor var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-surface var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-ink var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-ink-2 var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-line var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-lamp var(--nd-dur-phase) var(--nd-ease-in-out),
+        --nd-haze var(--nd-dur-phase) var(--nd-ease-in-out);
+}
+
+/* While theme.js holds data-phase-snap on the root, the elements that transition a colour
+   stop doing it. Each stylesheet lists its own (`:root[data-phase-snap] :is(...)`, at its
+   foot); PhaseSnapTest fails when a colour transition is not covered. Starting a transition
+   is far more expensive than restyling, and a phase change used to start one on every
+   button, chip and row on the page. */
+
+/* ------------------------------------------------------------------ the room */
+
+/* Opted into by layouts/app and by the login layout. */
+.nd-room {
+    min-height: 100dvh;
+    background: var(--nd-bg);
+    color: var(--nd-ink);
+    font-family: var(--nd-font-sans);
+    line-height: var(--nd-leading-ui);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* The room's light and the paper grain, as one layer fixed to the viewport: the lamp stays in
+   its corner and the horizon on the floor however far the page scrolls, and the grain doesn't
+   crawl. One static layer under everything is painted once and composited for free; the
+   fixed-attachment backgrounds and a mix-blend-mode overlay it replaced were repainted or
+   re-blended on every scroll and animation frame. The grain is the same overlay, blended
+   inside this background instead (its opacity is baked into --nd-grain's alpha). */
+.nd-room::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        var(--nd-grain),
+        radial-gradient(60rem 40rem at 12% -8%, var(--nd-lamp), transparent 70%),
+        radial-gradient(90rem 34rem at 50% 118%, var(--nd-haze), transparent 72%),
+        linear-gradient(180deg, var(--nd-bg) 0%, var(--nd-floor) 100%);
+    background-blend-mode: overlay, normal, normal, normal;
+}
+
+/* On the room and on each dark room only; everything inside takes it by highlight
+   inheritance. `.nd-room ::selection` matched every element, and Chromium then computed a
+   ::selection style for each of them on every full restyle (a modal opening, a phase
+   change): roughly two-thirds of what those cost. Same pixels either way. */
+.nd-room::selection,
+.nd-dark::selection { background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+/* What Baradox wrote is set in the serif; the interface around it is not. */
+.nd-written {
+    font-family: var(--nd-font-serif);
+    font-optical-sizing: auto;
+    font-feature-settings: 'kern', 'liga', 'onum';
+}
+
+.nd-sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ------------------------------------------------------------------ view transitions */
+
+/* Only named elements morph. The root swap is instant: motion here means "this became that",
+   never decoration on an ordinary navigation. */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+}
+
+::view-transition-group(*) {
+    animation-duration: var(--nd-dur-morph);
+    animation-timing-function: var(--nd-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+
+    :root.nd-phase-shift { transition: none; }
+}

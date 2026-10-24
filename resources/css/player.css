@@ -1,276 +1,291 @@
-#bs-player {
-    --bsp-surface: #1a1a1d;
-    --bsp-surface-2: #26262b;
-    --bsp-border: #3a3a42;
-    --bsp-track: #3a3a42;
-    --bsp-text: #ececf1;
-    --bsp-muted: #a3a3ad;
-    --bsp-accent: #29a1a1;
-    --bsp-accent-hover: #33b8b8;
-    --bsp-accent-text: #6fd6d6;
-    --bsp-on-accent: #041414;
-    --bsp-danger: #f87171;
-    --bsp-ring: 0 0 0 2px #121212, 0 0 0 4px var(--bsp-accent-text);
-    --bsp-gap: 16px;
-    --bsp-height: 48px;
-    --bsp-handle: 36px;
-    --bsp-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-
-    position: fixed;
-    right: var(--bsp-gap);
-    bottom: var(--bsp-gap);
-    z-index: 1000;
-    color: var(--bsp-text);
-    color-scheme: dark;
-    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
-    -webkit-font-smoothing: antialiased;
-}
-
-#bs-player[data-mode='none'] { display: none; }
-#bs-player [hidden] { display: none !important; }
+/* ==========================================================================
+   The music dock. Lives inside a data-turbo-permanent container, so the same <audio>
+   keeps playing across Turbo navigations. Floats over the bottom of the content column.
+   html[data-bs-player] (none | full | handle) is set by player.js; pages that size
+   themselves to the viewport (Extra Notes) read it, so the footprint stays 80px.
+   ========================================================================== */
 
 html[data-bs-player='full'] body { padding-bottom: calc(48px + 32px); }
 html[data-bs-player='handle'] body { padding-bottom: calc(36px + 32px); }
+/* Anything scrolled to (focus, a link to an anchor) lands clear of the dock. */
+html[data-bs-player='full'] { scroll-padding-bottom: 96px; }
 
-/* ---------------------------------------------------------------- pill */
+#bs-player {
+    --bsp-left: var(--nd-sidebar-w);
+    --bsp-h: 56px;
+}
 
-#bs-player .bsp-pill {
-    position: relative;
-    display: flex;
+@media (max-width: 1023.98px) {
+    #bs-player { --bsp-left: 0px; }
+}
+
+#bs-player[data-mode='none'] .bsp-dock,
+#bs-player[data-mode='none'] .bsp-handle { display: none; }
+
+#bs-player button { font: inherit; }
+
+.bsp-dock {
+    position: fixed;
+    left: calc(var(--bsp-left) + (100vw - var(--bsp-left)) / 2);
+    bottom: 16px;
+    z-index: var(--nd-z-dock);
+    display: grid;
+    grid-template-columns: 40px minmax(7rem, 1fr) auto minmax(10rem, 1.6fr) auto auto;
     align-items: center;
-    gap: 10px;
-    width: min(30rem, calc(100vw - 2 * var(--bsp-gap)));
-    height: var(--bsp-height);
-    padding: 0 6px;
-    border: 1px solid var(--bsp-border);
-    border-radius: 999px;
-    background: var(--bsp-surface);
-    box-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 14px 36px -10px rgb(0 0 0 / 0.75);
+    gap: 0.75rem;
+    width: min(54rem, calc(100vw - var(--bsp-left) - 2 * var(--nd-gutter)));
+    height: var(--bsp-h);
+    padding: 0 0.6rem 0 0.5rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: 16px;
+    background: color-mix(in oklab, var(--nd-surface) 86%, transparent);
+    color: var(--nd-ink);
+    font-family: var(--nd-font-sans);
+    box-shadow: var(--nd-shadow-3);
+    backdrop-filter: blur(18px) saturate(1.2);
+    transform: translateX(-50%);
 }
+.bsp-dock[hidden] { display: none; }
 
-#bs-player button {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-}
+/* ---------------------------------------------------------------- art + meta */
 
-#bs-player button:focus-visible,
-#bs-player input:focus-visible {
-    outline: none;
-    box-shadow: var(--bsp-ring);
-}
-
-#bs-player svg { display: block; width: 18px; height: 18px; }
-
-/* play / pause: the one solid-colour element on the pill */
-#bs-player .bsp-toggle {
+.bsp-art {
+    position: relative;
     display: grid;
     place-items: center;
-    flex: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    background: var(--bsp-accent);
-    color: var(--bsp-on-accent);
-    transition: background-color 120ms var(--bsp-ease), transform 120ms var(--bsp-ease);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(140deg, var(--nd-accent-soft), color-mix(in oklab, var(--nd-lamp) 80%, var(--nd-surface-2)));
+    color: var(--nd-accent);
+    font-size: 0.95rem;
 }
-#bs-player .bsp-toggle:hover { background: var(--bsp-accent-hover); }
-#bs-player .bsp-toggle:active { transform: scale(0.94); }
-#bs-player .bsp-toggle svg { width: 16px; height: 16px; grid-area: 1 / 1; }
+.bsp-art .bsp-eq { display: none; }
+#bs-player[data-playing='true'] .bsp-art__note { display: none; }
+#bs-player[data-playing='true'] .bsp-art .bsp-eq { display: inline-flex; }
 
-#bs-player .bsp-icon-pause,
-#bs-player .bsp-icon-loading,
-#bs-player[data-playing='true'] .bsp-icon-play,
+/* Three bars. Moving only while music plays: it is the one sign of life on the dock. */
+.bsp-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.bsp-eq span {
+    width: 3px;
+    height: 100%;
+    border-radius: 1px;
+    background: currentColor;
+    transform-origin: bottom;
+    animation: bsp-eq 900ms var(--nd-ease-in-out) infinite alternate;
+}
+.bsp-eq span:nth-child(2) { animation-delay: -300ms; animation-duration: 700ms; }
+.bsp-eq span:nth-child(3) { animation-delay: -600ms; animation-duration: 1100ms; }
+@keyframes bsp-eq { from { transform: scaleY(0.25); } to { transform: scaleY(1); } }
+
+.bsp-meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; margin: 0; }
+.bsp-title,
+.bsp-artist { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.bsp-title { color: var(--nd-ink); font-size: var(--nd-text-sm); font-weight: 600; }
+.bsp-artist { color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+.bsp-artist:empty { display: none; }
+
+/* ---------------------------------------------------------------- controls */
+
+.bsp-transport { display: flex; align-items: center; gap: 0.15rem; }
+
+.bsp-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--nd-ink-2);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.bsp-icon-btn:hover { background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.bsp-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--nd-ink);
+    color: var(--nd-bg-deep);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform var(--nd-dur-1) var(--nd-ease);
+}
+.bsp-toggle:hover { transform: scale(1.06); }
+.bsp-toggle:active { transform: scale(0.96); }
+.bsp-icon-play { margin-left: 2px; }
+.bsp-icon-pause,
+.bsp-icon-loading { display: none; }
+.bsp-icon-loading { width: 1.1rem; height: 1.1rem; animation: bsp-spin 0.9s linear infinite; }
+#bs-player[data-playing='true'] .bsp-icon-play { display: none; }
+#bs-player[data-playing='true'] .bsp-icon-pause { display: inline; }
 #bs-player[data-loading='true'] .bsp-icon-play,
 #bs-player[data-loading='true'] .bsp-icon-pause { display: none; }
-#bs-player[data-playing='true'] .bsp-icon-pause { display: block; }
-#bs-player[data-loading='true'] .bsp-icon-loading { display: block; animation: bsp-spin 800ms linear infinite; }
+#bs-player[data-loading='true'] .bsp-icon-loading { display: block; }
+@keyframes bsp-spin { to { transform: rotate(1turn); } }
 
-/* title / artist over the scrubber */
-#bs-player .bsp-main {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1px;
-    flex: 1;
-    min-width: 0;
+.bsp-icon-btn:focus-visible,
+.bsp-toggle:focus-visible,
+.bsp-handle:focus-visible,
+.bsp-menu button:focus-visible {
+    outline: 2px solid var(--nd-accent);
+    outline-offset: 2px;
 }
 
-#bs-player .bsp-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    min-width: 0;
-    margin: 0;
-    font-size: 12.5px;
-    line-height: 16px;
-    white-space: nowrap;
-}
-#bs-player .bsp-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-/* the artist gives up space first, so a long artist never hides the title */
-#bs-player .bsp-artist { flex: 0 1000 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--bsp-muted); }
-#bs-player .bsp-artist:empty { display: none; }
+/* ---------------------------------------------------------------- seek + volume */
 
-#bs-player .bsp-seek {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-    color: var(--bsp-muted);
-    font-size: 11px;
-    line-height: 14px;
-    font-variant-numeric: tabular-nums;
-}
-#bs-player .bsp-time { flex: none; }
+.bsp-seek { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.bsp-seek[hidden] { display: none; }
+.bsp-time { flex: none; min-width: 2.4rem; color: var(--nd-ink-3); font-size: 0.7rem; font-variant-numeric: tabular-nums; text-align: center; }
 
-#bs-player .bsp-error {
-    margin: 0;
-    overflow: hidden;
-    color: var(--bsp-danger);
-    font-size: 11.5px;
-    line-height: 14px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-/* ---------------------------------------------------------------- range inputs */
-
-#bs-player .bsp-range {
+.bsp-range {
     --bsp-fill: 0%;
     flex: 1;
     min-width: 0;
-    height: 14px;
+    height: 18px;
     margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 999px;
     background: transparent;
     cursor: pointer;
     appearance: none;
-    -webkit-appearance: none;
 }
-#bs-player .bsp-range::-webkit-slider-runnable-track {
-    height: 3px;
+.bsp-range::-webkit-slider-runnable-track {
+    height: 4px;
     border-radius: 999px;
-    background: linear-gradient(to right, var(--bsp-accent-text) var(--bsp-fill), var(--bsp-track) var(--bsp-fill));
+    background: linear-gradient(to right, var(--nd-accent) var(--bsp-fill), var(--nd-line-strong) var(--bsp-fill));
 }
-#bs-player .bsp-range::-moz-range-track { height: 3px; border-radius: 999px; background: var(--bsp-track); }
-#bs-player .bsp-range::-moz-range-progress { height: 3px; border-radius: 999px; background: var(--bsp-accent-text); }
-#bs-player .bsp-range::-webkit-slider-thumb {
-    width: 10px;
-    height: 10px;
-    margin-top: -3.5px;
+.bsp-range::-moz-range-track { height: 4px; border-radius: 999px; background: var(--nd-line-strong); }
+.bsp-range::-moz-range-progress { height: 4px; border-radius: 999px; background: var(--nd-accent); }
+.bsp-range::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    margin-top: -4px;
     border: 0;
     border-radius: 999px;
-    background: var(--bsp-text);
-    transform: scale(0);
-    transition: transform 120ms var(--bsp-ease);
-    -webkit-appearance: none;
+    background: var(--nd-ink);
+    opacity: 0;
+    appearance: none;
+    transition: opacity var(--nd-dur-1) var(--nd-ease);
 }
-#bs-player .bsp-range::-moz-range-thumb {
-    width: 10px;
-    height: 10px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--bsp-text);
-    transform: scale(0);
-    transition: transform 120ms var(--bsp-ease);
+.bsp-range::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 999px; background: var(--nd-ink); }
+.bsp-range:hover::-webkit-slider-thumb,
+.bsp-range:focus-visible::-webkit-slider-thumb { opacity: 1; }
+.bsp-range:focus-visible { outline: none; }
+.bsp-range:focus-visible::-webkit-slider-runnable-track { box-shadow: 0 0 0 2px var(--nd-accent-soft); }
+
+.bsp-error {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--nd-danger);
+    font-size: var(--nd-text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-/* the thumb appears when the scrubber is in use, so the idle pill stays quiet */
-#bs-player .bsp-range:hover::-webkit-slider-thumb,
-#bs-player .bsp-range:focus-visible::-webkit-slider-thumb,
-#bs-player .bsp-range:active::-webkit-slider-thumb { transform: scale(1); }
-#bs-player .bsp-range:hover::-moz-range-thumb,
-#bs-player .bsp-range:focus-visible::-moz-range-thumb,
-#bs-player .bsp-range:active::-moz-range-thumb { transform: scale(1); }
 
-/* ---------------------------------------------------------------- volume, close */
-
-#bs-player .bsp-volume { display: flex; align-items: center; gap: 2px; flex: none; }
-#bs-player .bsp-range--volume { flex: none; width: 64px; }
-
-#bs-player .bsp-icon-btn {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    color: var(--bsp-muted);
-    transition: background-color 120ms var(--bsp-ease), color 120ms var(--bsp-ease);
-}
-#bs-player .bsp-icon-btn:hover,
-#bs-player .bsp-icon-btn[aria-expanded='true'] { background: var(--bsp-surface-2); color: var(--bsp-text); }
-
-#bs-player .bsp-icon-muted,
+.bsp-volume { display: flex; align-items: center; gap: 0.2rem; }
+.bsp-range--volume { flex: none; width: 5rem; }
+.bsp-icon-muted { display: none; }
 #bs-player[data-muted='true'] .bsp-icon-volume { display: none; }
-#bs-player[data-muted='true'] .bsp-icon-muted { display: block; }
+#bs-player[data-muted='true'] .bsp-icon-muted { display: inline; }
 
-@media (max-width: 520px) {
-    /* phones: the mute button stays, the slider goes (hardware volume covers it) */
-    #bs-player .bsp-range--volume { display: none; }
-}
+/* ---------------------------------------------------------------- menu + handle */
 
-/* ---------------------------------------------------------------- close menu */
-
-#bs-player .bsp-menu {
+.bsp-menu {
     position: absolute;
-    right: 0;
-    bottom: calc(100% + 8px);
+    right: 0.4rem;
+    bottom: calc(100% + 0.5rem);
+    display: flex;
+    flex-direction: column;
+    width: 17rem;
+    padding: 0.35rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-surface);
+    box-shadow: var(--nd-shadow-3);
+}
+.bsp-menu[hidden] { display: none; }
+.bsp-menu button {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    width: 15rem;
-    padding: 4px;
-    border: 1px solid var(--bsp-border);
-    border-radius: 12px;
-    background: var(--bsp-surface);
-    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.8);
-    animation: bsp-rise 140ms var(--bsp-ease);
-}
-#bs-player .bsp-menu button {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1px;
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    border: 0;
+    border-radius: var(--nd-r-sm);
+    background: transparent;
+    color: var(--nd-ink);
     text-align: left;
+    cursor: pointer;
 }
-#bs-player .bsp-menu button:hover,
-#bs-player .bsp-menu button:focus-visible { background: var(--bsp-surface-2); }
-#bs-player .bsp-menu__label { font-size: 13px; font-weight: 600; }
-#bs-player .bsp-menu__hint { color: var(--bsp-muted); font-size: 11.5px; }
+.bsp-menu button:hover,
+.bsp-menu button:focus-visible { background: var(--nd-accent-soft); }
+.bsp-menu__label { font-size: var(--nd-text-sm); font-weight: 500; }
+.bsp-menu__hint { color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
 
-/* ---------------------------------------------------------------- hidden-but-playing handle */
-
-#bs-player .bsp-handle {
+.bsp-handle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: var(--nd-z-dock);
     display: grid;
     place-items: center;
-    width: var(--bsp-handle);
-    height: var(--bsp-handle);
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--nd-line-strong);
     border-radius: 999px;
-    background: var(--bsp-accent);
-    color: var(--bsp-on-accent);
-    box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.8);
-    animation: bsp-pulse 2.4s ease-out infinite;
+    background: var(--nd-surface);
+    color: var(--nd-accent);
+    box-shadow: var(--nd-shadow-2);
+    cursor: pointer;
 }
-#bs-player .bsp-handle:hover { background: var(--bsp-accent-hover); }
-#bs-player .bsp-handle svg { width: 17px; height: 17px; }
+.bsp-handle[hidden] { display: none; }
 
-@keyframes bsp-pulse {
-    0% { box-shadow: 0 0 0 0 rgb(41 161 161 / 0.45), 0 10px 24px -8px rgb(0 0 0 / 0.8); }
-    70% { box-shadow: 0 0 0 10px rgb(41 161 161 / 0), 0 10px 24px -8px rgb(0 0 0 / 0.8); }
-    100% { box-shadow: 0 0 0 0 rgb(41 161 161 / 0), 0 10px 24px -8px rgb(0 0 0 / 0.8); }
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 899.98px) {
+    .bsp-dock { grid-template-columns: 40px minmax(0, 1fr) auto auto; }
+    .bsp-volume { display: none; }
+    /* The seek bar becomes a hairline along the dock's top edge. */
+    .bsp-seek {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: -9px;
+    }
+    .bsp-seek .bsp-time { display: none; }
+    .bsp-error { grid-column: 2; }
 }
-@keyframes bsp-spin { to { transform: rotate(360deg); } }
-@keyframes bsp-rise { from { opacity: 0; transform: translateY(4px); } }
+
+@media (max-width: 639.98px) {
+    .bsp-dock {
+        left: 50%;
+        bottom: max(8px, env(safe-area-inset-bottom));
+        width: calc(100vw - 16px);
+        padding-right: 0.35rem;
+        gap: 0.5rem;
+    }
+    .bsp-skip[data-bsp-prev] { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-    #bs-player *, #bs-player .bsp-handle { animation: none !important; transition: none !important; }
+    .bsp-eq span { animation: none; transform: scaleY(0.7); }
+    .bsp-icon-loading { animation-duration: 2.4s; }
+    .bsp-toggle, .bsp-icon-btn, .bsp-range::-webkit-slider-thumb { transition: none; }
 }
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .bsp-icon-btn,
+    .bsp-toggle { width: 2.75rem; height: 2.75rem; }
+}
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.bsp-icon-btn) { transition: none !important; }

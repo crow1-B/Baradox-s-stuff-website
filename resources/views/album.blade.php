@@ -7,36 +7,43 @@
 @endpush
 
 @section('content')
-@php $count = $photos->count(); @endphp
+@php
+    $count = $photos->count();
+    // The album card on the Photos page shows the newest unprotected photo; the album lists
+    // newest first too, so this is the tile that cover morphs into.
+    $morphId = $photos->firstWhere('protection', 'none')?->id;
+@endphp
 
-<div class="ph" id="ph-root">
-    <div class="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pt-10">
+<div class="nd-page nd-page--wide ph" id="ph-root">
+    <a class="nd-btn nd-btn--ghost nd-btn--sm ph-back" href="{{ route('photos') }}">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        All photos
+    </a>
 
-        <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="flex flex-col gap-1.5">
-                <a class="ph-muted inline-flex items-center gap-2 text-sm no-underline hover:underline" href="{{ route('photos') }}">
-                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                    All photos
-                </a>
-                <h1>
-                    @if ($album->is_system)
-                        <i class="fa-solid fa-star ph-star" aria-hidden="true"></i>
-                    @endif
-                    {{ $album->name }}
-                </h1>
-                <p class="ph-muted">{{ $count }} {{ Str::plural('photo', $count) }} in this album.</p>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <button type="button" class="ph-btn ph-btn--primary" data-ph-open-dialog="upload">
+    <header class="nd-page__head">
+        <div>
+            <h1 class="nd-page__title">
+                @if ($album->is_system)
+                    <i class="fa-solid fa-star ph-star" aria-hidden="true"></i>
+                @endif
+                {{ $album->name }}
+            </h1>
+            <p class="nd-page__sub">{{ $count }} {{ Str::plural('photo', $count) }} in this album.</p>
+        </div>
+        @if ($canWrite)
+            <div class="nd-page__actions">
+                <button type="button" class="nd-btn nd-btn--primary" data-ph-open-dialog="upload">
                     <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
                     Upload into this album
                 </button>
             </div>
-        </header>
+        @endif
+    </header>
 
-        @include('partials.ph-banners')
+    @include('partials.ph-banners')
 
-        @include('partials.ph-board', ['context' => 'album'])
+    <div class="ph-section">
+        @include('partials.ph-board', ['context' => 'album', 'morphId' => $morphId])
     </div>
 
     @include('partials.ph-dialogs', ['manageAlbums' => false])

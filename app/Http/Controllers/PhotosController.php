@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Photo;
 use App\Models\Album;
+use App\Support\Obscure;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -53,10 +54,15 @@ class PhotosController extends Controller
             ->select('album_photo.album_id', 'photos.id as photo_id')
             ->selectRaw('ROW_NUMBER() OVER (PARTITION BY album_photo.album_id ORDER BY photos.created_at DESC, photos.id DESC) AS rn');
 
-        $covers = DB::query()
+        $coverIds = DB::query()
             ->fromSub($ranked, 'ranked')
             ->where('rn', 1)
             ->pluck('photo_id', 'album_id');
+
+        // Models rather than ids, so a cover's URL is built exactly as its tile's is (the
+        // album morph needs the two to match).
+        $photos = Photo::whereIn('id', $coverIds->values())->get()->keyBy('id');
+        $covers = $coverIds->map(fn ($id) => $photos->get($id))->filter();
 
         return [$counts, $covers];
     }
@@ -71,7 +77,7 @@ class PhotosController extends Controller
             'albums' => $photo->albums->where('is_system', false)->pluck('name')->values(),
             'urls' => [
                 'view' => route('photo.view', $photo->id),
-                'thumbnail' => route('photo.thumbnail', $photo->id),
+                'thumbnail' => $photo->thumbnailUrl(),
             ],
         ])->values();
     }
@@ -102,6 +108,7 @@ class PhotosController extends Controller
             'albumCovers' => $covers,
             'favoriteAlbumId' => $favoriteAlbumId,
             'photoData' => $this->photoPayload($photos, $favoriteAlbumId),
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -130,6 +137,7 @@ class PhotosController extends Controller
             'albums' => $albums,
             'favoriteAlbumId' => $favoriteAlbumId,
             'photoData' => $this->photoPayload($photos, $favoriteAlbumId),
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -247,10 +255,15 @@ class PhotosController extends Controller
         return back()->withErrors([$field => $message]);
     }
 
-    public function destroyPhoto(Photo $photo)
+    public function destroyPhoto(Request $request, Photo $photo)
     {
         if ($photo->user_id !== Auth::user()->id) {
             abort(403);
+        }
+
+        // A locked photo stays locked until its key is given, and that includes deleting it.
+        if ($photo->isProtected() && ! Hash::check((string) $request->input('key'), $photo->key_hash)) {
+            return back()->withErrors(['key' => 'Incorrect key. A protected photo is only deleted with its key.']);
         }
 
         $this->forget($photo);
@@ -262,7 +275,23 @@ class PhotosController extends Controller
     private function forget(Photo $photo): void
     {
         Storage::disk(self::DISK)->delete($photo->path);
-        Storage::disk(self::DISK)->delete('thumbnails/' . basename($photo->path));
+        $this->forgetThumbnails($photo);
+    }
+
+    // A gated photo's thumbnail is a different file from the plain one, so a plain thumbnail
+    // made by a request that raced a lock can never be served for the gated photo.
+    private function thumbnailPath(Photo $photo): string
+    {
+        $name = basename($photo->path);
+
+        return 'thumbnails/' . ($photo->protection === 'gated' ? 'gated-' . $name : $name);
+    }
+
+    private function forgetThumbnails(Photo $photo): void
+    {
+        $name = basename($photo->path);
+
+        Storage::disk(self::DISK)->delete(['thumbnails/' . $name, 'thumbnails/gated-' . $name]);
     }
 
     private function bulkIds(Request $request): array|string
@@ -294,6 +323,14 @@ class PhotosController extends Controller
 
         if ($photos->isEmpty()) {
             return back()->withErrors(['ids' => 'Those photos are already gone.']);
+        }
+
+        // One key can't vouch for a selection, so protected photos are deleted one at a time.
+        $locked = $photos->filter(fn (Photo $photo) => $photo->isProtected())->count();
+
+        if ($locked > 0) {
+            return back()->withErrors(['ids' => $locked . ' of the selected photos ' . ($locked === 1 ? 'is' : 'are')
+                . ' protected. Nothing was deleted — delete protected photos one at a time, with their key.']);
         }
 
         foreach ($photos as $photo) {
@@ -374,6 +411,11 @@ class PhotosController extends Controller
             abort(403);
         }
 
+        // Locking again would replace the key without knowing it, which is a way around it.
+        if ($photo->isProtected()) {
+            return back()->withErrors(['key' => 'This photo is already locked. Unlock it with its key first to change how it is protected.']);
+        }
+
         $request->validate([
             'key' => 'required|string|min:8',
             'mode' => 'required|in:gated,encrypted',
@@ -381,8 +423,6 @@ class PhotosController extends Controller
 
         $key = $request->input('key');
         $mode = $request->input('mode');
-
-        Storage::disk(self::DISK)->delete('thumbnails/' . basename($photo->path));
 
         if ($mode === 'encrypted') {
             $fullPath = Storage::disk(self::DISK)->path($photo->path);
@@ -395,6 +435,10 @@ class PhotosController extends Controller
             'protection' => $mode,
             'key_hash' => Hash::make($key),
         ]);
+
+        // After the update, not before: a thumbnail request in between would have rebuilt the
+        // plain one, and for an encrypted photo that file would be a readable copy.
+        $this->forgetThumbnails($photo);
 
         return back()->with('success', 'Photo locked.');
     }
@@ -419,9 +463,9 @@ class PhotosController extends Controller
             Storage::disk(self::DISK)->put($photo->path, $decrypted);
         }
 
-        Storage::disk(self::DISK)->delete('thumbnails/' . basename($photo->path));
-
         $photo->update(['protection' => 'none', 'key_hash' => null]);
+
+        $this->forgetThumbnails($photo);
 
         return back()->with('success', 'Photo unlocked.');
     }
@@ -457,11 +501,14 @@ class PhotosController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
-    public function viewThumbnail(Photo $photo)
+    public function viewThumbnail(Request $request, Photo $photo)
     {
         if ($photo->user_id !== Auth::user()->id) {
             abort(403);
         }
+
+        // Revalidated on every use: what this URL may show changes when the photo is locked.
+        $headers = ['Cache-Control' => 'private, no-cache'];
 
         if ($photo->protection === 'encrypted') {
             $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
@@ -470,10 +517,10 @@ class PhotosController extends Controller
                 <circle cx="12" cy="16" r="1.5" fill="#888"/>
             </svg>';
 
-            return response($svg)->header('Content-Type', 'image/svg+xml');
+            return response($svg)->header('Content-Type', 'image/svg+xml')->withHeaders($headers);
         }
 
-        $thumbPath = 'thumbnails/' . basename($photo->path);
+        $thumbPath = $this->thumbnailPath($photo);
 
         if (!Storage::disk(self::DISK)->exists($thumbPath)) {
             $manager = ImageManager::usingDriver(Driver::class);
@@ -482,16 +529,16 @@ class PhotosController extends Controller
             $image->scale(width: 300);
 
             if ($photo->protection === 'gated') {
-                $width = $image->width();
-                $height = $image->height();
-                $image->scale(width: 12);
-                $image->scale(width: $width, height: $height);
+                Obscure::image($image);
             }
 
             Storage::disk(self::DISK)->put($thumbPath, (string) $image->encode());
         }
 
-        return response()->file(Storage::disk(self::DISK)->path($thumbPath));
+        $response = response()->file(Storage::disk(self::DISK)->path($thumbPath), $headers);
+        $response->isNotModified($request);
+
+        return $response;
     }
 
     public function storeAlbum(Request $request)

@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One per request: FlushDeferredWrites writes what LogVisit queued into the same one.
+        $this->app->scoped(\App\Support\Http\DeferredWrites::class);
     }
 
     /**

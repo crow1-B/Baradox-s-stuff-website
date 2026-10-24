@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Album;
-use App\Models\Visit;
 use App\Models\VideoAlbum;
+use App\Support\Http\DeferredWrites;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +16,8 @@ class LogVisit
     // Every route carrying log.visit must have an entry here; LogVisitTest enforces it.
     public const LABELS = [
         'diary' => 'Diary Page.',
+        // No title: a sealed entry's history row would otherwise name it.
+        'diary.entry' => 'Diary Entry Page.',
         'extra-notes' => 'Extra Notes Page.',
         'future-updates' => 'Future Updates Page.',
         'music' => 'Music Page.',
@@ -29,6 +31,10 @@ class LogVisit
     // Routes that carry log.visit but are deliberately not recorded.
     public const SKIPPED = ['homepage'];
 
+    public function __construct(private DeferredWrites $writes)
+    {
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -41,16 +47,27 @@ class LogVisit
             return $next($request);
         }
 
+        // A Turbo frame loading into a page is part of the page already recorded, not a visit:
+        // the Diary reveal's frame follows a failed attempt's redirect back to the entry.
+        if ($request->hasHeader('Turbo-Frame')) {
+            return $next($request);
+        }
+
         $routeName = $request->route()?->getName();
 
         if (in_array($routeName, self::SKIPPED, true)) {
             return $next($request);
         }
 
-        Visit::create([
+        // Queued, not written: the row goes in after the response has been sent
+        // (FlushDeferredWrites). The label is worked out now, while the route is at hand.
+        $now = now();
+        $this->writes->insert('visits', [
             'user_id' => Auth::user()->id,
             'page_name' => $this->label($request, $routeName),
             'path' => $request->path(),
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
 
         return $next($request);

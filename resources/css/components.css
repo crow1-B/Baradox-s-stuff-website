@@ -1,0 +1,528 @@
+/* ==========================================================================
+   Shared components on the night-desk tokens. Plain, unlayered, scoped class names (the
+   same reasoning as every page so far: unlayered rules beat Tailwind's layered utilities),
+   used by every page instead of a per-page copy.
+   ========================================================================== */
+
+.nd-btn:focus-visible,
+.nd-icon-btn:focus-visible,
+.nd-chip:focus-visible,
+.nd-link:focus-visible {
+    outline: 2px solid var(--nd-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ scrollbars */
+
+/* Every scrollbar on the site: thin, a rounded thumb on a track you can't see, a little
+   stronger under the pointer and while dragged. Chromium paints the ::-webkit-scrollbar parts;
+   it ignores them on any element that sets scrollbar-width or scrollbar-color (Chrome 121+),
+   so the standard properties are kept for engines without the pseudo-elements and nothing
+   else on the site may set them, except scrollbar-width: none to hide one. Only colours change
+   on hover, never sizes, so nothing moves; the thumb is a plain fill, nothing blurred. Not
+   under forced colours: there the system's own scrollbars follow the user's palette. */
+@media not (forced-colors: active) {
+    @supports selector(::-webkit-scrollbar) {
+        ::-webkit-scrollbar { width: var(--nd-scroll-size); height: var(--nd-scroll-size); background: transparent; }
+        ::-webkit-scrollbar-track,
+        ::-webkit-scrollbar-corner { background: transparent; }
+        ::-webkit-scrollbar-button { display: none; }
+        ::-webkit-scrollbar-thumb {
+            min-width: 2.5rem;
+            min-height: 2.5rem;
+            border: 2px solid transparent; /* the gap that makes the thumb float in the track */
+            border-radius: var(--nd-r-pill);
+            background: var(--nd-scroll-thumb) padding-box;
+        }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--nd-scroll-thumb-hover); }
+        ::-webkit-scrollbar-thumb:active { background-color: var(--nd-scroll-thumb-active); }
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+        :root,
+        .nd-dark { scrollbar-color: var(--nd-scroll-thumb) transparent; }
+        * { scrollbar-width: thin; }
+    }
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.nd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nd-space-2);
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-surface);
+    color: var(--nd-ink);
+    font: 500 var(--nd-text-sm) / 1 var(--nd-font-sans);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), border-color var(--nd-dur-1) var(--nd-ease),
+        color var(--nd-dur-1) var(--nd-ease), transform var(--nd-dur-1) var(--nd-ease);
+}
+.nd-btn:hover { background: var(--nd-surface-2); border-color: var(--nd-ink-3); }
+.nd-btn:active { transform: translateY(1px); }
+.nd-btn:disabled,
+.nd-btn[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; transform: none; }
+.nd-btn > i { font-size: 0.95em; }
+
+.nd-btn--primary {
+    border-color: transparent;
+    background: var(--nd-accent-strong);
+    color: var(--nd-on-accent-strong);
+}
+.nd-btn--primary:hover { border-color: transparent; background: var(--nd-accent); color: var(--nd-on-accent); }
+
+.nd-btn--ghost { border-color: transparent; background: transparent; color: var(--nd-ink-2); }
+.nd-btn--ghost:hover { border-color: transparent; background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.nd-btn--danger { border-color: transparent; background: var(--nd-danger); color: var(--nd-bg-deep); }
+.nd-btn--danger:hover { border-color: transparent; background: var(--nd-danger); filter: brightness(1.08); }
+
+.nd-btn--sm { min-height: 2rem; padding: 0 0.7rem; border-radius: var(--nd-r-sm); font-size: var(--nd-text-xs); }
+.nd-btn--lg { min-height: 3rem; padding: 0 1.4rem; font-size: var(--nd-text-base); }
+
+.nd-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r);
+    background: transparent;
+    color: var(--nd-ink-2);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-icon-btn:hover { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-icon-btn--danger:hover { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-icon-btn--sm { width: 1.9rem; height: 1.9rem; font-size: 0.85rem; }
+
+.nd-link {
+    color: var(--nd-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--nd-accent) 35%, transparent);
+    text-underline-offset: 3px;
+    border-radius: 2px;
+}
+.nd-link:hover { text-decoration-color: currentColor; }
+
+/* ------------------------------------------------------------------ fields */
+
+.nd-field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+
+.nd-label { color: var(--nd-ink-2); font-size: var(--nd-text-sm); font-weight: 500; }
+.nd-req { margin-left: 0.15rem; color: var(--nd-danger); }
+
+.nd-input {
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-paper);
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-sm) / 1.4 var(--nd-font-sans);
+    transition: border-color var(--nd-dur-1) var(--nd-ease), box-shadow var(--nd-dur-1) var(--nd-ease);
+}
+.nd-input::placeholder { color: var(--nd-ink-3); }
+.nd-input:hover { border-color: var(--nd-ink-3); }
+.nd-input:focus { outline: none; border-color: var(--nd-accent); box-shadow: 0 0 0 3px var(--nd-accent-soft); }
+.nd-input[aria-invalid='true'] { border-color: var(--nd-danger); }
+.nd-input--mono { font-family: var(--nd-font-mono); letter-spacing: 0.02em; }
+textarea.nd-input { min-height: 8rem; resize: vertical; line-height: 1.6; }
+select.nd-input {
+    appearance: none;
+    padding-right: 2.2rem;
+    background-image: linear-gradient(45deg, transparent 50%, var(--nd-ink-2) 50%), linear-gradient(135deg, var(--nd-ink-2) 50%, transparent 50%);
+    background-position: calc(100% - 1.1rem) 52%, calc(100% - 0.8rem) 52%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+input[type='date'].nd-input { color-scheme: inherit; }
+
+.nd-hint { margin: 0; color: var(--nd-ink-3); font-size: var(--nd-text-xs); line-height: 1.45; }
+.nd-error { margin: 0; color: var(--nd-danger); font-size: var(--nd-text-xs); font-weight: 500; }
+
+.nd-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+    cursor: pointer;
+}
+.nd-check input { width: 1rem; height: 1rem; margin-top: 0.15rem; accent-color: var(--nd-accent-strong); }
+
+/* ------------------------------------------------------------------ dialogs */
+
+.nd-dialog {
+    /* Tailwind's preflight zeroes every margin, which takes away the centring a modal
+       <dialog> gets from the browser; without this it opens in the top-left corner. */
+    margin: auto;
+    width: min(34rem, calc(100vw - 2rem));
+    max-height: min(46rem, calc(100dvh - 2rem));
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-lg);
+    background: var(--nd-surface);
+    color: var(--nd-ink);
+    box-shadow: var(--nd-shadow-3);
+}
+.nd-dialog[open] { display: flex; flex-direction: column; }
+.nd-dialog > form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.nd-dialog::backdrop { background: rgb(4 12 15 / 0.62); backdrop-filter: blur(3px); }
+.nd-dialog--sm { width: min(27rem, calc(100vw - 2rem)); }
+.nd-dialog--wide { width: min(46rem, calc(100vw - 2rem)); }
+
+.nd-dialog__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--nd-space-3);
+    padding: 1.15rem 1.25rem 0.5rem;
+}
+.nd-dialog__title { margin: 0; color: var(--nd-ink); font-size: var(--nd-text-md); font-weight: 600; line-height: 1.3; }
+.nd-dialog__sub { margin: 0.2rem 0 0; color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+.nd-dialog__body { flex: 1; min-height: 0; padding: 0.75rem 1.25rem 1.25rem; overflow-y: auto; overscroll-behavior: contain; }
+.nd-dialog__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--nd-space-2);
+    padding: 0.9rem 1.25rem;
+    border-top: 1px solid var(--nd-line);
+    background: color-mix(in oklab, var(--nd-surface) 70%, var(--nd-bg-deep));
+}
+
+@media (max-width: 639.98px) {
+    /* Phones: dialogs become sheets that rise from the bottom edge, thumb-reachable. */
+    .nd-dialog:not(.nd-dialog--center) {
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        border-width: 1px 0 0;
+        border-radius: var(--nd-r-lg) var(--nd-r-lg) 0 0;
+    }
+}
+
+/* ------------------------------------------------------------------ banners, notes */
+
+.nd-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nd-space-3);
+    padding: 0.75rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: var(--nd-r);
+    font-size: var(--nd-text-sm);
+}
+.nd-banner > i { margin-top: 0.2rem; }
+.nd-banner p, .nd-banner ul { margin: 0; }
+.nd-banner--success { border-color: color-mix(in oklab, var(--nd-success) 30%, transparent); background: var(--nd-success-soft); color: var(--nd-success); }
+.nd-banner--error { border-color: color-mix(in oklab, var(--nd-danger) 30%, transparent); background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-banner--warn { border-color: color-mix(in oklab, var(--nd-warn) 30%, transparent); background: var(--nd-warn-soft); color: var(--nd-warn); }
+.nd-banner code, .nd-note code { -webkit-box-decoration-break: clone; box-decoration-break: clone; padding: 0.05rem 0.3rem; border-radius: var(--nd-r-xs); background: var(--nd-surface-2); color: var(--nd-ink); font: 0.85em var(--nd-font-mono); }
+.nd-banner__text { flex: 1; color: var(--nd-ink); }
+
+.nd-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nd-space-2);
+    margin: 0;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--nd-r);
+    font-size: var(--nd-text-sm);
+    line-height: 1.5;
+}
+.nd-note > i { margin-top: 0.2rem; }
+.nd-note--warn { background: var(--nd-warn-soft); color: var(--nd-ink); }
+.nd-note--warn > i { color: var(--nd-warn); }
+.nd-note--error { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.nd-note--info { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-note--info > i { color: var(--nd-accent); }
+
+/* ------------------------------------------------------------------ chips, badges, keys */
+
+.nd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 1.75rem;
+    padding: 0 0.65rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-pill);
+    background: transparent;
+    color: var(--nd-ink-2);
+    font: 500 var(--nd-text-xs) / 1 var(--nd-font-sans);
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-chip:hover { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-chip[aria-pressed='true'],
+.nd-chip--active { border-color: var(--nd-accent); background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.nd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--nd-r-pill);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.nd-kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--nd-line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--nd-r-xs);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+    font: 500 0.7rem / 1 var(--nd-font-sans);
+}
+
+/* ------------------------------------------------------------------ moods */
+
+/* One hue per key in config('diary.moods'); lightness and chroma come from the phase so a
+   mood reads at the same strength by day and by night. */
+[data-mood] { --mood-hue: 200; --mood: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--mood-hue)); }
+[data-mood='radiant'] { --mood-hue: 80; }
+[data-mood='content'] { --mood-hue: 145; }
+[data-mood='calm'] { --mood-hue: 190; }
+[data-mood='tired'] { --mood-hue: 285; }
+[data-mood='low'] { --mood-hue: 245; }
+[data-mood='stormy'] { --mood-hue: 25; }
+
+/* ------------------------------------------------------------------ cards, empty states */
+
+.nd-card {
+    position: relative;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+    box-shadow: var(--nd-shadow-1);
+}
+
+.nd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nd-space-2);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+}
+.nd-empty p { margin: 0; max-width: 44ch; }
+
+/* ------------------------------------------------------------------ segmented choice */
+
+.nd-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: var(--nd-bg-deep);
+}
+.nd-segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.nd-segmented label {
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--nd-r-sm);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+.nd-segmented input:checked + label { background: var(--nd-surface-2); color: var(--nd-ink); box-shadow: var(--nd-shadow-1); }
+.nd-segmented input:focus-visible + label { outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nd-btn, .nd-icon-btn, .nd-chip, .nd-input { transition: none; }
+}
+
+/* ------------------------------------------------------------------ show/hide on a secret field */
+
+/* x-nd-secret, secret-fields.js. The button takes its colour from the field around it (the
+   login page's fields too). Selectors carry the element names to outrank .nd-input's padding. */
+.nd-secret { position: relative; display: block; min-width: 0; }
+.nd-secret > input.nd-secret__input { width: 100%; padding-right: 2.75rem; }
+.nd-secret > button.nd-secret__toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.3rem;
+    translate: 0 -50%;
+    display: inline-grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r-sm);
+    background: transparent;
+    color: inherit;
+    font-size: 0.95rem;
+    opacity: 0.62;
+    cursor: pointer;
+    transition: opacity var(--nd-dur-1) var(--nd-ease), background-color var(--nd-dur-1) var(--nd-ease);
+}
+.nd-secret > button.nd-secret__toggle:hover { opacity: 1; background: color-mix(in oklab, currentColor 10%, transparent); }
+.nd-secret > button.nd-secret__toggle[aria-pressed='true'] { opacity: 1; }
+.nd-secret > button.nd-secret__toggle:focus-visible { opacity: 1; outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+.nd-secret[hidden], .nd-secret:has(> input:disabled) > button.nd-secret__toggle { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nd-secret > button.nd-secret__toggle { transition: none; }
+}
+
+/* ------------------------------------------------------------------ page frame */
+
+/* The column every page sits in, its header (serif title, italic serif line), and the
+   banners under it. Diary and Home predate these and keep their own (.dy-head, .home-hero). */
+.nd-page {
+    position: relative;
+    z-index: 1;
+    width: min(var(--nd-page-w, 64rem), 100%);
+    margin: 0 auto;
+    padding: clamp(1.25rem, 4vh, 2.75rem) var(--nd-gutter) 4rem;
+}
+.nd-page--wide { --nd-page-w: 78rem; }
+.nd-page--narrow { --nd-page-w: 52rem; }
+
+.nd-page__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+.nd-page__title {
+    margin: 0;
+    color: var(--nd-ink);
+    font-family: var(--nd-font-serif);
+    font-size: var(--nd-text-3xl);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.015em;
+}
+.nd-page__sub { margin: 0.6rem 0 0; max-width: 60ch; color: var(--nd-ink-2); font: italic 400 var(--nd-text-md) / 1.4 var(--nd-font-serif); }
+.nd-page__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.nd-page__banners { display: flex; flex-direction: column; gap: 0.6rem; }
+/* Blade leaves whitespace in an empty slot, so :empty never matches; only a banner adds space. */
+.nd-page__banners:has(> *) { margin-top: 1.5rem; }
+
+.nd-banner ul { padding-left: 1rem; list-style: disc; }
+.nd-banner__close { margin: -0.4rem -0.4rem -0.4rem 0; color: inherit; }
+
+@media (max-width: 639.98px) {
+    .nd-page__actions { width: 100%; }
+    .nd-page__actions > .nd-btn--primary { flex: 1; }
+}
+
+/* ------------------------------------------------------------------ search field, toolbar */
+
+.nd-search { position: relative; flex: 1 1 16rem; min-width: 10rem; max-width: 26rem; }
+.nd-search__icon { position: absolute; left: 0.85rem; top: 50%; color: var(--nd-ink-3); font-size: 0.8rem; transform: translateY(-50%); pointer-events: none; }
+.nd-search > .nd-input { padding-left: 2.25rem; }
+
+.nd-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem; }
+.nd-count { margin: 0 0 0 auto; color: var(--nd-ink-3); font-size: var(--nd-text-xs); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ empty states, more */
+
+.nd-empty__line { margin: 0; color: var(--nd-ink); font: 400 var(--nd-text-xl) / 1.25 var(--nd-font-serif); }
+.nd-empty--block { max-width: 34rem; margin-top: 3rem; gap: 0.75rem; }
+.nd-empty[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ file input */
+
+input[type='file'].nd-input { padding: 0.4rem 0.5rem; cursor: pointer; }
+input[type='file'].nd-input::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-sm);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink);
+    font: 500 var(--nd-text-xs) / 1.2 var(--nd-font-sans);
+    cursor: pointer;
+}
+
+/* A pressed toggle button (filters): the chip's active look on a full-size button. */
+.nd-btn[aria-pressed='true'] { border-color: var(--nd-accent); background: var(--nd-accent-soft); color: var(--nd-ink); }
+.nd-btn[aria-pressed='true'] > i { color: var(--nd-accent); }
+
+/* ------------------------------------------------------------------ field layout (x-nd-field) */
+
+.nd-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+@media (min-width: 640px) {
+    .nd-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .nd-fields > .nd-field--full, .nd-fields > .nd-span-2 { grid-column: 1 / -1; }
+}
+.nd-field[hidden] { display: none; }
+
+.nd-affix { display: flex; align-items: stretch; min-width: 0; }
+.nd-affix__prefix {
+    display: inline-flex;
+    align-items: center;
+    max-width: 45%;
+    padding: 0 0.7rem;
+    overflow: hidden;
+    border: 1px solid var(--nd-line-strong);
+    border-right: 0;
+    border-radius: var(--nd-r) 0 0 var(--nd-r);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-3);
+    font: 400 var(--nd-text-xs) / 1 var(--nd-font-mono);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.nd-affix > .nd-input { min-width: 0; border-radius: 0 var(--nd-r) var(--nd-r) 0; }
+
+/* ------------------------------------------------------------------ project status dot */
+
+/* The one place a project's status has a colour (Projects, Future Updates). Lightness and
+   chroma follow the phase, the same recipe as the moods, so the three read at one strength
+   by day and by night. */
+.nd-dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--nd-r-pill); background: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--nd-dot-hue, 200)); }
+.nd-dot--future { --nd-dot-hue: 290; }
+.nd-dot--in_work { --nd-dot-hue: 75; }
+.nd-dot--done { --nd-dot-hue: 150; }
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.nd-btn, .nd-icon-btn, .nd-input, .nd-chip, .nd-secret__toggle) { transition: none !important; }
+
+/* ------------------------------------------------------------------ touch targets */
+
+/* On a phone, or any coarse pointer, nothing you can press is smaller than 44px. Controls
+   that look like controls grow to it. Small marks that read as text or as a tag (chips,
+   column headings, links in a list) keep their look, and an invisible ::after reaches the
+   rest of the 44px: the same split as a 32px chip with a 48px touch target. Files with
+   their own small controls list them beside these. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .nd-btn,
+    .nd-btn--sm { min-height: 2.75rem; }
+    .nd-icon-btn,
+    .nd-icon-btn--sm { width: 2.75rem; height: 2.75rem; }
+    .nd-input { min-height: 2.75rem; }
+    .nd-secret > input.nd-secret__input { padding-right: 3rem; }
+    .nd-secret > button.nd-secret__toggle { right: 0; width: 2.75rem; height: 2.75rem; }
+
+    .nd-chip { position: relative; }
+    .nd-chip::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+}

@@ -29,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
                     'resources/css/shell.css',
                     'resources/js/shell.js',
                     'resources/css/home.css',
+                    'resources/js/home.js',
                     'resources/css/player.css',
                     'resources/js/player.js',
                     'resources/css/projects.css',
@@ -39,6 +40,7 @@ export default defineConfig(({ command, mode }) => {
                     'resources/js/music.js',
                     'resources/css/diary.css',
                     'resources/js/diary.js',
+                    'resources/js/diary-entry.js',
                     'resources/css/extra-notes.css',
                     'resources/js/extra-notes.js',
                     'resources/css/future-updates.css',
@@ -53,6 +55,17 @@ export default defineConfig(({ command, mode }) => {
                 fonts: [
                     bunny('Instrument Sans', {
                         weights: [400, 500, 600],
+                    }),
+                    // Everything Baradox wrote is set in Newsreader; Arabic falls through to Naskh.
+                    bunny('Newsreader', {
+                        weights: [400, 500, 600],
+                        styles: ['normal', 'italic'],
+                        preload: [{ weight: 400 }],
+                    }),
+                    bunny('Noto Naskh Arabic', {
+                        weights: [400, 600],
+                        subsets: ['arabic'],
+                        preload: false,
                     }),
                     // Display face for the login page's title only.
                     bunny('Gloock', {

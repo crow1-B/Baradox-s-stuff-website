@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Video;
 use App\Models\VideoAlbum;
+use App\Support\Obscure;
 use App\Support\VideoProbe;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -47,9 +48,10 @@ class VideosController extends Controller
         return $base . '-' . Str::lower(Str::random(5));
     }
 
+    // A gated poster is its own file, so the plain frame can never be served in its place.
     private function posterPath(Video $video): string
     {
-        return self::POSTERS . '/' . $video->id . '.jpg';
+        return self::POSTERS . '/' . $video->id . ($video->protection === 'gated' ? '-gated' : '') . '.jpg';
     }
 
     private function relativePath(Video $video): string
@@ -64,7 +66,20 @@ class VideosController extends Controller
 
     private function forget(Video $video): void
     {
-        Storage::disk(self::DISK)->delete($this->posterPath($video));
+        Storage::disk(self::DISK)->delete([
+            self::POSTERS . '/' . $video->id . '.jpg',
+            self::POSTERS . '/' . $video->id . '-gated.jpg',
+        ]);
+    }
+
+    // Two entries may share a file, and an ungated one would play what the gated one hides.
+    private function sharesFileWith(Video $video): ?Video
+    {
+        return Video::where('user_id', $video->user_id)
+            ->where('id', '!=', $video->id)
+            ->where('filename', $video->filename)
+            ->where('protection', 'none')
+            ->first();
     }
 
     private function folderLabel(): string
@@ -153,7 +168,9 @@ class VideosController extends Controller
             : sprintf('%d:%02d', $minutes, $rest);
     }
 
-    private function albumSummaries($albums)
+    // A cover is never a video whose file has gone from the drive: its poster can't be made,
+    // so the card would show a broken image. Same as gated ones, it's skipped for the next.
+    private function albumSummaries($albums, $missingIds = [])
     {
         $ids = $albums->pluck('id');
 
@@ -171,13 +188,17 @@ class VideosController extends Controller
             ->join('videos', 'videos.id', '=', 'video_album.video_id')
             ->whereIn('video_album.video_album_id', $ids)
             ->where('videos.protection', 'none')
+            ->whereNotIn('videos.id', $missingIds)
             ->select('video_album.video_album_id', 'videos.id as video_id')
             ->selectRaw('ROW_NUMBER() OVER (PARTITION BY video_album.video_album_id ORDER BY videos.created_at DESC, videos.id DESC) AS rn');
 
-        $covers = DB::query()
+        $coverIds = DB::query()
             ->fromSub($ranked, 'ranked')
             ->where('rn', 1)
             ->pluck('video_id', 'video_album_id');
+
+        $videos = Video::whereIn('id', $coverIds->values())->get()->keyBy('id');
+        $covers = $coverIds->map(fn ($id) => $videos->get($id))->filter();
 
         return [$counts, $covers];
     }
@@ -200,7 +221,7 @@ class VideosController extends Controller
                 'albums' => $video->albums->where('is_system', false)->pluck('name')->values(),
                 'urls' => [
                     'stream' => route('video.stream', $video->id),
-                    'poster' => route('video.poster', $video->id),
+                    'poster' => $video->posterUrl(),
                     'watch' => url('/videos/watch/' . $video->slug),
                 ],
             ];
@@ -240,9 +261,10 @@ class VideosController extends Controller
             ->orderBy('name')
             ->get();
 
-        [$counts, $covers] = $this->albumSummaries($albums);
-
         $onDrive = $this->filesOnDrive();
+        $missingIds = $this->missingIds($videos, $onDrive);
+
+        [$counts, $covers] = $this->albumSummaries($albums, $missingIds);
 
         $highlightId = null;
 
@@ -259,11 +281,12 @@ class VideosController extends Controller
             'albumCovers' => $covers,
             'favoriteAlbumId' => $favoriteAlbumId,
             'videoData' => $this->videoPayload($videos, $favoriteAlbumId, $onDrive),
-            'missingIds' => $this->missingIds($videos, $onDrive),
+            'missingIds' => $missingIds,
             'available' => $this->unregisteredFiles($onDrive),
             'driveReady' => $onDrive !== null,
             'folderLabel' => $this->folderLabel(),
             'highlightId' => $highlightId,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -299,6 +322,7 @@ class VideosController extends Controller
             'driveReady' => $onDrive !== null,
             'folderLabel' => $this->folderLabel(),
             'highlightId' => null,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 
@@ -350,6 +374,18 @@ class VideosController extends Controller
             ])->withInput();
         }
 
+        // A second, ungated entry for a gated video's file would play it without the key.
+        $gated = Video::where('user_id', $userId)
+            ->where('filename', $filename)
+            ->where('protection', 'gated')
+            ->first();
+
+        if ($gated) {
+            return back()->withErrors([
+                'filename' => '“' . $filename . '” belongs to a gated video, “' . $gated->title . '”. Unlock that one with its key first to register the file again.',
+            ])->withInput();
+        }
+
         $album = null;
 
         if ($request->filled('album_id')) {
@@ -385,10 +421,15 @@ class VideosController extends Controller
         return back()->with('success', '“' . $video->title . '” registered.');
     }
 
-    public function destroyVideo(Video $video)
+    public function destroyVideo(Request $request, Video $video)
     {
         if ($video->user_id !== Auth::user()->id) {
             abort(403);
+        }
+
+        // A gated video stays gated until its key is given, and that includes removing it.
+        if ($video->isProtected() && ! Hash::check((string) $request->input('key'), $video->key_hash)) {
+            return back()->withErrors(['key' => 'Incorrect key. A gated video is only removed with its key.']);
         }
 
         $this->forget($video);
@@ -420,13 +461,25 @@ class VideosController extends Controller
             abort(403);
         }
 
+        // Gating again would replace the key without knowing it, which is a way around it.
+        if ($video->isProtected()) {
+            return back()->withErrors(['key' => 'This video is already gated. Unlock it with its key first to set a new one.']);
+        }
+
+        $twin = $this->sharesFileWith($video);
+
+        if ($twin) {
+            return back()->withErrors(['key' => '“' . $twin->title . '” plays the same file without a key, so gating this one would hide nothing. Remove or gate that entry first.']);
+        }
+
         $request->validate(['key' => 'required|string|min:8']);
-        $this->forget($video);
 
         $video->update([
             'protection' => 'gated',
             'key_hash' => Hash::make($request->input('key')),
         ]);
+
+        $this->forget($video);
 
         return back()->with('success', 'Video gated.');
     }
@@ -443,9 +496,9 @@ class VideosController extends Controller
             return back()->withErrors(['key' => 'Incorrect key.']);
         }
 
-        $this->forget($video);
-
         $video->update(['protection' => 'none', 'key_hash' => null]);
+
+        $this->forget($video);
 
         return back()->with('success', 'Video unlocked.');
     }
@@ -475,7 +528,7 @@ class VideosController extends Controller
         return response()->file($this->fullPath($video), $headers);
     }
 
-    public function viewPoster(Video $video)
+    public function viewPoster(Request $request, Video $video)
     {
         if ($video->user_id !== Auth::user()->id) {
             abort(403);
@@ -498,22 +551,31 @@ class VideosController extends Controller
                 }
             }
 
-            if (! VideoProbe::poster($fullPath, $disk->path($posterPath), $video->duration)) {
+            // A gated video's frame is taken outside the drive and only the obscured copy is
+            // written to it, so the plain frame never sits where a request could find it.
+            $frame = $video->protection === 'gated'
+                ? sys_get_temp_dir() . '/poster-' . Str::random(16) . '.jpg'
+                : $disk->path($posterPath);
+
+            if (! VideoProbe::poster($fullPath, $frame, $video->duration)) {
                 return response('No frame could be read from that file.', 404);
             }
 
             if ($video->protection === 'gated') {
-                $manager = ImageManager::usingDriver(Driver::class);
-                $image = $manager->decodePath($disk->path($posterPath));
-                $width = $image->width();
-                $height = $image->height();
-                $image->scale(width: 12);
-                $image->scale(width: $width, height: $height);
-                $disk->put($posterPath, (string) $image->encode());
+                try {
+                    $image = ImageManager::usingDriver(Driver::class)->decodePath($frame);
+                    $disk->put($posterPath, (string) Obscure::image($image)->encode());
+                } finally {
+                    @unlink($frame);
+                }
             }
         }
 
-        return response()->file($disk->path($posterPath));
+        // Revalidated on every use: what this URL may show changes when the video is gated.
+        $response = response()->file($disk->path($posterPath), ['Cache-Control' => 'private, no-cache']);
+        $response->isNotModified($request);
+
+        return $response;
     }
 
     public function storeAlbum(Request $request)

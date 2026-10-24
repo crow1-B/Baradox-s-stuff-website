@@ -18,7 +18,10 @@ class MusicController extends Controller
 
     public function viewMusicPage()
     {
-        return view('music', ['tracks' => $this->tracksForUser()]);
+        return view('music', [
+            'tracks' => $this->tracksForUser(),
+            'canWrite' => !Auth::user()->isPreview(),
+        ]);
     }
 
 
@@ -144,6 +147,18 @@ class MusicController extends Controller
         $track->save();
 
         return back();
+    }
+
+    // The player calls this once per track per session, after 30 seconds of real listening.
+    public function recordPlay(\App\Models\Track $track)
+    {
+        if ($track->user_id !== Auth::user()->id) {
+            abort(403);
+        }
+
+        \App\Models\TrackPlay::record(Auth::user()->id, $track->id);
+
+        return response()->noContent();
     }
 
     public function queue()

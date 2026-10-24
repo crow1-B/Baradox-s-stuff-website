@@ -1,573 +1,349 @@
-.ph {
-    color: var(--bs-text);
-    font-size: 15px;
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-    color-scheme: dark; /* native file picker, search clear button, scrollbars */
-}
+/* ==========================================================================
+   Photos and an album's page: albums strip, grid of tiles, the viewer, upload. On the
+   night-desk tokens; buttons, chips, fields, dialogs and banners are the shared .nd-*
+   components. What is left here is layout and the controls that sit on a photo.
+   ========================================================================== */
 
-.ph button {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-}
-.ph button:hover { background: transparent; }
 .ph [hidden] { display: none !important; }
 
-.ph *:focus { outline: none; }
-.ph *:focus-visible {
-    outline: none;
-    box-shadow: var(--bs-ring);
-    border-radius: var(--bs-radius-sm);
-}
+.ph-back { margin: 0 0 0.75rem -0.7rem; }
+.ph-star { color: var(--nd-accent); font-size: 0.55em; vertical-align: 0.3em; }
 
-.ph h1 {
-    margin: 0;
-    color: var(--bs-text);
-    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.1rem);
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-}
-.ph h2 { margin: 0; color: var(--bs-text); font-weight: 600; letter-spacing: -0.01em; }
-.ph h3 { margin: 0; color: var(--bs-text); font-weight: 600; }
-.ph .ph-muted { color: var(--bs-text-muted); }
-.ph .ph-faint { color: var(--bs-text-faint); }
+.ph-section { margin-top: 2.5rem; }
+.ph-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; }
+.ph-section__title { margin: 0; color: var(--nd-ink); font: 400 var(--nd-text-lg) / 1.2 var(--nd-font-serif); }
+.ph-section__note { margin-top: 0.25rem; font-size: var(--nd-text-sm); }
 
-.ph .ph-sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* ---------------------------------------------------------------- buttons */
-
-.ph .ph-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    min-height: 2.25rem;
-    padding: 0 0.9rem;
-    border: 1px solid var(--bs-border-strong);
-    border-radius: var(--bs-radius);
-    background: var(--bs-surface-2);
-    color: var(--bs-text);
-    font: inherit;
-    font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1;
-    white-space: nowrap;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 120ms var(--bs-ease), border-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
-}
-.ph .ph-btn:hover { background: var(--bs-surface-3); border-color: #4a4a54; }
-.ph .ph-btn:focus-visible { border-radius: var(--bs-radius); }
-.ph .ph-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.ph .ph-btn i { font-size: 0.9rem; line-height: 1; }
-
-.ph .ph-btn--primary {
-    background: var(--bs-accent);
-    border-color: var(--bs-accent);
-    color: var(--bs-on-accent);
-    font-weight: 600;
-}
-.ph .ph-btn--primary:hover { background: var(--bs-accent-hover); border-color: var(--bs-accent-hover); }
-
-.ph .ph-btn--danger {
-    background: var(--bs-danger);
-    border-color: var(--bs-danger);
-    color: #1c0707;
-    font-weight: 600;
-}
-.ph .ph-btn--danger:hover { background: #fb8f8f; border-color: #fb8f8f; }
-
-.ph .ph-btn--ghost { background: transparent; border-color: transparent; color: var(--bs-text-muted); }
-.ph .ph-btn--ghost:hover { background: var(--bs-surface-3); border-color: transparent; color: var(--bs-text); }
-
-.ph .ph-btn--sm { min-height: 1.9rem; padding: 0 0.65rem; font-size: 0.8rem; border-radius: 8px; }
-.ph .ph-btn--icon { width: 2.25rem; padding: 0; }
-.ph .ph-btn--sm.ph-btn--icon { width: 1.9rem; }
-.ph .ph-danger:hover { color: var(--bs-danger); }
-
-/* ---------------------------------------------------------------- banners */
-
-.ph .ph-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.75rem 0.9rem;
-    border: 1px solid;
-    border-radius: var(--bs-radius);
-    font-size: 0.9rem;
-}
-.ph .ph-banner > i { margin-top: 0.2rem; }
-.ph .ph-banner--success { background: rgb(52 211 153 / 0.12); border-color: rgb(52 211 153 / 0.35); color: #b7f5d8; }
-.ph .ph-banner--error { background: rgb(248 113 113 / 0.12); border-color: rgb(248 113 113 / 0.35); color: #fecaca; }
-.ph .ph-banner ul { margin: 0; padding-left: 1rem; list-style: disc; }
+.ph-dialog-note { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); line-height: 1.55; }
+.ph-dialog-note + .nd-field { margin-top: var(--nd-space-4); }
 
 /* ---------------------------------------------------------------- albums strip */
 
-.ph .ph-albums {
+.ph-albums {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.9rem;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.ph .ph-album {
+.ph-album {
     position: relative;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--bs-border);
-    border-radius: var(--bs-radius);
-    background: var(--bs-surface);
     overflow: hidden;
-    transition: border-color 120ms var(--bs-ease), background-color 120ms var(--bs-ease);
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+    box-shadow: var(--nd-shadow-1);
+    transition: border-color var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-album:hover { border-color: var(--bs-border-strong); background: var(--bs-surface-2); }
-.ph .ph-album__link { display: block; color: inherit; text-decoration: none; }
-.ph .ph-album__link::after { content: ''; position: absolute; inset: 0; }
-.ph .ph-album__link:focus-visible { border-radius: var(--bs-radius); }
+.ph-album:hover { border-color: var(--nd-line-strong); }
+.ph-album:has(.ph-album__link:focus-visible) { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.ph-album__link { display: block; color: inherit; text-decoration: none; }
+.ph-album__link:focus-visible { outline: none; }
+.ph-album__link::after { content: ''; position: absolute; inset: 0; }
 
-.ph .ph-album__cover {
+.ph-album__cover {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    background: var(--bs-surface-2);
-    border-bottom: 1px solid var(--bs-border);
+    background: var(--nd-surface-2);
 }
-.ph .ph-album__cover--blank {
+.ph-album__cover--blank {
     display: grid;
     place-items: center;
-    color: var(--bs-text-faint);
-    background:
-        repeating-linear-gradient(45deg, var(--bs-surface-2) 0 10px, var(--bs-surface) 10px 20px);
+    color: var(--nd-ink-3);
+    font-size: 1.25rem;
+    background: repeating-linear-gradient(45deg, var(--nd-surface-2) 0 10px, var(--nd-surface) 10px 20px);
 }
-.ph .ph-album__cover--blank i { font-size: 1.25rem; }
 
-.ph .ph-album__body { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.55rem 0.7rem 0.65rem; }
-.ph .ph-album__name {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    min-width: 0;
-    font-size: 0.88rem;
-    font-weight: 500;
-}
-.ph .ph-album__name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ph .ph-album__name i { flex: none; color: var(--bs-accent-text); font-size: 0.75rem; }
-.ph .ph-album__count { color: var(--bs-text-faint); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.ph-album__body { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.6rem 0.75rem 0.7rem; }
+.ph-album__name { display: flex; align-items: center; gap: 0.35rem; min-width: 0; color: var(--nd-ink); font-size: 0.9rem; font-weight: 500; }
+.ph-album__name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ph-album__name i { flex: none; color: var(--nd-accent); font-size: 0.72rem; }
+.ph-album__count { color: var(--nd-ink-3); font-size: var(--nd-text-xs); font-variant-numeric: tabular-nums; }
 
-.ph .ph-album__manage {
+.ph-album__manage {
     position: absolute;
-    top: 0.35rem;
-    right: 0.35rem;
+    top: 0.4rem;
+    right: 0.4rem;
     z-index: 1;
     display: flex;
-    gap: 0.15rem;
+    gap: 0.2rem;
     opacity: 0;
-    transition: opacity 120ms var(--bs-ease);
+    transition: opacity var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-album:hover .ph-album__manage,
-.ph .ph-album:focus-within .ph-album__manage { opacity: 1; }
-.ph .ph-album__manage .ph-btn {
-    background: rgb(0 0 0 / 0.65);
-    border-color: transparent;
-    color: var(--bs-text);
-    backdrop-filter: blur(4px);
-}
-.ph .ph-album__manage .ph-btn:hover { background: rgb(0 0 0 / 0.85); }
+.ph-album:hover .ph-album__manage,
+.ph-album:focus-within .ph-album__manage { opacity: 1; }
 
-/* ---------------------------------------------------------------- toolbar */
+/* ---------------------------------------------------------------- toolbar, selection */
 
-.ph .ph-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.ph-toolbar { margin-bottom: 0.9rem; }
 
-.ph .ph-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    min-height: 2rem;
-    padding: 0 0.75rem;
-    border: 1px solid var(--bs-border-strong);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--bs-text-muted);
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 120ms var(--bs-ease), border-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
-}
-.ph .ph-chip:hover { background: var(--bs-surface-2); color: var(--bs-text); }
-.ph .ph-chip:focus-visible { border-radius: 999px; }
-.ph .ph-chip[aria-pressed='true'] {
-    background: var(--bs-accent-soft);
-    border-color: rgb(41 161 161 / 0.5);
-    color: var(--bs-accent-text);
-}
-
-.ph .ph-count { margin-left: auto; color: var(--bs-text-faint); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
-
-/* ---------------------------------------------------------------- selection bar */
-
-.ph .ph-selbar {
+.ph-selbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.9rem;
     padding: 0.55rem 0.7rem;
-    border: 1px solid rgb(41 161 161 / 0.45);
-    border-radius: var(--bs-radius);
-    background: var(--bs-accent-soft);
+    border: 1px solid color-mix(in oklab, var(--nd-accent) 45%, transparent);
+    border-radius: var(--nd-r);
+    background: var(--nd-accent-soft);
 }
-.ph .ph-selbar__count { margin-right: auto; color: var(--bs-accent-text); font-size: 0.85rem; font-weight: 600; }
+.ph-selbar__count { margin: 0 auto 0 0; color: var(--nd-accent); font-size: var(--nd-text-sm); font-weight: 600; }
 
 /* ---------------------------------------------------------------- the grid */
 
-.ph .ph-grid {
+.ph-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-    gap: 0.75rem;
+    gap: 0.6rem;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 @media (min-width: 640px) {
-    .ph .ph-grid { grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: 0.85rem; }
+    .ph-grid { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.85rem; }
 }
 
-.ph .ph-tile {
+.ph-tile {
     position: relative;
     aspect-ratio: 1 / 1;
-    border: 1px solid var(--bs-border);
-    border-radius: var(--bs-radius);
-    background: var(--bs-surface);
     overflow: hidden;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: var(--nd-surface-2);
     cursor: pointer;
-    transition: border-color 120ms var(--bs-ease), box-shadow 120ms var(--bs-ease);
     -webkit-tap-highlight-color: transparent;
 }
-.ph .ph-tile:hover { border-color: var(--bs-border-strong); }
+.ph-tile:hover { border-color: var(--nd-line-strong); }
+.ph-tile:has(.ph-tile__open:focus-visible) { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
 
-.ph .ph-tile__img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: var(--bs-surface-2);
-}
-.ph .ph-tile--encrypted .ph-tile__img { object-fit: contain; padding: 22%; opacity: 0.85; }
+.ph-tile__img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ph-tile--encrypted .ph-tile__img { padding: 22%; object-fit: contain; opacity: 0.85; }
+/* A layer over the server's obscured thumbnail (app/Support/Obscure.php), never the protection
+   itself. Scaled so the blur's soft rim falls outside the tile's clip. */
+.ph-tile[data-protection='gated'] .ph-tile__img { filter: blur(6px); transform: scale(1.12); }
 
-.ph .ph-tile__scrim {
+.ph-tile__scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0%, transparent 28%, transparent 58%, rgb(0 0 0 / 0.72) 100%);
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0.42) 0%, transparent 28%, transparent 58%, rgb(0 0 0 / 0.66) 100%);
     opacity: 0;
-    transition: opacity 120ms var(--bs-ease);
     pointer-events: none;
+    transition: opacity var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-tile:hover .ph-tile__scrim,
-.ph .ph-tile:focus-within .ph-tile__scrim,
-.ph .ph-tile[data-touch] .ph-tile__scrim { opacity: 1; }
+.ph-tile:hover .ph-tile__scrim,
+.ph-tile:focus-within .ph-tile__scrim { opacity: 1; }
 
-.ph .ph-tile__open {
+.ph-tile__open {
     position: absolute;
     inset: 0;
     z-index: 1;
     width: 100%;
     height: 100%;
+    padding: 0;
+    border: 0;
     background: transparent;
     cursor: pointer;
 }
-.ph .ph-tile__open:focus-visible { border-radius: var(--bs-radius); }
+.ph-tile__open:focus-visible { outline: none; }
 
-/* ---- protection badge: the state said out loud, not inferred from how blurry it looks ---- */
-.ph .ph-badge {
+/* ---- protection badge: the state said out loud, not inferred from how blurry it looks.
+        These sit on a photo, so they are dark glass in every phase. ---- */
+.ph-badge {
     position: absolute;
-    right: 0.4rem;
     top: 0.4rem;
+    right: 0.4rem;
     z-index: 2;
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.18rem 0.45rem;
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.72);
-    color: #f4d9a6;
+    padding: 0.18rem 0.5rem;
+    border-radius: var(--nd-r-pill);
+    background: rgb(4 12 15 / 0.74);
+    color: #f2c27b;
     font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.01em;
-    backdrop-filter: blur(4px);
     pointer-events: none;
 }
-.ph .ph-badge i { font-size: 0.65rem; }
-.ph .ph-badge--encrypted { color: #b9d9ff; }
+.ph-badge i { font-size: 0.62rem; }
+.ph-badge--encrypted { color: #9fd3e6; }
 
-/* ---- actions: on the tile, never under it. A row of buttons below every tile is what
-        made the old page unusable past a screenful of photos. ---- */
+.ph-fav-mark {
+    position: absolute;
+    right: 0.45rem;
+    bottom: 0.4rem;
+    z-index: 2;
+    color: #f2c27b;
+    font-size: 0.8rem;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+    pointer-events: none;
+}
 
-.ph .ph-tile__actions {
+/* ---- actions: on the tile, never under it ---- */
+
+.ph-tile__actions {
     position: absolute;
     right: 0.35rem;
     bottom: 0.35rem;
     z-index: 3;
     display: flex;
-    gap: 0.15rem;
+    gap: 0.2rem;
     opacity: 0;
     transform: translateY(0.25rem);
-    transition: opacity 120ms var(--bs-ease), transform 120ms var(--bs-ease);
+    transition: opacity var(--nd-dur-1) var(--nd-ease), transform var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-tile:hover .ph-tile__actions,
-.ph .ph-tile:focus-within .ph-tile__actions,
-.ph .ph-tile[data-touch] .ph-tile__actions { opacity: 1; transform: none; }
+.ph-tile:hover .ph-tile__actions,
+.ph-tile:focus-within .ph-tile__actions { opacity: 1; transform: none; }
 
-.ph .ph-act {
+.ph-act {
     display: grid;
     place-items: center;
-    width: 1.8rem;
-    height: 1.8rem;
-    border-radius: 8px;
-    background: rgb(0 0 0 / 0.68);
-    color: var(--bs-text);
-    font-size: 0.8rem;
+    width: 1.85rem;
+    height: 1.85rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r-sm);
+    background: rgb(4 12 15 / 0.7);
+    color: #ebe5d9;
+    font-size: 0.78rem;
     cursor: pointer;
-    backdrop-filter: blur(4px);
-    transition: background-color 120ms var(--bs-ease), color 120ms var(--bs-ease);
+    transition: background-color var(--nd-dur-1) var(--nd-ease), color var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-act:hover { background: rgb(0 0 0 / 0.9); }
-.ph .ph-act:focus-visible { border-radius: 8px; }
-.ph .ph-act--danger:hover { color: var(--bs-danger); }
-.ph .ph-act--fav[aria-pressed='true'] { color: #f4c752; }
+.ph-act:hover { background: rgb(4 12 15 / 0.9); }
+.ph-act:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+.ph-act--danger:hover { color: #ff9f8a; }
+.ph-act--fav[aria-pressed='true'] { color: #f2c27b; }
 
 /* ---- the pick checkbox ---- */
 
-.ph .ph-pick {
+.ph-pick-hit {
     position: absolute;
-    top: 0.35rem;
-    left: 0.35rem;
+    top: 0.4rem;
+    left: 0.4rem;
     z-index: 3;
+    display: block;
+    line-height: 0;
+}
+.ph-pick {
     width: 1.3rem;
     height: 1.3rem;
     margin: 0;
-    accent-color: var(--bs-accent);
+    accent-color: var(--nd-accent-strong);
     cursor: pointer;
     opacity: 0;
-    transition: opacity 120ms var(--bs-ease);
+    transition: opacity var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-tile:hover .ph-pick,
-.ph .ph-tile:focus-within .ph-pick,
-.ph .ph-tile[data-touch] .ph-pick,
+.ph-tile:hover .ph-pick,
+.ph-tile:focus-within .ph-pick,
 .ph[data-selecting] .ph-pick,
-.ph .ph-pick:checked { opacity: 1; }
+.ph-pick:checked { opacity: 1; }
 
-.ph .ph-tile--picked { border-color: var(--bs-accent); box-shadow: 0 0 0 2px var(--bs-accent-soft); }
-.ph .ph-tile--picked .ph-tile__img { opacity: 0.75; }
-
-/* ---------------------------------------------------------------- empty states */
-
-.ph .ph-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 3rem 1.25rem;
-    border: 1px dashed var(--bs-border-strong);
-    border-radius: var(--bs-radius-lg);
-    text-align: center;
-}
-.ph .ph-empty__icon {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 999px;
-    background: var(--bs-surface-2);
-    color: var(--bs-text-muted);
-    font-size: 1.1rem;
-}
-
-/* ---------------------------------------------------------------- form controls */
-
-.ph .ph-field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
-.ph .ph-label { font-size: 0.82rem; font-weight: 500; color: var(--bs-text-muted); }
-.ph .ph-req { color: var(--bs-accent-text); margin-left: 0.15rem; }
-.ph .ph-hint { font-size: 0.78rem; color: var(--bs-text-faint); }
-.ph .ph-error { font-size: 0.8rem; color: var(--bs-danger); }
-
-.ph .ph-input {
-    width: 100%;
-    min-height: 2.5rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--bs-border-strong);
-    border-radius: var(--bs-radius);
-    background: var(--bs-bg);
-    color: var(--bs-text);
-    font: inherit;
-    font-size: 0.92rem;
-    line-height: 1.4;
-    transition: border-color 120ms var(--bs-ease), box-shadow 120ms var(--bs-ease);
-}
-.ph .ph-input::placeholder { color: var(--bs-text-faint); }
-.ph .ph-input:hover { border-color: #4a4a54; }
-.ph .ph-input:focus-visible {
-    border-color: var(--bs-accent);
-    box-shadow: 0 0 0 3px var(--bs-accent-soft);
-    border-radius: var(--bs-radius);
-}
-.ph .ph-input[aria-invalid='true'] { border-color: var(--bs-danger); }
-.ph select.ph-input { appearance: none; padding-right: 2.2rem;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a3ad' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    background-size: 1rem;
-}
-
-.ph .ph-check { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; cursor: pointer; }
-.ph .ph-check input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: var(--bs-accent); cursor: pointer; }
-
-/* ---------------------------------------------------------------- dialogs */
-
-.ph .ph-dialog {
-    width: min(36rem, calc(100vw - 2rem));
-    max-height: 90vh;
-    padding: 0;
-    margin: auto;
-    border: 1px solid var(--bs-border-strong);
-    border-radius: var(--bs-radius-lg);
-    background: var(--bs-surface);
-    color: var(--bs-text);
-    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.8);
-    overflow: hidden;
-}
-.ph .ph-dialog--sm { width: min(26rem, calc(100vw - 2rem)); }
-.ph .ph-dialog::backdrop { background: rgb(0 0 0 / 0.6); backdrop-filter: blur(4px); }
-.ph .ph-dialog[open] { display: flex; flex-direction: column; animation: ph-pop 160ms var(--bs-ease); }
-.ph .ph-dialog > form,
-.ph .ph-dialog > div { display: flex; flex-direction: column; min-height: 0; max-height: 90vh; }
-
-.ph .ph-dialog__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem 0.25rem; }
-.ph .ph-dialog__title { font-size: 1.1rem; font-weight: 600; overflow-wrap: anywhere; }
-.ph .ph-dialog__body { padding: 0.75rem 1.25rem 1.25rem; overflow-y: auto; }
-.ph .ph-dialog__foot {
-    display: flex;
-    flex-wrap: wrap-reverse;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    padding: 0.9rem 1.25rem;
-    border-top: 1px solid var(--bs-border);
-    background: var(--bs-bg);
-}
-@media (max-width: 480px) {
-    .ph .ph-dialog__foot .ph-btn { flex: 1; }
-}
-
-@keyframes ph-pop {
-    from { opacity: 0; transform: translateY(6px) scale(0.985); }
-    to { opacity: 1; transform: none; }
-}
+.ph-tile--picked { border-color: var(--nd-accent); box-shadow: 0 0 0 2px var(--nd-accent-soft); }
+.ph-tile--picked .ph-tile__img { opacity: 0.72; }
 
 /* ---------------------------------------------------------------- upload */
 
-.ph .ph-drop {
+.ph-drop {
     display: grid;
     place-items: center;
     gap: 0.35rem;
     padding: 1.5rem 1rem;
-    border: 1px dashed var(--bs-border-strong);
-    border-radius: var(--bs-radius);
-    background: var(--bs-bg);
-    color: var(--bs-text-muted);
+    border: 1px dashed var(--nd-line-strong);
+    border-radius: var(--nd-r);
+    background: var(--nd-paper);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
     text-align: center;
     cursor: pointer;
-    transition: border-color 120ms var(--bs-ease), background-color 120ms var(--bs-ease);
+    transition: border-color var(--nd-dur-1) var(--nd-ease), background-color var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-drop:hover, .ph .ph-drop[data-over] { border-color: var(--bs-accent); background: var(--bs-accent-soft); color: var(--bs-text); }
-.ph .ph-drop i { font-size: 1.3rem; }
+.ph-drop:hover, .ph-drop[data-over] { border-color: var(--nd-accent); background: var(--nd-accent-soft); color: var(--nd-ink); }
+.ph-drop:has(input:focus-visible) { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.ph-drop > i { color: var(--nd-accent); font-size: 1.3rem; }
 
-.ph .ph-queue { display: flex; flex-direction: column; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.ph-queue { display: flex; flex-direction: column; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.ph-queue:empty { display: none; }
 
-.ph .ph-file {
+.ph-file {
     display: grid;
     grid-template-columns: 1.1rem minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.5rem;
     padding: 0.45rem 0.6rem;
-    border: 1px solid var(--bs-border);
-    border-radius: 8px;
-    background: var(--bs-bg);
-    font-size: 0.82rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-sm);
+    background: var(--nd-paper);
+    font-size: var(--nd-text-xs);
 }
-.ph .ph-file__icon { color: var(--bs-text-faint); text-align: center; }
-.ph .ph-file__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ph .ph-file__why { grid-column: 2 / -1; color: var(--bs-danger); font-size: 0.78rem; }
-.ph .ph-file__bar { grid-column: 2 / -1; height: 3px; border-radius: 999px; background: var(--bs-surface-3); overflow: hidden; }
-.ph .ph-file__bar i { display: block; height: 100%; width: 0; background: var(--bs-accent); transition: width 120ms linear; }
-.ph .ph-file__size { color: var(--bs-text-faint); font-variant-numeric: tabular-nums; }
-
-.ph .ph-file[data-state='done'] .ph-file__icon { color: #6ee7b7; }
-.ph .ph-file[data-state='failed'] .ph-file__icon { color: var(--bs-danger); }
-.ph .ph-file[data-state='failed'] { border-color: rgb(248 113 113 / 0.4); }
+.ph-file__icon { color: var(--nd-ink-3); text-align: center; }
+.ph-file__name { overflow: hidden; color: var(--nd-ink); text-overflow: ellipsis; white-space: nowrap; }
+.ph-file__why { grid-column: 2 / -1; margin: 0; color: var(--nd-danger); }
+.ph-file__bar { grid-column: 2 / -1; height: 3px; overflow: hidden; border-radius: var(--nd-r-pill); background: var(--nd-surface-2); }
+/* The fill is scaled, not resized, so progress never relays the dialog out. */
+.ph-file__bar i { display: block; width: 100%; height: 100%; background: var(--nd-accent); transform: scaleX(0); transform-origin: left; transition: transform var(--nd-dur-1) linear; }
+.ph-file__size { color: var(--nd-ink-3); font-variant-numeric: tabular-nums; }
+.ph-file[data-state='done'] .ph-file__icon { color: var(--nd-success); }
+.ph-file[data-state='failed'] .ph-file__icon { color: var(--nd-danger); }
+.ph-file[data-state='failed'] { border-color: color-mix(in oklab, var(--nd-danger) 40%, transparent); }
 
 /* Page-wide drop target. Pointer-events stay off so it never eats a click; it is only ever
-   a hint that the page will take the files. */
-.ph .ph-dropzone {
+   a hint that the page will take the files. Opaque, not blurred: it covers everything. */
+.ph-dropzone {
     position: fixed;
     inset: 0;
-    z-index: 1050;
+    z-index: var(--nd-z-drawer);
     display: grid;
-    place-items: center;
-    gap: 0.5rem;
-    background: rgb(10 20 20 / 0.82);
-    color: var(--bs-text);
-    font-size: 1.05rem;
-    font-weight: 600;
-    backdrop-filter: blur(3px);
+    place-content: center;
+    justify-items: center;
+    gap: 0.6rem;
+    background: color-mix(in oklab, var(--nd-bg-deep) 92%, transparent);
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-lg) / 1.3 var(--nd-font-serif);
     pointer-events: none;
 }
-.ph .ph-dropzone i { font-size: 2rem; color: var(--bs-accent-text); }
+.ph-dropzone p { margin: 0; }
+.ph-dropzone > i { color: var(--nd-accent); font-size: 2rem; }
 
-/* ---------------------------------------------------------------- lightbox */
+/* ---------------------------------------------------------------- the viewer */
 
-.ph .ph-lightbox {
+/* inset: 0 rather than 100vw/100dvh: a viewport unit includes the scrollbar gutter. */
+.ph-lightbox {
     position: fixed;
     inset: 0;
     width: auto;
     height: auto;
     max-width: none;
     max-height: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
     border: 0;
-    background: rgb(9 9 11 / 0.97);
-    color: var(--bs-text);
+    background: var(--nd-bg-deep);
+    color: var(--nd-ink);
 }
-.ph .ph-lightbox::backdrop { background: rgb(0 0 0 / 0.9); }
-.ph .ph-lightbox[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.ph-lightbox::backdrop { background: rgb(2 8 10 / 0.9); }
+.ph-lightbox[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
 
-.ph .ph-lb__head {
+.ph-lb__head {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--nd-line);
 }
-.ph .ph-lb__pos { font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--bs-text-muted); }
-.ph .ph-lb__meta { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
-.ph .ph-lb__meta .ph-badge { position: static; backdrop-filter: none; }
-.ph .ph-lb__stage {
+.ph-lb__pos { color: var(--nd-ink-2); font-size: var(--nd-text-sm); font-variant-numeric: tabular-nums; }
+.ph-lb__meta { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+.ph-lb__meta .ph-badge { position: static; }
+.ph-lb__added { color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+
+/* Flex, not grid: a grid item's percentage max-height resolves against its own auto row and
+   is dropped, so a tall photo ran off the bottom. */
+.ph-lb__stage {
     position: relative;
     display: flex;
     align-items: center;
@@ -576,77 +352,116 @@
     padding: 0.75rem;
     overflow: hidden;
 }
-.ph .ph-lb__img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--bs-radius-sm); }
+.ph-lb__img { display: block; max-width: 100%; max-height: 100%; border-radius: var(--nd-r-sm); object-fit: contain; box-shadow: var(--nd-shadow-3); }
 
-.ph .ph-lb__nav {
+.ph-lb__nav {
     position: absolute;
     top: 50%;
+    z-index: 1;
     display: grid;
     place-items: center;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.08);
-    color: var(--bs-text);
-    font-size: 1rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r-pill);
+    background: color-mix(in oklab, var(--nd-surface) 80%, transparent);
+    color: var(--nd-ink);
+    font-size: 0.95rem;
     cursor: pointer;
     transform: translateY(-50%);
-    transition: background-color 120ms var(--bs-ease);
+    transition: background-color var(--nd-dur-1) var(--nd-ease);
 }
-.ph .ph-lb__nav:hover { background: rgb(255 255 255 / 0.18); }
-.ph .ph-lb__nav:focus-visible { border-radius: 999px; }
-.ph .ph-lb__nav--prev { left: 0.75rem; }
-.ph .ph-lb__nav--next { right: 0.75rem; }
-.ph .ph-lb__nav:disabled { opacity: 0.25; cursor: not-allowed; }
+.ph-lb__nav:hover { background: var(--nd-surface-2); }
+.ph-lb__nav:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.ph-lb__nav--prev { left: 0.75rem; }
+.ph-lb__nav--next { right: 0.75rem; }
+.ph-lb__nav:disabled { opacity: 0.25; cursor: not-allowed; }
 
-.ph .ph-lb__foot {
+.ph-lb__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    padding: 0.6rem 0.75rem;
-    border-top: 1px solid rgb(255 255 255 / 0.08);
+    gap: 0.3rem;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--nd-line);
 }
+.ph-lb__foot .ph-lb__delete:hover { background: var(--nd-danger-soft); color: var(--nd-danger); }
 
 /* the key prompt, shown on the stage instead of the image */
-.ph .ph-lb__gate {
+.ph-lb__gate {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
     width: min(22rem, calc(100vw - 3rem));
     padding: 1.5rem;
-    border: 1px solid var(--bs-border-strong);
-    border-radius: var(--bs-radius-lg);
-    background: var(--bs-surface);
+    border: 1px solid var(--nd-line-strong);
+    border-radius: var(--nd-r-lg);
+    background: var(--nd-surface);
     text-align: center;
 }
-.ph .ph-lb__gate i.ph-lb__gate-icon { font-size: 1.5rem; color: var(--bs-accent-text); }
-.ph .ph-lb__gate form { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+.ph-lb__gate-icon { color: var(--nd-accent); font-size: 1.5rem; }
+.ph-lb__gate-title { margin: 0 0 0.25rem; color: var(--nd-ink); font: 400 var(--nd-text-lg) / 1.25 var(--nd-font-serif); }
+.ph-lb__gate form { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
 
-.ph .ph-lb__spinner {
+.ph-lb__spinner {
     width: 1.8rem;
     height: 1.8rem;
-    border: 2px solid var(--bs-surface-3);
-    border-top-color: var(--bs-accent);
-    border-radius: 999px;
+    border: 2px solid var(--nd-surface-2);
+    border-top-color: var(--nd-accent);
+    border-radius: var(--nd-r-pill);
     animation: ph-spin 700ms linear infinite;
 }
 @keyframes ph-spin { to { transform: rotate(360deg); } }
 
+@media (max-width: 639.98px) {
+    .ph-lb__nav { top: auto; bottom: 0.75rem; transform: none; }
+}
+
+/* ---------------------------------------------------------------- behind the viewer */
+
+/* While the viewer is open it covers everything, so the page under it is not rendered:
+   opening a modal makes the rest of the document inert, and restyling every tile for that
+   is what made the viewer take ~0.8s to open at phone speed (skipped subtrees aren't
+   restyled). Remembered sizes keep the page's height, so the scroll position survives. */
+.ph > :not(dialog) { contain-intrinsic-size: auto none; }
+.ph[data-viewing] > :not(dialog) { content-visibility: hidden; }
+
 /* ---------------------------------------------------------------- touch */
 
 @media (hover: none) {
-    .ph .ph-tile__actions { opacity: 1; transform: none; }
-    .ph .ph-pick { opacity: 1; }
-    .ph .ph-tile__scrim { opacity: 1; }
-    .ph .ph-album__manage { opacity: 1; }
+    .ph-tile__actions { opacity: 1; transform: none; }
+    .ph-pick { opacity: 1; }
+    .ph-tile__scrim { opacity: 1; }
+    .ph-album__manage { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .ph *, .ph .ph-dialog { animation: none !important; transition: none !important; }
-    .ph .ph-lb__spinner { animation: ph-spin 700ms linear infinite !important; }
+    .ph-tile__actions, .ph-tile__scrim, .ph-pick, .ph-album__manage, .ph-file__bar i { transition: none; }
 }
 
-.ph .ph-star { color: var(--bs-accent-text); font-size: 0.75em; vertical-align: middle; }
+/* ---------------------------------------------------------------- morphs */
+
+/* Thumbnail → viewer and album cover → tile. The two ends are cropped differently (square
+   tile, 4:3 cover, the photo's own shape in the viewer), so both snapshots fill the moving
+   box and the crop eases from one to the other instead of a square overhanging it. The class
+   only applies while view-transitions.js or photos.js has given the element a name. */
+.ph-album__cover, .ph-tile__img, .ph-lb__img { view-transition-class: ph-photo; }
+
+::view-transition-old(*.ph-photo),
+::view-transition-new(*.ph-photo) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .ph-act { width: 2.75rem; height: 2.75rem; font-size: 0.9rem; }
+    .ph-pick-hit { top: 0; left: 0; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; }
+}
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.ph-album, .ph-act, .ph-drop, .ph-lb__nav) { transition: none !important; }

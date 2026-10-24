@@ -3,6 +3,8 @@ let page = null;
 const SEEK_STEP = 5;
 const COPIED_MS = 1600;
 
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const initVideos = () => {
     const root = document.getElementById('vd-root');
     if (!root || root.dataset.vdReady === 'true') return;
@@ -67,6 +69,7 @@ const initVideos = () => {
     const tearDown = () => {
         video.pause();
         video.removeAttribute('src');
+        video.removeAttribute('poster');
         video.load();
         video.hidden = true;
     };
@@ -101,16 +104,44 @@ const initVideos = () => {
         keyError.hidden = true;
         failed.hidden = true;
 
+        // The player covers the page, which stops being rendered while it is open (videos.css,
+        // [data-viewing]): showModal() would otherwise restyle every card to make it inert.
         if (info.protection === 'gated') {
             tearDown();
             gate.hidden = false;
+            root.dataset.viewing = '';
             openDialog(playerDialog, keyInput);
             return;
         }
 
         gate.hidden = true;
-        openDialog(playerDialog);
-        play(info.urls.stream);
+
+        // The card's poster grows into the player: the <video> borrows the same (cached) frame
+        // as its poster for the new snapshot, so both ends of the morph show one picture.
+        const poster = document.getElementById(`video-${id}`)?.querySelector('[data-vd-poster]');
+        const morph = poster && !poster.hidden && poster.complete && poster.naturalWidth > 0
+            && document.startViewTransition && !reducedMotion();
+
+        if (!morph) {
+            root.dataset.viewing = '';
+            openDialog(playerDialog);
+            play(info.urls.stream);
+            return;
+        }
+
+        poster.style.viewTransitionName = 'vd-screen';
+        const transition = document.startViewTransition(() => {
+            poster.style.viewTransitionName = '';
+            video.poster = poster.currentSrc;
+            root.dataset.viewing = '';
+            openDialog(playerDialog);
+            play(info.urls.stream);
+            video.style.viewTransitionName = 'vd-screen';
+        });
+        transition.finished.finally(() => {
+            poster.style.viewTransitionName = '';
+            video.style.viewTransitionName = '';
+        });
     };
 
     gateForm.addEventListener('submit', (event) => {
@@ -139,13 +170,16 @@ const initVideos = () => {
         showFailure('The file could not be read from the drive. It may have been renamed or moved, or the drive may not be mounted.');
     });
 
+    // Capture, so the page is rendered again before the shared close handler hands focus
+    // back to the card: a skipped (content-visibility) subtree can't take focus.
     playerDialog.addEventListener('close', () => {
+        delete root.dataset.viewing;
         tearDown();
         keyInput.value = '';
         keyError.hidden = true;
         failed.hidden = true;
         current = null;
-    });
+    }, { capture: true });
 
     // ------------------------------------------------------------ register dialog
 
@@ -229,7 +263,7 @@ const initVideos = () => {
             const scratch = document.createElement('textarea');
             scratch.value = url;
             scratch.setAttribute('readonly', '');
-            scratch.className = 'vd-sr';
+            scratch.className = 'nd-sr-only';
             root.appendChild(scratch);
             scratch.select();
             try {
@@ -345,10 +379,18 @@ const initVideos = () => {
                 unlockForm.action = `${urls.video}/${id}/unlock`;
                 openDialog(unlockDialog, document.getElementById('vd-unlock-key'));
                 break;
-            case 'delete':
+            case 'delete': {
+                // A gated video is only removed with its key; the server checks it.
+                const locked = meta.get(id)?.protection !== 'none';
+                const keyInput = document.getElementById('vd-delete-key');
+                deleteForm.reset();
+                deleteDialog.querySelector('[data-vd-delete-key]').hidden = !locked;
+                keyInput.disabled = !locked;
+                keyInput.required = locked;
                 deleteForm.action = `${urls.video}/${id}`;
-                openDialog(deleteDialog);
+                openDialog(deleteDialog, locked ? keyInput : null);
                 break;
+            }
         }
     });
 
@@ -371,7 +413,7 @@ const initVideos = () => {
             url.searchParams.delete('highlight');
             history.replaceState(history.state, '', url);
 
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
             card.classList.add('vd-flash');
         }
     }
@@ -423,6 +465,7 @@ const resetForCache = () => {
     for (const dialog of document.querySelectorAll('.vd dialog[open]')) dialog.close();
     for (const flashed of root.querySelectorAll('.vd-flash')) flashed.classList.remove('vd-flash');
 
+    delete root.dataset.viewing;
     delete root.dataset.vdReady;
     page = null;
 };

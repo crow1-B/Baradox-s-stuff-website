@@ -53,6 +53,7 @@ class FutureUpdatesController extends Controller
             'openCount' => $openCount,
             'doneCount' => $updates->count() - $openCount,
             'maxLength' => self::MAX_LENGTH,
+            'canWrite' => !Auth::user()->isPreview(),
         ]);
     }
 

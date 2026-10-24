@@ -9,6 +9,7 @@ use App\Http\Controllers\ExtraNotesController;
 use App\Http\Controllers\FutureUpdatesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MusicController;
+use App\Http\Controllers\PaletteController;
 use App\Http\Controllers\PhotosController;
 use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\VideosController;
@@ -29,6 +30,7 @@ Route::delete('/visits', [HomeController::class, 'deleteAllVisits'])->middleware
 
 //? the diary page
 Route::get('/diary', [DiaryController::class, 'showDiaryPage'])->middleware(['auth', 'log.visit'])->name('diary');
+Route::get('/diary/{entry}', [DiaryController::class, 'showEntry'])->middleware(['auth', 'log.visit'])->whereNumber('entry')->name('diary.entry');
 Route::post('/diary', [DiaryController::class, 'storeEntry'])->middleware('auth')->name('diaryPage');
 Route::patch('/diary/{entry}', [DiaryController::class, 'updateEntry'])->middleware('auth');
 Route::delete('/diary/{entry}', [DiaryController::class, 'destroyEntry'])->middleware('auth');
@@ -129,3 +131,7 @@ Route::delete('/music/{track}', [MusicController::class, 'destroyMusic'])->middl
 Route::patch('/music/{track}/favorite', [MusicController::class, 'toggleFavorite'])->middleware('auth');
 Route::get('/music/queue', [MusicController::class, 'queue'])->middleware('auth')->name('music.queue');
 Route::get('/music/{track}/stream', [MusicController::class, 'streamTrack'])->middleware('auth')->name('music.stream');
+Route::post('/music/{track}/play', [MusicController::class, 'recordPlay'])->middleware('auth')->name('music.play');
+
+//? the command palette's index: a background GET, never a page visit
+Route::get('/palette', [PaletteController::class, 'items'])->middleware('auth')->name('palette');

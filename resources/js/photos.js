@@ -2,6 +2,8 @@ let page = null;
 
 const LONG_PRESS_MS = 450;
 
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const initPhotos = () => {
     const root = document.getElementById('ph-root');
     if (!root || root.dataset.phReady === 'true') return;
@@ -187,7 +189,7 @@ const initPhotos = () => {
             });
         }
     }
-    for (const dialog of [lockDialog, unlockDialog].filter(Boolean)) {
+    for (const dialog of [lockDialog, unlockDialog, deleteDialog].filter(Boolean)) {
         dialog.addEventListener('close', () => dialog.querySelector('form')?.reset());
     }
 
@@ -216,8 +218,16 @@ const initPhotos = () => {
             return;
         }
         if (action === 'delete') {
+            // A protected photo is only deleted with its key; the server checks it.
+            const locked = meta.get(id).protection !== 'none';
+            const keyField = deleteDialog.querySelector('[data-ph-delete-key]');
+            const keyInput = deleteDialog.querySelector('#ph-delete-key');
+            keyField.hidden = !locked;
+            keyInput.disabled = !locked;
+            keyInput.required = locked;
             deleteDialog.querySelector('form').action = photoUrl(id);
             openDialog(deleteDialog, opener);
+            if (locked) keyInput.focus();
         }
     };
 
@@ -241,6 +251,14 @@ const initPhotos = () => {
             fillIds(bulkDeleteDialog.querySelector('form'));
             bulkDeleteDialog.querySelector('[data-ph-bulk-count]').textContent =
                 `${selected.size} ${selected.size === 1 ? 'photo' : 'photos'}`;
+            // One key can't vouch for a selection: the server refuses any with a protected
+            // photo in it, so say so here rather than after the round trip.
+            const locked = [...selected].filter((id) => meta.get(id)?.protection !== 'none').length;
+            const lockedNote = bulkDeleteDialog.querySelector('[data-ph-bulk-locked]');
+            lockedNote.hidden = locked === 0;
+            lockedNote.textContent = locked === 0 ? '' : `${locked} of these ${locked === 1 ? 'is' : 'are'} protected. `
+                + 'Protected photos are only deleted one at a time, with their key — take them out of the selection first.';
+            bulkDeleteDialog.querySelector('[data-ph-bulk-delete-submit]').disabled = locked > 0;
             openDialog(bulkDeleteDialog, opener);
             return;
         }
@@ -311,7 +329,11 @@ const initPhotos = () => {
 
     const currentId = () => (lbIndex >= 0 && lbList[lbIndex] ? idOf(lbList[lbIndex]) : null);
 
+    // Every load takes a ticket, so a photo you have already arrowed past can't land late.
+    let stageTicket = 0;
+
     const clearStage = () => {
+        stageTicket += 1;
         lbImg.hidden = true;
         lbImg.removeAttribute('src');
         lbSpinner.hidden = true;
@@ -321,7 +343,28 @@ const initPhotos = () => {
         lbKeyInput.value = '';
     };
 
-    const loadStage = (url, onError) => {
+    // With a placeholder (the tile's thumbnail, already decoded) the viewer shows that at once
+    // and swaps the full image in when it has arrived: the thumbnail-to-viewer morph needs a
+    // picture in the viewer the moment it opens. Only ever used for unprotected photos.
+    const loadStage = (url, onError, placeholder = null) => {
+        if (placeholder) {
+            const ticket = stageTicket;
+            lbImg.src = placeholder;
+            lbImg.hidden = false;
+            const full = new Image();
+            full.onload = () => {
+                if (ticket === stageTicket) lbImg.src = url;
+            };
+            full.onerror = () => {
+                if (ticket !== stageTicket) return;
+                lbImg.hidden = true;
+                lbImg.removeAttribute('src');
+                onError?.();
+            };
+            full.src = url;
+            return;
+        }
+
         lbSpinner.hidden = false;
         lbImg.hidden = true;
         lbImg.onload = () => {
@@ -350,7 +393,7 @@ const initPhotos = () => {
         lbKeyInput.focus();
     };
 
-    const showAt = (index) => {
+    const showAt = (index, { placeholder = null } = {}) => {
         if (index < 0 || index >= lbList.length) return;
         lbIndex = index;
         lbKey = null;
@@ -367,19 +410,22 @@ const initPhotos = () => {
             lbBadge.classList.toggle('ph-badge--encrypted', entry.protection === 'encrypted');
         }
 
-        lbLock.hidden = Boolean(locked);
-        lbUnlock.hidden = !locked;
+        // Guest's viewer has no action bar.
+        if (lbFav) {
+            lbLock.hidden = Boolean(locked);
+            lbUnlock.hidden = !locked;
 
-        const favorite = lbList[index].dataset.favorite === '1';
-        lbFav.setAttribute('aria-pressed', favorite ? 'true' : 'false');
-        lbFav.querySelector('i').className = `${favorite ? 'fa-solid' : 'fa-regular'} fa-star`;
-        lbFavLabel.textContent = favorite ? 'Favourited' : 'Favourite';
+            const favorite = lbList[index].dataset.favorite === '1';
+            lbFav.setAttribute('aria-pressed', favorite ? 'true' : 'false');
+            lbFav.querySelector('i').className = `${favorite ? 'fa-solid' : 'fa-regular'} fa-star`;
+            lbFavLabel.textContent = favorite ? 'Favourited' : 'Favourite';
+        }
 
         lbPrev.disabled = index === 0;
         lbNext.disabled = index === lbList.length - 1;
 
         if (!entry) return;
-        if (entry.protection === 'none') loadStage(entry.urls.view, () => showGate(entry, 'That photo could not be loaded.'));
+        if (entry.protection === 'none') loadStage(entry.urls.view, () => showGate(entry, 'That photo could not be loaded.'), placeholder);
         else showGate(entry);
     };
 
@@ -389,13 +435,48 @@ const initPhotos = () => {
         showAt(next);
     };
 
+    // The viewer covers the whole page, so the page stops being rendered while it is open
+    // (photos.css, [data-viewing]). That is what makes opening cheap: showModal() makes
+    // everything behind the dialog inert, and restyling every tile for that cost ~0.8s at
+    // phone speed; skipped subtrees aren't restyled.
+    const coverPage = () => {
+        root.dataset.viewing = '';
+    };
+
+    // The thumbnail grows into the viewer: one same-page View Transition with the tile's image
+    // and the viewer's image sharing a name. Protected photos open without it — there is no
+    // picture to carry, only the key prompt.
     const openLightbox = (tile, opener) => {
         lbList = visibleTiles();
         const index = lbList.indexOf(tile);
         if (index < 0) return;
         returnFocusTo = opener;
-        lightbox.showModal();
-        showAt(index);
+
+        const thumb = tile.querySelector('[data-ph-thumb]');
+        const morph = meta.get(idOf(tile))?.protection === 'none'
+            && thumb?.complete && thumb.naturalWidth > 0
+            && document.startViewTransition && !reducedMotion();
+
+        if (!morph) {
+            coverPage();
+            lightbox.showModal();
+            showAt(index);
+            return;
+        }
+
+        thumb.style.viewTransitionName = 'ph-photo';
+        const transition = document.startViewTransition(async () => {
+            thumb.style.viewTransitionName = '';
+            coverPage();
+            lightbox.showModal();
+            showAt(index, { placeholder: thumb.currentSrc });
+            lbImg.style.viewTransitionName = 'ph-photo';
+            await lbImg.decode().catch(() => {});
+        });
+        transition.finished.finally(() => {
+            thumb.style.viewTransitionName = '';
+            lbImg.style.viewTransitionName = '';
+        });
     };
 
     lbKeyForm.addEventListener('submit', (event) => {
@@ -417,220 +498,228 @@ const initPhotos = () => {
     lbPrev.addEventListener('click', () => move(-1));
     lbNext.addEventListener('click', () => move(1));
 
+    // Capture, so the page is rendered again before the shared close handler hands focus
+    // back to the tile: a skipped (content-visibility) subtree can't take focus.
     lightbox.addEventListener('close', () => {
+        delete root.dataset.viewing;
         clearStage();
         lbIndex = -1;
         lbKey = null;
-    });
+    }, { capture: true });
 
     // ------------------------------------------------------------ upload
 
-    const uploadForm = uploadDialog.querySelector('form');
-    const fileInput = uploadDialog.querySelector('[data-ph-file-input]');
-    const dropLabel = uploadDialog.querySelector('[data-ph-drop]');
-    const queueEl = uploadDialog.querySelector('[data-ph-queue]');
-    const uploadSubmit = uploadDialog.querySelector('[data-ph-upload-submit]');
-    const albumSelect = uploadDialog.querySelector('[data-ph-album-select]');
-    const albumModeInput = uploadDialog.querySelector('[data-ph-album-mode]');
-    const newAlbumField = uploadDialog.querySelector('[data-ph-new-album]');
-    const newAlbumInput = uploadDialog.querySelector('#ph-upload-new-album');
-    const dropzone = root.querySelector('[data-ph-dropzone]');
+    // Guest has no upload dialog, so none of this is set up for it.
+    const setupUpload = () => {
+        const uploadForm = uploadDialog.querySelector('form');
+        const fileInput = uploadDialog.querySelector('[data-ph-file-input]');
+        const dropLabel = uploadDialog.querySelector('[data-ph-drop]');
+        const queueEl = uploadDialog.querySelector('[data-ph-queue]');
+        const uploadSubmit = uploadDialog.querySelector('[data-ph-upload-submit]');
+        const albumSelect = uploadDialog.querySelector('[data-ph-album-select]');
+        const albumModeInput = uploadDialog.querySelector('[data-ph-album-mode]');
+        const newAlbumField = uploadDialog.querySelector('[data-ph-new-album]');
+        const newAlbumInput = uploadDialog.querySelector('#ph-upload-new-album');
+        const dropzone = root.querySelector('[data-ph-dropzone]');
 
-    let queue = [];
-    let uploading = false;
-    let uploadedAny = false;
+        let queue = [];
+        let uploading = false;
+        let uploadedAny = false;
 
-    const humanSize = (bytes) => (bytes < 1048576
-        ? `${Math.max(1, Math.round(bytes / 1024))} KB`
-        : `${(bytes / 1048576).toFixed(1)} MB`);
+        const humanSize = (bytes) => (bytes < 1048576
+            ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+            : `${(bytes / 1048576).toFixed(1)} MB`);
 
-    const renderQueue = () => {
-        queueEl.replaceChildren(...queue.map((entry) => {
-            const li = document.createElement('li');
-            li.className = 'ph-file';
-            li.dataset.state = entry.state;
+        const renderQueue = () => {
+            queueEl.replaceChildren(...queue.map((entry) => {
+                const li = document.createElement('li');
+                li.className = 'ph-file';
+                li.dataset.state = entry.state;
 
-            const icon = document.createElement('i');
-            icon.className = `ph-file__icon fa-solid ${
-                entry.state === 'done' ? 'fa-circle-check'
-                    : entry.state === 'failed' ? 'fa-circle-exclamation'
-                        : 'fa-image'
-            }`;
-            icon.setAttribute('aria-hidden', 'true');
+                const icon = document.createElement('i');
+                icon.className = `ph-file__icon fa-solid ${
+                    entry.state === 'done' ? 'fa-circle-check'
+                        : entry.state === 'failed' ? 'fa-circle-exclamation'
+                            : 'fa-image'
+                }`;
+                icon.setAttribute('aria-hidden', 'true');
 
-            const name = document.createElement('span');
-            name.className = 'ph-file__name';
-            name.textContent = entry.file.name;
+                const name = document.createElement('span');
+                name.className = 'ph-file__name';
+                name.textContent = entry.file.name;
 
-            const size = document.createElement('span');
-            size.className = 'ph-file__size';
-            size.textContent = humanSize(entry.file.size);
+                const size = document.createElement('span');
+                size.className = 'ph-file__size';
+                size.textContent = humanSize(entry.file.size);
 
-            li.append(icon, name, size);
+                li.append(icon, name, size);
 
-            if (entry.state === 'failed') {
-                const why = document.createElement('p');
-                why.className = 'ph-file__why';
-                why.textContent = entry.error ?? 'Rejected.';
-                li.append(why);
-            } else if (entry.state !== 'done') {
-                const bar = document.createElement('span');
-                bar.className = 'ph-file__bar';
-                const fill = document.createElement('i');
-                fill.style.width = `${Math.round((entry.progress ?? 0) * 100)}%`;
-                entry.fill = fill;
-                bar.append(fill);
-                li.append(bar);
-            }
+                if (entry.state === 'failed') {
+                    const why = document.createElement('p');
+                    why.className = 'ph-file__why';
+                    why.textContent = entry.error ?? 'Rejected.';
+                    li.append(why);
+                } else if (entry.state !== 'done') {
+                    const bar = document.createElement('span');
+                    bar.className = 'ph-file__bar';
+                    const fill = document.createElement('i');
+                    fill.style.transform = `scaleX(${entry.progress ?? 0})`;
+                    entry.fill = fill;
+                    bar.append(fill);
+                    li.append(bar);
+                }
 
-            return li;
-        }));
+                return li;
+            }));
 
-        uploadSubmit.disabled = uploading || queue.every((entry) => entry.state !== 'waiting');
-    };
-
-    const addFiles = (files) => {
-        for (const file of files) {
-            if (!file) continue;
-            queue.push({ file, state: 'waiting', progress: 0, error: null });
-        }
-        renderQueue();
-    };
-
-    const uploadOne = (entry) => new Promise((resolve) => {
-        const body = new FormData();
-        body.append('_token', uploadForm.querySelector('[name="_token"]').value);
-        body.append('photos[]', entry.file);
-
-        const mode = albumModeInput.value || 'none';
-        body.append('album_mode', mode);
-        if (mode === 'new') body.append('new_album_name', newAlbumInput.value.trim());
-        else if (mode === 'existing') body.append('album_name', albumSelect.value);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', data.urls.upload);
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-        xhr.upload.addEventListener('progress', (event) => {
-            if (!event.lengthComputable) return;
-            entry.progress = event.loaded / event.total;
-            if (entry.fill) entry.fill.style.width = `${Math.round(entry.progress * 100)}%`;
-        });
-
-        const finish = (ok, error) => {
-            entry.state = ok ? 'done' : 'failed';
-            entry.error = error;
-            if (ok) uploadedAny = true;
-            renderQueue();
-            resolve();
+            uploadSubmit.disabled = uploading || queue.every((entry) => entry.state !== 'waiting');
         };
 
-        xhr.addEventListener('load', () => {
-            let payload = null;
-            try {
-                payload = JSON.parse(xhr.responseText);
-            } catch {
-                // falls through to the status check
+        const addFiles = (files) => {
+            for (const file of files) {
+                if (!file) continue;
+                queue.push({ file, state: 'waiting', progress: 0, error: null });
             }
+            renderQueue();
+        };
 
-            if (xhr.status >= 200 && xhr.status < 300 && payload?.ok) finish(true, null);
-            else finish(false, payload?.error ?? payload?.rejected?.[0]?.reason ?? `Rejected by the server (${xhr.status}).`);
+        const uploadOne = (entry) => new Promise((resolve) => {
+            const body = new FormData();
+            body.append('_token', uploadForm.querySelector('[name="_token"]').value);
+            body.append('photos[]', entry.file);
+
+            const mode = albumModeInput.value || 'none';
+            body.append('album_mode', mode);
+            if (mode === 'new') body.append('new_album_name', newAlbumInput.value.trim());
+            else if (mode === 'existing') body.append('album_name', albumSelect.value);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', data.urls.upload);
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.upload.addEventListener('progress', (event) => {
+                if (!event.lengthComputable) return;
+                entry.progress = event.loaded / event.total;
+                if (entry.fill) entry.fill.style.transform = `scaleX(${entry.progress})`;
+            });
+
+            const finish = (ok, error) => {
+                entry.state = ok ? 'done' : 'failed';
+                entry.error = error;
+                if (ok) uploadedAny = true;
+                renderQueue();
+                resolve();
+            };
+
+            xhr.addEventListener('load', () => {
+                let payload = null;
+                try {
+                    payload = JSON.parse(xhr.responseText);
+                } catch {
+                    // falls through to the status check
+                }
+
+                if (xhr.status >= 200 && xhr.status < 300 && payload?.ok) finish(true, null);
+                else finish(false, payload?.error ?? payload?.rejected?.[0]?.reason ?? `Rejected by the server (${xhr.status}).`);
+            });
+
+            xhr.addEventListener('error', () => finish(false, 'The upload did not reach the server.'));
+            xhr.addEventListener('abort', () => finish(false, 'Upload cancelled.'));
+
+            entry.state = 'uploading';
+            renderQueue();
+            xhr.send(body);
         });
 
-        xhr.addEventListener('error', () => finish(false, 'The upload did not reach the server.'));
-        xhr.addEventListener('abort', () => finish(false, 'Upload cancelled.'));
+        const runUpload = async () => {
+            if (uploading) return;
 
-        entry.state = 'uploading';
+            if (albumModeInput.value === 'new' && newAlbumInput.value.trim() === '') {
+                newAlbumInput.setAttribute('aria-invalid', 'true');
+                newAlbumInput.focus();
+                return;
+            }
+            newAlbumInput.removeAttribute('aria-invalid');
+
+            uploading = true;
+            renderQueue();
+            for (const entry of queue) {
+                if (entry.state === 'waiting') await uploadOne(entry);
+            }
+
+            uploading = false;
+            renderQueue();
+            if (queue.every((entry) => entry.state === 'done')) uploadDialog.close();
+        };
+
+        uploadForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            runUpload();
+        });
+
+        fileInput.addEventListener('change', () => {
+            addFiles(fileInput.files);
+            fileInput.value = '';
+        });
+
+        albumSelect.addEventListener('change', () => {
+            const isNew = albumSelect.value === '__new__';
+            newAlbumField.hidden = !isNew;
+            albumModeInput.value = isNew ? 'new' : albumSelect.value ? 'existing' : 'none';
+            if (isNew) newAlbumInput.focus();
+        });
+        albumModeInput.value = albumSelect.value ? 'existing' : 'none';
+
+        uploadDialog.addEventListener('close', () => {
+            queue = [];
+            renderQueue();
+            if (uploadedAny) {
+                uploadedAny = false;
+                window.Turbo?.visit(window.location.href, { action: 'replace' });
+            }
+        });
+
+        let dragDepth = 0;
+        const hasFiles = (event) => [...(event.dataTransfer?.types ?? [])].includes('Files');
+
+        root.addEventListener('dragenter', (event) => {
+            if (!hasFiles(event)) return;
+            event.preventDefault();
+            dragDepth += 1;
+            dropzone.hidden = false;
+        });
+        root.addEventListener('dragover', (event) => {
+            if (!hasFiles(event)) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+        });
+        root.addEventListener('dragleave', () => {
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) dropzone.hidden = true;
+        });
+        root.addEventListener('drop', (event) => {
+            if (!hasFiles(event)) return;
+            event.preventDefault();
+            dragDepth = 0;
+            dropzone.hidden = true;
+
+            const files = [...(event.dataTransfer?.files ?? [])];
+            if (files.length === 0) return;
+
+            addFiles(files);
+            if (!uploadDialog.open) openDialog(uploadDialog);
+        });
+
+        dropLabel.addEventListener('dragover', (event) => {
+            if (!hasFiles(event)) return;
+            dropLabel.dataset.over = '';
+        });
+        dropLabel.addEventListener('dragleave', () => delete dropLabel.dataset.over);
+        dropLabel.addEventListener('drop', () => delete dropLabel.dataset.over);
+
         renderQueue();
-        xhr.send(body);
-    });
-
-    const runUpload = async () => {
-        if (uploading) return;
-
-        if (albumModeInput.value === 'new' && newAlbumInput.value.trim() === '') {
-            newAlbumInput.setAttribute('aria-invalid', 'true');
-            newAlbumInput.focus();
-            return;
-        }
-        newAlbumInput.removeAttribute('aria-invalid');
-
-        uploading = true;
-        renderQueue();
-        for (const entry of queue) {
-            if (entry.state === 'waiting') await uploadOne(entry);
-        }
-
-        uploading = false;
-        renderQueue();
-        if (queue.every((entry) => entry.state === 'done')) uploadDialog.close();
     };
-
-    uploadForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        runUpload();
-    });
-
-    fileInput.addEventListener('change', () => {
-        addFiles(fileInput.files);
-        fileInput.value = '';
-    });
-
-    albumSelect.addEventListener('change', () => {
-        const isNew = albumSelect.value === '__new__';
-        newAlbumField.hidden = !isNew;
-        albumModeInput.value = isNew ? 'new' : albumSelect.value ? 'existing' : 'none';
-        if (isNew) newAlbumInput.focus();
-    });
-    albumModeInput.value = albumSelect.value ? 'existing' : 'none';
-
-    uploadDialog.addEventListener('close', () => {
-        queue = [];
-        renderQueue();
-        if (uploadedAny) {
-            uploadedAny = false;
-            window.Turbo?.visit(window.location.href, { action: 'replace' });
-        }
-    });
-
-    let dragDepth = 0;
-    const hasFiles = (event) => [...(event.dataTransfer?.types ?? [])].includes('Files');
-
-    root.addEventListener('dragenter', (event) => {
-        if (!hasFiles(event)) return;
-        event.preventDefault();
-        dragDepth += 1;
-        dropzone.hidden = false;
-    });
-    root.addEventListener('dragover', (event) => {
-        if (!hasFiles(event)) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy';
-    });
-    root.addEventListener('dragleave', () => {
-        dragDepth = Math.max(0, dragDepth - 1);
-        if (dragDepth === 0) dropzone.hidden = true;
-    });
-    root.addEventListener('drop', (event) => {
-        if (!hasFiles(event)) return;
-        event.preventDefault();
-        dragDepth = 0;
-        dropzone.hidden = true;
-
-        const files = [...(event.dataTransfer?.files ?? [])];
-        if (files.length === 0) return;
-
-        addFiles(files);
-        if (!uploadDialog.open) openDialog(uploadDialog);
-    });
-
-    dropLabel.addEventListener('dragover', (event) => {
-        if (!hasFiles(event)) return;
-        dropLabel.dataset.over = '';
-    });
-    dropLabel.addEventListener('dragleave', () => delete dropLabel.dataset.over);
-    dropLabel.addEventListener('drop', () => delete dropLabel.dataset.over);
 
     // ------------------------------------------------------------ delegated clicks
 
@@ -766,7 +855,7 @@ const initPhotos = () => {
     readUrl();
     applyFilter();
     paintSelection();
-    renderQueue();
+    if (uploadDialog) setupUpload();
 
     page = { root, clearSelection, selecting, lightbox, move, lbKeyInput };
 };
@@ -794,6 +883,7 @@ const resetForCache = () => {
     for (const tile of root.querySelectorAll('.ph-tile--picked')) tile.classList.remove('ph-tile--picked');
     for (const box of root.querySelectorAll('[data-ph-pick]')) box.checked = false;
     delete root.dataset.selecting;
+    delete root.dataset.viewing;
     delete root.dataset.phReady;
     page = null;
 };
