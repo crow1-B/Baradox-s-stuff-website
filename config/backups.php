@@ -20,6 +20,19 @@ return [
     'daily_at' => env('BACKUP_DAILY_AT', '03:00'),
     'timezone' => 'Asia/Baghdad',
     'stale_after_hours' => 24,
+    // When the sitewide banner and the Backups page call a missing success a problem. Longer than
+    // stale_after_hours on purpose: --if-stale already catches up after 24h, so the banner only
+    // speaks once a whole day has been missed.
+    'attention_after_hours' => 48,
+
+    // The one account that sees the Backups page (its username). Unset means nobody does.
+    'owner' => env('BACKUP_OWNER'),
+
+    // Where the age identity is plugged in for a restore. Only shown in the restore commands.
+    'restore_identity' => env('BACKUP_RESTORE_IDENTITY', '/mnt/e/baradox-stuff.age'),
+
+    // The SSD folders the Backups page counts in its coverage note: none of them is in a dump.
+    'media_folders' => ['photos', 'videos', 'video-posters', 'thumbnails'],
 
     // Dumps and restores run as root: the app user lacks PROCESS, which mysqldump needs.
     // compose.yaml sets the root password to DB_PASSWORD.

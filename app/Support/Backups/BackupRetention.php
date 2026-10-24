@@ -28,14 +28,7 @@ class BackupRetention
             ->get();
 
         foreach (self::select($candidates, $daily, $weekly, $manual, (string) config('backups.timezone')) as $backup) {
-            $path = BackupFiles::path($backup->filename);
-            $kept = [];
-            foreach ([$path, BackupFiles::manifestPath($path), BackupFiles::signaturePath($path)] as $file) {
-                if (file_exists($file) && ! unlink($file)) {
-                    $kept[] = $file;
-                }
-            }
-
+            $kept = BackupFiles::delete($backup->filename);
             if ($kept !== []) {
                 Log::channel('backups')->error("retention could not delete ".implode(', ', $kept)."; its row is kept");
 

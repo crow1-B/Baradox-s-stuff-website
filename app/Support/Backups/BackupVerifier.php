@@ -2,10 +2,28 @@
 
 namespace App\Support\Backups;
 
+use App\Models\Backup;
+
 // Checks a backup without decrypting it: the manifest's signature against the configured
 // public key first, then that the encrypted file is exactly the one the manifest describes.
 class BackupVerifier
 {
+    //backup:verify and the Backups page: the files must also be the ones the row recorded
+    /** @return array<string, mixed> the verified manifest */
+    public static function verifyRow(Backup $backup): array
+    {
+        if ($backup->status !== 'succeeded') {
+            throw new VerificationFailed("Backup #{$backup->id} is {$backup->status}; there is nothing to verify.", VerificationFailed::MISSING);
+        }
+
+        $manifest = self::verify(BackupFiles::path($backup->filename));
+        if ($manifest['sha256'] !== $backup->sha256 || $manifest['size'] !== (int) $backup->size) {
+            throw new VerificationFailed("The file is signed, but it is not the one row #{$backup->id} recorded (sha256 {$backup->sha256}).", VerificationFailed::CONTENTS);
+        }
+
+        return $manifest;
+    }
+
     /** @return array<string, mixed> the verified manifest */
     public static function verify(string $dataPath): array
     {
