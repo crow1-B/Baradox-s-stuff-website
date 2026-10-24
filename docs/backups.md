@@ -87,6 +87,7 @@ All go through Sail: `./vendor/bin/sail artisan …`.
 | `backup:run` | one manual backup, then retention | 0 ok, 1 failed (recorded) or busy |
 | `backup:run --scheduled` | the same, recorded as `scheduled` | |
 | `backup:run --scheduled --if-stale` | only if the last success is older than 24 h; busy counts as a skip | 0 ok or skipped, 1 failed |
+| `backup:run --ticket=<32 hex>` | what the Backups page starts: the same run, reporting its outcome to that ticket in the cache | as `backup:run` |
 | `backup:verify {id}` | signature + size + sha256 of row `id`'s file, no decryption; prints the recipients it was encrypted to | 0 ok, 3 missing, 2 config (no key), 6 bad signature, 7 file doesn't match |
 | `backup:restore {file} --identity=PATH` | see below | 0 ok, 1 failed or cancelled, 2 usage/config, 3 missing, 6, 7 |
 | `backup:keygen` | create the signing pair | 0, 1 if a key exists |
@@ -139,11 +140,68 @@ row and is logged. Files in the folder with no row (copied in by hand) are never
 ## Failure visibility
 
 - `App\Models\Backup::attention()` returns `null` when all is well, otherwise a sentence:
-  the newest finished backup failed (with its error), or no backup has succeeded in 24 h, or
-  none ever has. This is the flag the Backups UI reads. `Backup::isStale()` and
-  `Backup::lastSuccess()` are its parts.
+  the newest finished backup failed (with its error), or no backup has succeeded in
+  `attention_after_hours` (**48 h**), or none ever has. This is the flag the Backups page and
+  the sitewide warning read. `Backup::isStale()` is the separate **24 h** test `--if-stale`
+  uses (`stale_after_hours`): the catch-up backs up after one day, the warning only speaks
+  once a whole day has been missed. Both go through `Backup::noSuccessWithin($hours)`.
 - Every failure is also written to `storage/logs/backups.log`. A failure that happens before
   a row can be written (database down) exists only there.
+
+## The Backups page
+
+`/backups` (`BackupsController`, `backups.blade.php`, `backups.css`, `backups.js`). Only the
+account named in **`BACKUP_OWNER`** (`.env`, `config('backups.owner')`) sees it. Everyone else,
+Guest included, gets a **404** on every backups route. `EnsureBackupOwner` (alias
+`backups.owner`) is sorted before `SubstituteBindings`, so a backup id is never looked up for
+them and Guest's writes get the same 404 rather than the read-only 403. With `BACKUP_OWNER`
+unset, nobody sees it. It appears in the sidebar (a `System` group), Ctrl+K and `g b` for the
+owner only (`Navigation::OWNER_GROUPS`).
+
+- **List:** every row, newest first, with date (Asia/Baghdad), trigger, status, size,
+  duration, the error for a failure, and a note when a succeeded row's file has gone from the
+  folder (one `scandir`, not a stat per row).
+- **Signature check:** on demand per row (`POST /backups/{id}/verify`, JSON for the page's
+  fetch), through `BackupVerifier::verifyRow()`, the same check `backup:verify` runs. The
+  result is cached forever under `backups:verify:{id}:{sha256}` and shown with its age.
+  "Check again" re-runs it. A file changed after a check still shows the cached result until
+  it is checked again.
+- **Back up now:** the request never runs the pipeline. It is throttled (one per
+  `RUN_DECAY_SECONDS` = 10 s per account). It probes the flock without blocking (held → refused:
+  a scheduled run or a restore is going), then takes a cache lock `backups:web-run`, owned by a
+  random ticket, which a second click can't get. It then starts
+  `setsid -f php artisan backup:run --ticket=…` and redirects. The detached process marks the
+  ticket `running`, then `done` (with the row id), `busy` or `error`, and releases the cache lock.
+  The flock is still what keeps two runs apart. The page polls `GET /backups/status`
+  (0.6 s, then 1.5 s). On finish the status call flashes the outcome and the page reloads
+  (`Turbo.visit`, replace). A ticket still `starting` after 30 s is reported lost and its lock
+  freed. A run takes about 0.8 s today, so the result shows within one or two polls (about 2.5 s
+  from the click in the browser check). No php -S worker ever waits on mysqldump.
+- **Download:** the `.age`, `.manifest` and `.sig` exactly as on disk
+  (`BinaryFileResponse`, `application/octet-stream`). All three are needed to verify or
+  restore on another machine. Every response is `Cache-Control: no-store, private`.
+- **Delete:** a typed confirmation (the 8 hex characters of the filename, `Backup::code()`),
+  under the flock, through `BackupFiles::delete()` (shared with retention). Refused for
+  **prerestore** backups, for a **running** row, and for the **newest successful backup**. The
+  page offers no delete button for those either.
+- **Log:** `web: … requested`, `web: <user> downloaded <file>`, `web: <user> deleted <file>`
+  in `backups.log`, beside the runner's own success and failure lines.
+- **Restore help:** a page-wide box explaining why there is no restore button, and per
+  backup a `<details>` with its exact commands: `backup:verify {id}`, copy the identity from
+  `BACKUP_RESTORE_IDENTITY` (default `/mnt/e/baradox-stuff.age`, only shown, never read) into
+  `storage/app/private/restore-identity.txt`, `backup:restore … --identity=…`, `shred -u`. It
+  also points at `scripts/restore-check.sh`.
+- **Coverage note:** the SSD's media (`photos/`, `videos/`, `video-posters/`, `thumbnails/`,
+  `config('backups.media_folders')`) is not in any backup. The page shows the current file
+  count and size (`MediaCoverage`, one walk per folder, cached 10 minutes, and "can't be read"
+  when the SSD is down). It says to keep a copy of the age key and `signing.pub.pem` somewhere
+  other than the SSD.
+- **Sitewide warning** (`partials/backup-attention`): a card fixed under the top bar, owner
+  only, not on `/backups` itself, whenever `attention()` is non-null. It is fixed rather than in
+  the flow because Extra Notes is a full-height column. Dismissing stores the reason's hash in
+  `sessionStorage['nd-backup-alert']`, so it stays gone for the browser session and comes back
+  in a new one, or at once when the reason changes. An inline script hides an already-dismissed
+  card before it paints.
 
 ## Restore
 
