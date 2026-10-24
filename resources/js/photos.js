@@ -852,10 +852,27 @@ const initPhotos = () => {
 
     // ------------------------------------------------------------ boot
 
+    // ?photo= (Calendar, Home): open that photo's viewer on arrival. The server has already
+    // checked it is the user's. A filter that hides it gives way; a protected photo gets its
+    // key prompt, exactly as from a click. The parameter is dropped so Back and reload don't
+    // open it again.
+    const openFromUrl = () => {
+        if (!data.openPhotoId) return;
+        const url = new URL(window.location.href);
+        url.searchParams.delete('photo');
+        history.replaceState(history.state, '', url);
+
+        const tile = tiles.find((candidate) => idOf(candidate) === data.openPhotoId);
+        if (!tile) return;
+        if (tile.hidden) setFilter('all');
+        openLightbox(tile, tile.querySelector('[data-ph-open]'));
+    };
+
     readUrl();
     applyFilter();
     paintSelection();
     if (uploadDialog) setupUpload();
+    openFromUrl();
 
     page = { root, clearSelection, selecting, lightbox, move, lbKeyInput };
 };

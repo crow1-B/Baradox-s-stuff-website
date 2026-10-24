@@ -118,6 +118,7 @@
         $phData = [
             'photos' => $photoData,
             'albumId' => null,
+            'openPhotoId' => $openPhotoId,
             'urls' => [
                 'photo' => url('/photos'),
                 'album' => url('/albums'),
