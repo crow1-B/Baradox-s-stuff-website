@@ -182,7 +182,7 @@ class CalendarTest extends TestCase
 
         $gaps = collect($response->viewData('weeks'))->flatMap(fn ($week) => $week['bars'])->where('kind', 'gap')->values();
         $this->assertCount(1, $gaps);
-        $this->assertSame([2, 5], [$gaps[0]['col'], $gaps[0]['end']]); // Tue 6 .. Fri 9 in a Monday week
+        $this->assertSame([4, 7], [$gaps[0]['col'], $gaps[0]['end']]); // Tue 6 .. Fri 9 in a Saturday week
         $this->assertTrue($gaps[0]['startsHere'] && $gaps[0]['endsHere']);
     }
 
@@ -197,8 +197,11 @@ class CalendarTest extends TestCase
 
         $html = $this->actingAs($me)->get(route('calendar', ['month' => '2026-10']))->assertOk()->getContent();
 
-        // Not vacuous: the plain photo's thumbnail is there.
+        // Not vacuous: the plain photo's thumbnail is there, and every photo opens its viewer.
         $this->assertStringContainsString(e($plain->thumbnailUrl()), $html);
+        foreach ([$plain, $gated, $encrypted] as $photo) {
+            $this->assertStringContainsString(e(route('photos', ['photo' => $photo->id])), $html);
+        }
         foreach ([$gated, $encrypted] as $photo) {
             $this->assertStringNotContainsString('/photos/' . $photo->id . '/', $html);
         }
@@ -216,17 +219,17 @@ class CalendarTest extends TestCase
     public function test_queries_are_bounded_to_the_visible_range(): void
     {
         $me = $this->user();
-        // October 2026's grid runs Mon 28 Sep .. Sun 1 Nov.
-        $this->entry($me, 'Lead-in day', '2026-09-28', '2026-09-28');
-        $this->entry($me, 'Trailing day', '2026-11-01', '2026-11-01');
-        $this->entry($me, 'Before the grid', '2026-09-27', '2026-09-27');
-        $this->entry($me, 'After the grid', '2026-11-02', '2026-11-02');
+        // October 2026's grid runs Sat 26 Sep .. Fri 6 Nov.
+        $this->entry($me, 'Lead-in day', '2026-09-26', '2026-09-26');
+        $this->entry($me, 'Trailing day', '2026-11-06', '2026-11-06');
+        $this->entry($me, 'Before the grid', '2026-09-25', '2026-09-25');
+        $this->entry($me, 'After the grid', '2026-11-07', '2026-11-07');
         $this->entry($me, 'Last year', '2025-10-10', '2025-10-10');
         Project::create(['user_id' => $me->id, 'title' => 'Across the month', 'description' => 'd', 'status' => 'in_work', 'start_date' => '2026-08-01', 'finish_date' => '2026-12-31']);
         Project::create(['user_id' => $me->id, 'title' => 'Over by summer', 'description' => 'd', 'status' => 'done', 'start_date' => '2026-05-01', 'finish_date' => '2026-07-01']);
         Project::create(['user_id' => $me->id, 'title' => 'Not started yet', 'description' => 'd', 'status' => 'future', 'start_date' => '2026-12-01']);
-        $this->photo($me, 'none', '2026-09-27');
-        $this->track($me, 'Next month song', '2026-11-02');
+        $this->photo($me, 'none', '2026-09-25');
+        $this->track($me, 'Next month song', '2026-11-07');
 
         $response = $this->actingAs($me)->get(route('calendar', ['month' => '2026-10']))->assertOk();
         $response->assertSee('Lead-in day')->assertSee('Trailing day')->assertSee('Across the month')
@@ -234,17 +237,60 @@ class CalendarTest extends TestCase
             ->assertDontSee('Over by summer')->assertDontSee('Not started yet')->assertDontSee('Next month song');
 
         $days = $response->viewData('days');
-        $this->assertSame(['2026-09-28', '2026-11-01'], [array_key_first($days), array_key_last($days)]);
+        $this->assertSame(['2026-09-26', '2026-11-06'], [array_key_first($days), array_key_last($days)]);
+        $this->assertTrue($days['2026-09-26']['date']->isSaturday());
         $this->assertSame(0, collect($days)->sum(fn ($day) => count($day['photos'])));
 
         // A project that spans the whole month is a bar across every week, open at both ends.
         $bars = collect($response->viewData('weeks'))->map(fn ($week) => collect($week['bars'])->where('kind', 'project')->first());
-        $this->assertCount(5, $bars->filter());
+        $this->assertCount(6, $bars->filter());
         $this->assertFalse($bars->contains(fn ($bar) => $bar['startsHere'] || $bar['endsHere']));
 
         // The heatmap is one year, and only that year.
-        $this->assertSame(['2026-09-27' => 1, '2026-09-28' => 1, '2026-11-01' => 1, '2026-11-02' => 1], collect($response->viewData('heatmap'))->sortKeys()->all());
+        $this->assertSame(['2026-09-25' => 1, '2026-09-26' => 1, '2026-11-06' => 1, '2026-11-07' => 1], collect($response->viewData('heatmap'))->sortKeys()->all());
         $this->assertSame(['2025-10-10' => 1], $this->actingAs($me)->get(route('calendar', ['month' => '2025-03']))->viewData('heatmap'));
+    }
+
+    public function test_the_week_starts_on_saturday(): void
+    {
+        $response = $this->actingAs($this->user())->get(route('calendar', ['month' => '2026-10']))->assertOk();
+
+        foreach ($response->viewData('weeks') as $week) {
+            $this->assertTrue(reset($week['days'])['date']->isSaturday());
+            $this->assertTrue(end($week['days'])['date']->isFriday());
+        }
+        $response->assertSeeInOrder(['title="Saturday"', 'title="Sunday"', 'title="Friday"'], false);
+    }
+
+    public function test_the_layer_cookie_is_rendered_server_side(): void
+    {
+        $me = $this->user();
+        $other = $this->user();
+        $this->photo($me, 'none', '2026-10-12');
+
+        $classes = fn ($response) => preg_match('/id="cal-root"/', $response->getContent())
+            ? collect(explode(' ', preg_replace('/.*<div class="([^"]*)"\s+id="cal-root".*/s', '$1', $response->getContent())))->filter(fn ($c) => str_starts_with($c, 'cal--'))->values()->all()
+            : [];
+
+        // No cookie: the defaults.
+        $response = $this->actingAs($me)->get(route('calendar'));
+        $this->assertSame(['cal--diary', 'cal--projects'], $classes($response));
+
+        // This account's choice, normalised to the declared order, unknown names dropped.
+        $response = $this->actingAs($me)->withUnencryptedCookie('nd_cal_layers', $me->id . ':listening-photos-bogus')->get(route('calendar'));
+        $this->assertSame(['cal--photos', 'cal--listening'], $classes($response));
+        $response->assertSee('data-cal-layer="photos" aria-pressed="true"', false)->assertSee('data-cal-layer="diary" aria-pressed="false"', false);
+        // The photo day is not blank under the chosen layers (the server decides that too now).
+        preg_match('/<section class="cal-day([^"]*)"\s+id="cal-day-2026-10-12"/', $response->getContent(), $section);
+        $this->assertNotEmpty($section);
+        $this->assertStringNotContainsString('is-blank', $section[1]);
+
+        // Everything switched off is a choice too.
+        $this->assertSame([], $classes($this->actingAs($me)->withUnencryptedCookie('nd_cal_layers', $me->id . ':')->get(route('calendar'))));
+
+        // Someone else's cookie, or a malformed one, is ignored.
+        $this->assertSame(['cal--diary', 'cal--projects'], $classes($this->actingAs($me)->withUnencryptedCookie('nd_cal_layers', $other->id . ':photos')->get(route('calendar'))));
+        $this->assertSame(['cal--diary', 'cal--projects'], $classes($this->actingAs($me)->withUnencryptedCookie('nd_cal_layers', '<script>')->get(route('calendar'))));
     }
 
     public function test_a_malformed_month_is_a_404(): void

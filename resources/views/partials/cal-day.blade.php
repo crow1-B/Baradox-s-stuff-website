@@ -11,7 +11,7 @@
         $days = $n . ' ' . Str::plural('day', $n);
         return $gap > 0 ? "{$days} later" : "{$days} ahead";
     };
-    $photoCount = count($day['photos']) + $day['lockedPhotos'];
+    $photoCount = count($day['photos']) + count($day['lockedPhotos']);
     // Which layers have something here; calendar.js keeps is-blank right as filters change.
     $present = array_keys(array_filter([
         'diary' => $day['entries'] || $day['written'],
@@ -21,7 +21,7 @@
         'tracks' => (bool) $day['tracks'],
         'listening' => (bool) $day['listening'],
     ]));
-    $blank = !array_intersect($present, $defaultLayers);
+    $blank = !array_intersect($present, $activeLayers);
 @endphp
 <section class="cal-day @if ($key === $selected->toDateString()) is-selected @endif @if (!$inMonth) is-out @endif @if ($isToday) is-today @endif @if ($blank) is-blank @endif"
          id="cal-day-{{ $key }}" data-cal-panel="{{ $key }}" aria-labelledby="cal-day-{{ $key }}-title">
@@ -102,20 +102,38 @@
                     <i class="fa-solid fa-image" aria-hidden="true"></i>
                     <a class="nd-link" href="{{ route('photos') }}">{{ $photoCount }} {{ Str::plural('photo', $photoCount) }} added</a>
                 </p>
-                @if ($day['photos'])
-                    <ul class="cal-photos__grid" role="list">
-                        @foreach (array_slice($day['photos'], 0, $photoLimit) as $photo)
-                            <li><img class="cal-photos__thumb" src="{{ $photo['thumb'] }}" alt="Photo added {{ $date->format('j F Y') }}" loading="lazy" decoding="async"></li>
-                        @endforeach
-                    </ul>
-                @endif
-                @if (count($day['photos']) > $photoLimit || $day['lockedPhotos'])
+                @php
+                    // Plain photos first, then padlocks; a padlock is a link to the key prompt
+                    // and nothing more — no thumbnail of any kind.
+                    $tiles = array_merge(
+                        array_map(fn ($p) => $p + ['locked' => false], $day['photos']),
+                        array_map(fn ($p) => $p + ['locked' => true], $day['lockedPhotos']),
+                    );
+                    $more = count($tiles) - $photoLimit;
+                @endphp
+                <ul class="cal-photos__grid" role="list">
+                    @foreach (array_slice($tiles, 0, $photoLimit) as $photo)
+                        <li>
+                            @if ($photo['locked'])
+                                <a class="cal-photos__tile cal-photos__tile--locked" href="{{ $photo['url'] }}">
+                                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                    <span class="nd-sr-only">Locked photo added {{ $date->format('j F Y') }}, asks for its key</span>
+                                </a>
+                            @else
+                                <a class="cal-photos__tile" href="{{ $photo['url'] }}">
+                                    <img class="cal-photos__thumb" src="{{ $photo['thumb'] }}" alt="Photo added {{ $date->format('j F Y') }}" loading="lazy" decoding="async">
+                                </a>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+                @if ($more > 0 || $day['lockedPhotos'])
                     <p class="cal-item__meta">
-                        @if (count($day['photos']) > $photoLimit)
-                            and {{ count($day['photos']) - $photoLimit }} more
+                        @if ($more > 0)
+                            and {{ $more }} more
                         @endif
                         @if ($day['lockedPhotos'])
-                            <span class="cal-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ $day['lockedPhotos'] }} locked</span>
+                            <span class="cal-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i> {{ count($day['lockedPhotos']) }} locked</span>
                         @endif
                     </p>
                 @endif

@@ -3,6 +3,7 @@
 // only moving to another month or year is a visit.
 
 const LAYERS_KEY = 'nd-calendar-layers';
+const LAYERS_COOKIE = 'nd_cal_layers';
 const FOCUS_KEY = 'nd-calendar-focus';
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -46,12 +47,23 @@ const readLayers = (root) => {
     }
 };
 
+// Mirrored into a cookie the server reads (CalendarController::LAYER_COOKIE), so the next
+// full load is rendered with the choice instead of flashing the defaults. Sent to /calendar only.
+const writeCookie = (root, layers) => {
+    try {
+        document.cookie = `${LAYERS_COOKIE}=${root.dataset.user}:${layers.join('-')}; path=/calendar; max-age=31536000; samesite=lax`;
+    } catch {
+        // A blocked cookie only brings the first-load flash back.
+    }
+};
+
 const writeLayers = (root, layers) => {
     try {
         localStorage.setItem(storeKey(root), JSON.stringify(layers));
     } catch {
-        // Not remembered this time; the filter itself still applies.
+        // Not remembered here; the cookie below may still carry it.
     }
+    writeCookie(root, layers);
 };
 
 const activeLayers = (root) => root.dataset.layers.split(' ').filter((layer) => root.classList.contains(`cal--${layer}`));
@@ -75,11 +87,15 @@ const applyLayers = (root, layers) => {
     root.querySelector('[data-cal-panel-list]')?.classList.toggle('is-quiet', !anyInMonth);
 };
 
-const storedOrDefault = (root) => readLayers(root) ?? root.dataset.defaultLayers.split(' ');
+// Storage first; without it, whatever the server rendered (the cookie's choice, else the
+// defaults) — never the bare defaults over a choice the cookie carried.
+const storedOrRendered = (root) => readLayers(root) ?? activeLayers(root);
+
+const sameLayers = (a, b) => a.length === b.length && a.every((layer) => b.includes(layer));
 
 document.addEventListener('turbo:before-render', (event) => {
     const root = event.detail.newBody.querySelector('#cal-root');
-    if (root) applyLayers(root, storedOrDefault(root));
+    if (root) applyLayers(root, storedOrRendered(root));
 });
 
 // ---------------------------------------------------------------- page
@@ -103,7 +119,12 @@ const initCalendar = () => {
     const board = root.querySelector('[data-cal-views]');
     const monthOf = (key) => key.slice(0, 7);
 
-    applyLayers(root, storedOrDefault(root));
+    // The server rendered the cookie's layers. If storage says otherwise (a cookie that
+    // expired or was cleared), storage wins and the cookie is brought back in step.
+    const rendered = activeLayers(root);
+    const chosen = storedOrRendered(root);
+    applyLayers(root, chosen);
+    if (!sameLayers(rendered, chosen)) writeCookie(root, chosen);
 
     for (const chip of root.querySelectorAll('[data-cal-layer]')) {
         chip.addEventListener('click', () => {
@@ -202,7 +223,7 @@ const initCalendar = () => {
             const button = event.target.closest('[data-cal-day]');
             if (!button || event.altKey || event.ctrlKey || event.metaKey) return;
             const key = button.dataset.calDay;
-            const column = (parseDay(key).getUTCDay() + 6) % 7;
+            const column = (parseDay(key).getUTCDay() - Number(root.dataset.weekStart) + 7) % 7;
 
             const target = {
                 ArrowLeft: () => addDays(key, -1),

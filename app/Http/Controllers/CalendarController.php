@@ -18,13 +18,20 @@ use Illuminate\Support\Facades\DB;
 // visible weeks, or one year for the heatmap.
 class CalendarController extends Controller
 {
-    public const WEEK_START = Carbon::MONDAY;
+    // The week runs Saturday to Friday, as it does here. Carbon's numbering (Sunday = 0) is
+    // the same as JS getUTCDay(), which calendar.js reads from data-week-start.
+    public const WEEK_START = Carbon::SATURDAY;
 
-    public const WEEK_END = Carbon::SUNDAY;
+    public const WEEK_END = Carbon::FRIDAY;
 
     public const LAYERS = ['diary', 'projects', 'photos', 'videos', 'tracks', 'listening'];
 
     public const DEFAULT_LAYERS = ['diary', 'projects'];
+
+    // calendar.js mirrors the layer choice here ("{user id}:diary-projects") so the page is
+    // rendered with it and doesn't flash the defaults first. Not encrypted (bootstrap/app.php):
+    // the script writes it. Only names from LAYERS are ever read back out of it.
+    public const LAYER_COOKIE = 'nd_cal_layers';
 
     // Bars per kind per week row; anything past it is still listed in the day's panel.
     private const LANES = 3;
@@ -71,10 +78,22 @@ class CalendarController extends Controller
             'monthProjects' => $projects,
             'heatmap' => $empty ? [] : $this->heatmap($userId, $month->year),
             'layers' => self::LAYERS,
-            'defaultLayers' => self::DEFAULT_LAYERS,
+            'activeLayers' => $this->activeLayers($request),
             'photoLimit' => self::DAY_PHOTOS,
             'isEmpty' => $empty || ($projects->isEmpty() && !$this->hasAnything($days)),
         ]);
+    }
+
+    // The cookie's layers when it is this account's and well formed, else the defaults.
+    private function activeLayers(Request $request): array
+    {
+        $raw = $request->cookie(self::LAYER_COOKIE);
+
+        if (!is_string($raw) || !preg_match('/^(\d+):([a-z-]*)$/', $raw, $m) || (int) $m[1] !== Auth::user()->id) {
+            return self::DEFAULT_LAYERS;
+        }
+
+        return array_values(array_intersect(self::LAYERS, $m[2] === '' ? [] : explode('-', $m[2])));
     }
 
     // A malformed month is a 404, not a quiet jump to today: a link that names a month
@@ -117,7 +136,7 @@ class CalendarController extends Controller
                 'written' => [],
                 'projects' => [],
                 'photos' => [],
-                'lockedPhotos' => 0,
+                'lockedPhotos' => [],
                 'videos' => [],
                 'tracks' => [],
                 'listening' => null,
@@ -239,10 +258,11 @@ class CalendarController extends Controller
         foreach ($photos as $photo) {
             $key = $photo->created_at->toDateString();
 
+            // A locked photo links to its key prompt (Photos' ?photo=) and carries nothing else.
             if ($photo->isProtected()) {
-                $days[$key]['lockedPhotos']++;
+                $days[$key]['lockedPhotos'][] = ['url' => route('photos', ['photo' => $photo->id])];
             } else {
-                $days[$key]['photos'][] = ['id' => $photo->id, 'thumb' => $photo->thumbnailUrl()];
+                $days[$key]['photos'][] = ['thumb' => $photo->thumbnailUrl(), 'url' => route('photos', ['photo' => $photo->id])];
             }
         }
     }

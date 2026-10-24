@@ -40,7 +40,7 @@
         if ($day['projects']) {
             $parts['projects'] = $plural(count($day['projects']), 'project') . ' starting or finishing';
         }
-        $photos = count($day['photos']) + $day['lockedPhotos'];
+        $photos = count($day['photos']) + count($day['lockedPhotos']);
         if ($photos) $parts['photos'] = $plural($photos, 'photo') . ' added';
         if ($day['videos']) $parts['videos'] = $plural(count($day['videos']), 'video') . ' registered';
         if ($day['tracks']) $parts['tracks'] = $plural(count($day['tracks']), 'song') . ' added';
@@ -58,10 +58,10 @@
     $yearTotal = array_sum($heatmap);
 @endphp
 
-<div class="nd-page nd-page--wide cal @foreach ($defaultLayers as $layer) cal--{{ $layer }} @endforeach"
+<div class="nd-page nd-page--wide cal @foreach ($activeLayers as $layer) cal--{{ $layer }} @endforeach"
      id="cal-root" data-view="{{ $view }}" data-month="{{ $month->format('Y-m') }}"
-     data-default-layers="{{ implode(' ', $defaultLayers) }}" data-layers="{{ implode(' ', $layers) }}"
-     data-user="{{ Auth::id() }}">
+     data-layers="{{ implode(' ', $layers) }}"
+     data-user="{{ Auth::id() }}" data-week-start="{{ CalendarController::WEEK_START }}">
     <header class="nd-page__head">
         <div>
             <h1 class="nd-page__title">Calendar</h1>
@@ -106,7 +106,7 @@
 
         <div class="cal-layers" role="group" aria-label="Show on the calendar">
             @foreach ($layers as $layer)
-                <button type="button" class="nd-chip" data-cal-layer="{{ $layer }}" aria-pressed="{{ in_array($layer, $defaultLayers, true) ? 'true' : 'false' }}">
+                <button type="button" class="nd-chip" data-cal-layer="{{ $layer }}" aria-pressed="{{ in_array($layer, $activeLayers, true) ? 'true' : 'false' }}">
                     <i class="fa-solid {{ $layerNames[$layer][1] }}" aria-hidden="true"></i>{{ $layerNames[$layer][0] }}
                 </button>
             @endforeach
@@ -187,7 +187,7 @@
                                 @php
                                     $slips = array_merge($day['entries'], array_map(fn ($e) => $e + ['isWritten' => true], $day['written']));
                                     $shown = array_slice($slips, 0, 3);
-                                    $photoTotal = count($day['photos']) + $day['lockedPhotos'];
+                                    $photoTotal = count($day['photos']) + count($day['lockedPhotos']);
                                     $hidden = $week['hidden'][$i + 1] ?? 0;
                                 @endphp
                                 <div class="cal-marks cal-c{{ $i + 1 }}" data-cal-marks="{{ $day['date']->toDateString() }}">
@@ -280,7 +280,7 @@
                         $mStart = $yearStart->copy()->addMonths($m);
                         $mTotal = 0;
                         for ($d = $mStart->copy(); $d->isSameMonth($mStart); $d->addDay()) $mTotal += $heatmap[$d->toDateString()] ?? 0;
-                        $lead = ($mStart->dayOfWeekIso - CalendarController::WEEK_START + 7) % 7 + 1;
+                        $lead = ($mStart->dayOfWeek - CalendarController::WEEK_START + 7) % 7 + 1;
                     @endphp
                     <section class="cal-mini @if ($mStart->isSameMonth($today)) is-now @endif">
                         <a class="cal-mini__link" href="{{ $monthUrl($mStart) }}">

@@ -358,12 +358,22 @@
     padding: 0;
     list-style: none;
 }
+.cal-photos__tile {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--nd-r-xs);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+}
+.cal-photos__tile:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.cal-photos__tile--locked { border: 1px dashed var(--nd-line-strong); }
+.cal-photos__tile--locked:hover { color: var(--nd-ink); }
 .cal-photos__thumb {
     display: block;
     width: 100%;
-    aspect-ratio: 1;
-    border-radius: var(--nd-r-xs);
-    background: var(--nd-surface-2);
+    height: 100%;
     object-fit: cover;
 }
 .cal-locked { display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.35rem; }
