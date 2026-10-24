@@ -36,6 +36,21 @@ class BackupFiles
         return $dataPath.'.sig';
     }
 
+    //Data, manifest, signature. Returns the ones that could not be deleted (missing ones count as gone).
+    /** @return list<string> */
+    public static function delete(string $name): array
+    {
+        $path = self::path($name);
+        $kept = [];
+        foreach ([$path, self::manifestPath($path), self::signaturePath($path)] as $file) {
+            if (file_exists($file) && ! unlink($file)) {
+                $kept[] = $file;
+            }
+        }
+
+        return $kept;
+    }
+
     public static function ensureDir(): void
     {
         $dir = self::dir();

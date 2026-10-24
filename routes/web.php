@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BackupsController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DiaryController;
 use App\Http\Controllers\ExtraNotesController;
@@ -137,6 +138,16 @@ Route::patch('/music/{track}/favorite', [MusicController::class, 'toggleFavorite
 Route::get('/music/queue', [MusicController::class, 'queue'])->middleware('auth')->name('music.queue');
 Route::get('/music/{track}/stream', [MusicController::class, 'streamTrack'])->middleware('auth')->name('music.stream');
 Route::post('/music/{track}/play', [MusicController::class, 'recordPlay'])->middleware('auth')->name('music.play');
+
+//? the Backups page (docs/backups.md). backups.owner answers everyone but the owner with a 404,
+// Guest included, before any binding or the read-only check. Only the page is a visit; the
+// status poll and the downloads are background GETs. There is no restore route, on purpose.
+Route::get('/backups', [BackupsController::class, 'showBackupsPage'])->middleware(['auth', 'backups.owner', 'log.visit'])->name('backups');
+Route::post('/backups', [BackupsController::class, 'runBackup'])->middleware(['auth', 'backups.owner'])->name('backups.run');
+Route::get('/backups/status', [BackupsController::class, 'runStatus'])->middleware(['auth', 'backups.owner'])->name('backups.status');
+Route::post('/backups/{backup}/verify', [BackupsController::class, 'verifyBackup'])->middleware(['auth', 'backups.owner'])->whereNumber('backup')->name('backups.verify');
+Route::get('/backups/{backup}/download/{part}', [BackupsController::class, 'downloadBackup'])->middleware(['auth', 'backups.owner'])->whereNumber('backup')->whereIn('part', array_keys(BackupsController::PARTS))->name('backups.download');
+Route::delete('/backups/{backup}', [BackupsController::class, 'destroyBackup'])->middleware(['auth', 'backups.owner'])->whereNumber('backup')->name('backups.destroy');
 
 //? the command palette's index: a background GET, never a page visit
 Route::get('/palette', [PaletteController::class, 'items'])->middleware('auth')->name('palette');

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
     $middleware->alias([
         'log.visit' => \App\Http\Middleware\LogVisit::class,
+        'backups.owner' => \App\Http\Middleware\EnsureBackupOwner::class,
     ]);
     $middleware->web(
         prepend: [\App\Http\Middleware\FlushDeferredWrites::class],
@@ -22,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
     // Written by calendar.js so the server can render the chosen layers; see CalendarController.
     $middleware->encryptCookies(except: [\App\Http\Controllers\CalendarController::LAYER_COOKIE]);
     $middleware->appendToPriorityList(\Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\RejectPreviewWrites::class);
+    // Hides the Backups page with a 404 before a backup id is looked up or Guest gets the 403.
+    $middleware->prependToPriorityList(\Illuminate\Routing\Middleware\SubstituteBindings::class, \App\Http\Middleware\EnsureBackupOwner::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

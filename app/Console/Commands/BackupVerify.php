@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\Backup;
-use App\Support\Backups\BackupFiles;
 use App\Support\Backups\BackupSigner;
 use App\Support\Backups\BackupVerifier;
 use App\Support\Backups\VerificationFailed;
@@ -26,24 +25,13 @@ class BackupVerify extends Command
 
             return VerificationFailed::MISSING;
         }
-        if ($backup->status !== 'succeeded') {
-            error("Backup #{$backup->id} is {$backup->status}; there is nothing to verify.");
-
-            return VerificationFailed::MISSING;
-        }
 
         try {
-            $manifest = BackupVerifier::verify(BackupFiles::path($backup->filename));
+            $manifest = BackupVerifier::verifyRow($backup);
         } catch (VerificationFailed $e) {
             error($e->getMessage());
 
             return $e->getCode();
-        }
-
-        if ($manifest['sha256'] !== $backup->sha256 || $manifest['size'] !== (int) $backup->size) {
-            error("The file is signed, but it is not the one row #{$backup->id} recorded (sha256 {$backup->sha256}).");
-
-            return VerificationFailed::CONTENTS;
         }
 
         info("Backup #{$backup->id} verified: {$backup->filename}");

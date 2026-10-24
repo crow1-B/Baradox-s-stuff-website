@@ -15,6 +15,7 @@ class LogVisit
     // Keyed by route name, not path, so a nested route ("video-albums/5") gets a real label.
     // Every route carrying log.visit must have an entry here; LogVisitTest enforces it.
     public const LABELS = [
+        'backups' => 'Backups Page.',
         'calendar' => 'Calendar Page.',
         'diary' => 'Diary Page.',
         // No title: a sealed entry's history row would otherwise name it.
