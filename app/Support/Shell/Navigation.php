@@ -10,6 +10,11 @@ class Navigation
     // [label, route name, route-name patterns that mark it active, Font Awesome icon, shortcut key after "g"]
     public const HOME = ['Home', 'homepage', ['homepage', 'visits.all'], 'fa-house', 'h'];
 
+    public const CALENDAR = ['Calendar', 'calendar', ['calendar'], 'fa-calendar-days', 'c'];
+
+    // Above the groups: Home, and the one page that reads across all of them.
+    public const PINNED = [self::HOME, self::CALENDAR];
+
     public const GROUPS = [
         'Media' => [
             ['Music', 'music', ['music'], 'fa-music', 'm'],
@@ -28,7 +33,7 @@ class Navigation
 
     public static function pages(): array
     {
-        $pages = [self::page(self::HOME, null)];
+        $pages = array_map(fn ($item) => self::page($item, null), self::PINNED);
 
         foreach (self::GROUPS as $group => $items) {
             foreach ($items as $item) {

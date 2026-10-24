@@ -1,0 +1,468 @@
+/* ==========================================================================
+   Calendar — a month grid with a day panel (an agenda on a phone), and a year heatmap.
+   Composes .nd-* and keeps only layout here. Everything that sits in the grid is placed by
+   class (cal-c*, cal-from-*, cal-to-*, cal-lane-*), never by inline style.
+   ========================================================================== */
+
+.cal-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.75rem;
+}
+
+.cal-nav { display: flex; align-items: center; gap: 0.35rem; }
+.cal-nav__title {
+    min-width: 9.5ch;
+    margin: 0 0.35rem;
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-xl) / 1.1 var(--nd-font-serif);
+    text-align: center;
+}
+.cal-nav__title span { color: var(--nd-ink-2); }
+.cal-nav .nd-btn { margin-left: 0.4rem; }
+
+.cal-layers { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-left: auto; }
+
+.cal-empty { margin-top: 1.25rem; }
+.cal-views { margin-top: 1.25rem; }
+
+/* The two views and their own controls. */
+.cal[data-view='month'] :is(.cal-nav--year, .cal-year),
+.cal[data-view='year'] :is(.cal-nav--month, .cal-layers, .cal-empty--month, .cal-month) { display: none; }
+
+/* Layers the filters have switched off. */
+.cal:not(.cal--diary) [data-layer='diary'],
+.cal:not(.cal--projects) [data-layer='projects'],
+.cal:not(.cal--photos) [data-layer='photos'],
+.cal:not(.cal--videos) [data-layer='videos'],
+.cal:not(.cal--tracks) [data-layer='tracks'],
+.cal:not(.cal--listening) [data-layer='listening'] { display: none; }
+
+/* Month <-> year: a cross-fade of the board, opacity and transform only (calendar.js names
+   .cal-views for the length of the switch). */
+::view-transition-group(cal-board) { animation: none; }
+::view-transition-old(cal-board) { animation: cal-board-out var(--nd-dur-morph) var(--nd-ease) both; }
+::view-transition-new(cal-board) { animation: cal-board-in var(--nd-dur-morph) var(--nd-ease) both; }
+@keyframes cal-board-out { to { opacity: 0; transform: scale(0.985); } }
+@keyframes cal-board-in { from { opacity: 0; transform: scale(1.015); } }
+
+/* ------------------------------------------------------------------ marks */
+
+/* The diary's two markers: a dot on the day it happened, a ring on the day it was written. */
+.cal-mark {
+    display: inline-block;
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: var(--nd-r-pill);
+}
+.cal-mark--event { background: var(--mood, var(--nd-accent)); }
+.cal-mark--written { border: 2px solid var(--mood, var(--nd-accent)); background: var(--nd-surface); }
+
+/* ------------------------------------------------------------------ month layout */
+
+.cal-month { container: cal / inline-size; }
+.cal-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+
+/* Narrow first: the grid needs about 40rem; below it the panel is the agenda. */
+.cal-grid { display: none; }
+
+@container cal (min-width: 40rem) {
+    .cal-grid { display: block; }
+    .cal-day:not(.is-selected) { display: none; }
+}
+
+@container cal (min-width: 62rem) {
+    .cal-layout { grid-template-columns: minmax(0, 1fr) 19rem; }
+    .cal-panel { position: sticky; top: calc(var(--nd-topbar-h) + 1rem); }
+}
+
+/* ------------------------------------------------------------------ the grid */
+
+.cal-grid {
+    overflow: hidden;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+    box-shadow: var(--nd-shadow-1);
+}
+
+.cal-dow,
+.cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+
+.cal-dow { border-bottom: 1px solid var(--nd-line); }
+.cal-dow span { padding: 0.5rem 0.6rem; color: var(--nd-ink-2); font-size: var(--nd-text-xs); font-weight: 500; }
+
+/* Rows: the day number, one lane per bar, then the day's marks. */
+.cal-week { grid-template-rows: 2.1rem minmax(4.5rem, auto); }
+.cal-week--lanes-1 { grid-template-rows: 2.1rem repeat(1, 1.35rem) minmax(4rem, auto); }
+.cal-week--lanes-2 { grid-template-rows: 2.1rem repeat(2, 1.35rem) minmax(3.5rem, auto); }
+.cal-week--lanes-3 { grid-template-rows: 2.1rem repeat(3, 1.35rem) minmax(3rem, auto); }
+.cal-week--lanes-4 { grid-template-rows: 2.1rem repeat(4, 1.35rem) minmax(3rem, auto); }
+.cal-week--lanes-5 { grid-template-rows: 2.1rem repeat(5, 1.35rem) minmax(3rem, auto); }
+.cal-week--lanes-6 { grid-template-rows: 2.1rem repeat(6, 1.35rem) minmax(3rem, auto); }
+.cal-week + .cal-week { border-top: 1px solid var(--nd-line); }
+
+.cal-c1 { grid-column: 1; } .cal-c2 { grid-column: 2; } .cal-c3 { grid-column: 3; } .cal-c4 { grid-column: 4; }
+.cal-c5 { grid-column: 5; } .cal-c6 { grid-column: 6; } .cal-c7 { grid-column: 7; }
+.cal-from-1 { grid-column-start: 1; } .cal-from-2 { grid-column-start: 2; } .cal-from-3 { grid-column-start: 3; }
+.cal-from-4 { grid-column-start: 4; } .cal-from-5 { grid-column-start: 5; } .cal-from-6 { grid-column-start: 6; }
+.cal-from-7 { grid-column-start: 7; }
+.cal-to-2 { grid-column-end: 2; } .cal-to-3 { grid-column-end: 3; } .cal-to-4 { grid-column-end: 4; }
+.cal-to-5 { grid-column-end: 5; } .cal-to-6 { grid-column-end: 6; } .cal-to-7 { grid-column-end: 7; }
+.cal-to-8 { grid-column-end: 8; }
+.cal-lane-0 { grid-row: 2; } .cal-lane-1 { grid-row: 3; } .cal-lane-2 { grid-row: 4; }
+.cal-lane-3 { grid-row: 5; } .cal-lane-4 { grid-row: 6; } .cal-lane-5 { grid-row: 7; }
+
+/* The day's ground: spans every row, takes the clicks nothing on top of it took. */
+.cal-cell {
+    grid-row: 1 / -1;
+    border-left: 1px solid var(--nd-line);
+    cursor: pointer;
+}
+.cal-cell.cal-c1 { border-left: 0; }
+.cal-cell.is-out { background: color-mix(in oklab, var(--nd-bg-deep) 50%, transparent); }
+.cal-cell.is-selected { box-shadow: inset 0 0 0 2px var(--nd-accent); }
+
+.cal-num {
+    position: relative;
+    z-index: 1;
+    grid-row: 1;
+    align-self: start;
+    justify-self: start;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0.25rem 0 0 0.3rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--nd-r-pill);
+    background: transparent;
+    color: var(--nd-ink);
+    font: 500 var(--nd-text-xs) / 1 var(--nd-font-sans);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease);
+}
+.cal-num:hover { background: var(--nd-accent-soft); }
+.cal-num.is-out { color: var(--nd-ink-3); }
+.cal-num[aria-pressed='true'] { background: var(--nd-accent-soft); }
+.cal-num.is-today { background: var(--nd-accent-strong); color: var(--nd-on-accent-strong); font-weight: 600; }
+.cal-num:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+
+/* Bars. */
+.cal-span { position: relative; z-index: 1; align-self: center; min-width: 0; }
+
+.cal-span--project {
+    --cal-status: oklch(var(--nd-mood-l) var(--nd-mood-c) var(--cal-hue, 200));
+    display: flex;
+    align-items: center;
+    height: 1.15rem;
+    padding: 0 0.45rem;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--cal-status) 22%, var(--nd-surface));
+    color: var(--nd-ink);
+    font: 500 0.6875rem / 1 var(--nd-font-sans);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.cal-span--project[data-status='future'] { --cal-hue: 290; }
+.cal-span--project[data-status='in_work'] { --cal-hue: 75; }
+.cal-span--project[data-status='done'] { --cal-hue: 150; }
+.cal-span--project.is-start { margin-left: 0.3rem; border-left: 3px solid var(--cal-status); border-radius: var(--nd-r-xs) 0 0 var(--nd-r-xs); }
+.cal-span--project.is-end { margin-right: 0.3rem; border-top-right-radius: var(--nd-r-xs); border-bottom-right-radius: var(--nd-r-xs); }
+.cal-span--project.is-open { margin-right: 0.3rem; border-right: 2px dashed var(--cal-status); }
+.cal-span--project:hover { background: color-mix(in oklab, var(--cal-status) 34%, var(--nd-surface)); }
+.cal-span__label { overflow: hidden; text-overflow: ellipsis; }
+
+/* The time between happening and writing: a dashed hairline in the entry's mood. */
+.cal-span--gap {
+    --cal-gap: var(--mood, var(--nd-ink-3));
+    height: 0.75rem;
+    background: repeating-linear-gradient(90deg, var(--cal-gap) 0 4px, transparent 4px 7px) center / 100% 2px no-repeat;
+}
+.cal-span--gap:has(> .cal-span__start) { margin-left: 0.85rem; }
+.cal-span--gap:has(> .cal-span__end) { margin-right: 0.85rem; }
+.cal-span__start,
+.cal-span__end { position: absolute; top: 50%; transform: translateY(-50%); }
+.cal-span__start { left: -0.3rem; }
+.cal-span__end { right: -0.3rem; }
+.cal-span--gap.is-paired { background-size: 100% 3px; }
+
+/* Each day's marks: entry slips, then counts for the media layers. Clicks fall through to
+   the cell except on a slip. */
+.cal-marks {
+    position: relative;
+    z-index: 1;
+    grid-row: -2 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    padding: 0.2rem 0.25rem 0.45rem;
+    pointer-events: none;
+}
+
+.cal-slip {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0.1rem 0.3rem;
+    border-radius: var(--nd-r-xs);
+    color: var(--nd-ink);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    text-decoration: none;
+    pointer-events: auto;
+    transition: background-color var(--nd-dur-1) var(--nd-ease);
+}
+.cal-slip:hover,
+.cal-slip.is-paired { background: var(--nd-accent-soft); }
+.cal-slip__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-slip--written { color: var(--nd-ink-2); }
+.cal-slip--written .cal-slip__title { font-style: italic; }
+.cal-slip--sealed { color: var(--nd-ink-2); font-size: var(--nd-text-xs); }
+.cal-slip--sealed > i { font-size: 0.7rem; }
+
+.cal-more { padding: 0 0.3rem; color: var(--nd-ink-2); font-size: 0.6875rem; }
+
+.cal-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1rem 0.55rem;
+    padding: 0.15rem 0.3rem 0;
+    color: var(--nd-ink-2);
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+}
+.cal-count > i { margin-right: 0.25rem; font-size: 0.65rem; }
+
+.cal-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    margin: 0.85rem 0 0;
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+}
+.cal-legend > span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.cal-legend__gap {
+    display: inline-block;
+    width: 1.75rem;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--nd-ink-3) 0 4px, transparent 4px 7px);
+}
+
+/* ------------------------------------------------------------------ the panel / agenda */
+
+.cal-panel { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
+
+.cal-day,
+.cal-running {
+    padding: 0.9rem 0.85rem 0.85rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+}
+
+/* On a phone the agenda lists only days with something to show, and today. */
+.cal-day.is-out,
+.cal-day.is-blank:not(.is-today) { display: none; }
+
+@container cal (min-width: 40rem) {
+    .cal-panel > .cal-day.is-selected { display: block; }
+}
+
+.cal-day__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.55rem;
+    margin: 0 0 0.5rem 0.3rem;
+    color: var(--nd-ink);
+    font: 400 var(--nd-text-lg) / 1.2 var(--nd-font-serif);
+}
+.cal-day__weekday { color: var(--nd-ink-2); font: 500 var(--nd-text-xs) / 1 var(--nd-font-sans); }
+.cal-day__today { align-self: center; }
+.cal-day__blank { display: none; margin: 0 0 0 0.3rem; color: var(--nd-ink-2); font-size: var(--nd-text-sm); }
+.cal-day.is-blank .cal-day__blank { display: block; }
+
+.cal-agenda-empty { display: none; margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); }
+
+@container cal (max-width: 39.98rem) {
+    .cal-panel.is-quiet > .cal-agenda-empty { display: block; }
+}
+
+.cal-running__title { margin: 0 0 0.4rem 0.3rem; color: var(--nd-ink-2); font-size: var(--nd-text-xs); font-weight: 500; }
+
+.cal-items { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+.cal-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.4rem;
+    border: 0;
+    border-radius: var(--nd-r);
+    background: transparent;
+    color: var(--nd-ink);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--nd-dur-1) var(--nd-ease);
+}
+.cal-item:hover,
+.cal-item.is-paired { background: var(--nd-accent-soft); }
+.cal-item:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 1px; }
+.cal-item--compact { min-height: 2.75rem; padding-block: 0.35rem; }
+
+.cal-item__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.35rem;
+    color: var(--nd-ink-2);
+    font-size: 0.8rem;
+}
+.cal-item__main { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.cal-item__title { font-size: var(--nd-text-base); line-height: 1.3; overflow-wrap: anywhere; }
+.cal-item__meta { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-xs); line-height: 1.4; }
+
+.cal-photos,
+.cal-listen { padding: 0.45rem 0.4rem; }
+.cal-photos__head,
+.cal-listen__head {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0 0 0.45rem;
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+}
+.cal-photos__head > i,
+.cal-listen__head > i { width: 1.25rem; font-size: 0.8rem; text-align: center; }
+.cal-photos__head .nd-link { color: var(--nd-ink); }
+.cal-photos__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 0 0.35rem;
+    padding: 0;
+    list-style: none;
+}
+.cal-photos__thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--nd-r-xs);
+    background: var(--nd-surface-2);
+    object-fit: cover;
+}
+.cal-locked { display: inline-flex; align-items: center; gap: 0.3rem; margin-left: 0.35rem; }
+.cal-listen__top { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+/* ------------------------------------------------------------------ the year */
+
+.cal-year { container: cal-year / inline-size; }
+.cal-year__sub { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); }
+
+.cal-year__months {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+}
+@container cal-year (min-width: 36rem) { .cal-year__months { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; } }
+@container cal-year (min-width: 56rem) { .cal-year__months { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem 1.5rem; } }
+
+.cal-mini {
+    position: relative;
+    padding: 0.75rem 0.8rem 0.9rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+}
+.cal-mini.is-now { border-color: var(--nd-line-strong); }
+
+.cal-mini__link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.1rem 0.5rem;
+    margin-bottom: 0.55rem;
+    border-radius: var(--nd-r-sm);
+    color: var(--nd-ink);
+    text-decoration: none;
+}
+.cal-mini__link:hover .cal-mini__name { text-decoration: underline; text-underline-offset: 3px; }
+.cal-mini__link:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 3px; }
+.cal-mini__name { margin: 0; font: 400 var(--nd-text-md) / 1.2 var(--nd-font-serif); }
+.cal-mini__count { color: var(--nd-ink-2); font-size: var(--nd-text-xs); }
+
+.cal-mini__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+
+/* Five steps of the accent over the card: level 1 is 3:1 against it in every phase. */
+.cal-heat {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--nd-ink) 7%, transparent);
+}
+.cal-heat[data-level='1'] { background: color-mix(in oklab, var(--nd-accent) 70%, var(--nd-surface)); }
+.cal-heat[data-level='2'] { background: color-mix(in oklab, var(--nd-accent) 80%, var(--nd-surface)); }
+.cal-heat[data-level='3'] { background: color-mix(in oklab, var(--nd-accent) 90%, var(--nd-surface)); }
+.cal-heat[data-level='4'] { background: var(--nd-accent); }
+.cal-heat.is-today { box-shadow: inset 0 0 0 2px var(--nd-ink); }
+.cal-heat:focus-visible { outline: 2px solid var(--nd-ink); outline-offset: 1px; }
+
+.cal-heat-legend {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin: 1rem 0 0;
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+}
+.cal-heat-legend > span:first-child { margin-right: 0.4rem; }
+.cal-heat-legend > span:nth-last-child(2) { margin-left: 0.4rem; }
+.cal-heat--key { width: 0.8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    .cal-num, .cal-slip, .cal-item { transition: none; }
+}
+
+/* Touch targets: see components.css. On a coarse pointer the grid's small marks stop taking
+   taps (they would overlap each other's 44px), so a tap picks the day and the panel's
+   44px rows open things. A month in the year view is one stretched link. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .cal-num::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+    .cal-slip,
+    .cal-span--project { pointer-events: none; }
+
+    .cal-mini__link { position: static; min-height: 2.75rem; align-items: center; }
+    .cal-mini__link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+    .cal-heat { pointer-events: none; }
+
+    .cal-photos__head .nd-link { position: relative; }
+    .cal-photos__head .nd-link::after {
+        content: '';
+        position: absolute;
+        inset: min(0px, calc((100% - 2.75rem) / 2));
+    }
+}
+
+/* No colour transitions while the phase changes (theme.js, tokens.css). */
+:root[data-phase-snap] :is(.cal-num, .cal-slip, .cal-item) { transition: none !important; }
