@@ -49,6 +49,8 @@ export default defineConfig(({ command, mode }) => {
                     'resources/js/videos.js',
                     'resources/css/calendar.css',
                     'resources/js/calendar.js',
+                    'resources/css/backups.css',
+                    'resources/js/backups.js',
                     'resources/css/login.css',
                     'resources/js/login.js',
                     ...localInputs,

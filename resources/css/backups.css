@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Backups (backups.blade.php, backups.js). Layout only; the parts are .nd-*.
+   ========================================================================== */
+
+.bk { --nd-page-w: 60rem; }
+
+/* ---------------------------------------------------------------- summary */
+
+.bk-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--nd-space-3);
+    margin-top: var(--nd-space-6);
+}
+.bk-stat { display: flex; flex-direction: column; gap: 0.3rem; padding: 1rem 1.1rem; }
+.bk-stat p { margin: 0; }
+.bk-stat__label { display: flex; align-items: center; gap: 0.45rem; color: var(--nd-ink-2); font-size: var(--nd-text-xs); font-weight: 500; }
+.bk-stat__value { color: var(--nd-ink); font: 400 var(--nd-text-lg) / 1.25 var(--nd-font-serif); }
+.bk-stat__detail { color: var(--nd-ink-2); font-size: var(--nd-text-sm); line-height: 1.45; overflow-wrap: anywhere; }
+.bk-stat--ok .bk-stat__label > i { color: var(--nd-success); }
+.bk-stat--warn { border-color: color-mix(in oklab, var(--nd-warn) 45%, transparent); }
+.bk-stat--warn .bk-stat__label > i { color: var(--nd-warn); }
+
+/* ---------------------------------------------------------------- sections */
+
+.bk-section { margin-top: var(--nd-space-7); }
+.bk-section__head { display: flex; align-items: baseline; gap: var(--nd-space-3); margin-bottom: var(--nd-space-3); }
+.bk-section__title { margin: 0 0 var(--nd-space-3); color: var(--nd-ink); font: 400 var(--nd-text-xl) / 1.2 var(--nd-font-serif); }
+.bk-section__head .bk-section__title { margin: 0; }
+.bk-section > .nd-note { margin-bottom: var(--nd-space-3); }
+
+/* ---------------------------------------------------------------- the list */
+
+.bk-list { display: flex; flex-direction: column; gap: var(--nd-space-2); margin: 0; padding: 0; list-style: none; }
+
+.bk-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r);
+    background: color-mix(in oklab, var(--nd-surface) 88%, transparent);
+}
+
+.bk-item__head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.bk-item__title { margin: 0 0.2rem 0 0; color: var(--nd-ink); font-size: var(--nd-text-base); font-weight: 600; font-variant-numeric: tabular-nums; }
+.bk-item__ago { margin-left: auto; color: var(--nd-ink-3); font-size: var(--nd-text-xs); font-variant-numeric: tabular-nums; }
+
+.bk-tag,
+.bk-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--nd-r-pill);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.bk-tag--prerestore { background: var(--nd-accent-soft); color: var(--nd-ink); }
+.bk-status--succeeded { background: var(--nd-success-soft); color: var(--nd-success); }
+.bk-status--failed { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.bk-status--running { background: var(--nd-accent-soft); color: var(--nd-ink); }
+
+.bk-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.75rem; margin: 0; font-size: var(--nd-text-sm); }
+.bk-meta > div { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.bk-meta dt { color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+.bk-meta dd { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; margin: 0; color: var(--nd-ink); font-variant-numeric: tabular-nums; }
+
+.bk-check { color: var(--nd-ink-2); }
+.bk-check--ok { color: var(--nd-success); }
+.bk-check--bad { color: var(--nd-danger); font-weight: 500; }
+.bk-check__when { color: var(--nd-ink-3); font-weight: 400; }
+.bk-verify { display: inline; }
+
+.bk-error { margin: 0; color: var(--nd-danger); font-size: var(--nd-text-sm); line-height: 1.45; overflow-wrap: anywhere; }
+.bk-error[hidden] { display: none; }
+.bk-error__label { font-weight: 600; }
+
+.bk-item__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+.bk-downloads { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.bk-ext { color: var(--nd-ink-3); font-family: var(--nd-font-mono); }
+.bk-delete { margin-left: auto; }
+.bk-delete:hover { background: var(--nd-danger-soft); color: var(--nd-danger); }
+.bk-kept { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0 auto; color: var(--nd-ink-3); font-size: var(--nd-text-xs); }
+
+/* ---------------------------------------------------------------- restore commands */
+
+.bk-restore { border-top: 1px solid var(--nd-line); padding-top: 0.5rem; }
+.bk-restore > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.1rem;
+    border-radius: var(--nd-r-xs);
+    color: var(--nd-ink-2);
+    font-size: var(--nd-text-sm);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+}
+.bk-restore > summary::-webkit-details-marker { display: none; }
+.bk-restore > summary::before { content: '\203A'; display: inline-block; width: 0.6rem; color: var(--nd-ink-3); transition: transform var(--nd-dur-1) var(--nd-ease); }
+.bk-restore[open] > summary::before { transform: rotate(90deg); }
+.bk-restore > summary:hover { color: var(--nd-ink); }
+.bk-restore > summary:focus-visible { outline: 2px solid var(--nd-accent); outline-offset: 2px; }
+.bk-restore__intro { margin: 0.5rem 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); }
+
+.bk-code {
+    margin: 0;
+    padding: 0.8rem 0.9rem;
+    overflow-x: auto;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-sm);
+    background: var(--nd-bg-deep);
+    color: var(--nd-ink);
+    font: 0.8rem / 1.6 var(--nd-font-mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.bk-restore__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-top: 0.6rem; }
+.bk-restore__hint { flex: 1 1 16rem; margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-xs); line-height: 1.5; }
+
+.bk :not(pre) > code,
+.bk-delete-body code {
+    padding: 0.05rem 0.3rem;
+    border-radius: var(--nd-r-xs);
+    background: var(--nd-surface-2);
+    color: var(--nd-ink);
+    font: 0.85em var(--nd-font-mono);
+    overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- the two notes */
+
+.bk-info {
+    padding: 1.25rem 1.35rem;
+    border: 1px solid var(--nd-line);
+    border-radius: var(--nd-r-lg);
+    background: color-mix(in oklab, var(--nd-surface) 70%, transparent);
+}
+.bk-prose { display: flex; flex-direction: column; gap: 0.8rem; max-width: 68ch; color: var(--nd-ink-2); font-size: var(--nd-text-sm); line-height: 1.6; }
+.bk-prose p { margin: 0; }
+.bk-prose strong { color: var(--nd-ink); font-weight: 600; }
+.bk-folders { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0; padding: 0; list-style: none; }
+.bk-folders span { color: var(--nd-ink-2); font-variant-numeric: tabular-nums; }
+.bk-fp { word-break: break-all; }
+
+/* ---------------------------------------------------------------- delete dialog */
+
+.bk-delete-body { display: flex; flex-direction: column; gap: 0.8rem; }
+.bk-delete-body p { margin: 0; color: var(--nd-ink-2); font-size: var(--nd-text-sm); }
+
+@media (max-width: 639.98px) {
+    .bk-item { padding: 0.85rem 0.9rem; }
+    .bk-item__ago { width: 100%; margin-left: 0; }
+    .bk-delete, .bk-kept { margin-left: 0; }
+    .bk-info { padding: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bk-restore > summary::before { transition: none; }
+}
+
+/* Touch targets: see components.css. */
+@media (pointer: coarse), (max-width: 639.98px) {
+    .bk-restore > summary { min-height: 2.75rem; }
+}
