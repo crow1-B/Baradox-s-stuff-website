@@ -47,6 +47,8 @@ export default defineConfig(({ command, mode }) => {
                     'resources/js/future-updates.js',
                     'resources/css/videos.css',
                     'resources/js/videos.js',
+                    'resources/css/calendar.css',
+                    'resources/js/calendar.js',
                     'resources/css/login.css',
                     'resources/js/login.js',
                     ...localInputs,

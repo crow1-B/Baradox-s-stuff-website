@@ -33,6 +33,8 @@ class PreviewWriteControlsTest extends TestCase
         'extra-notes' => ['data-xn-composer', 'data-xn-select-toggle', 'data-xn-pick', 'data-xn-act="edit"', 'data-xn-act="pin"', 'data-xn-act="delete"', 'id="xn-edit-dialog"'],
         'projects' => ['data-pj-open=', 'id="pj-project-dialog"'],
         'future-updates' => ['data-fu-add-form', 'data-fu-open=', 'data-fu-done-check', 'id="fu-edit-dialog"'],
+        // Read-only for everyone: no hooks to require, but the POST-form check still runs.
+        'calendar' => [],
     ];
 
     private array $urls = [];
@@ -76,6 +78,7 @@ class PreviewWriteControlsTest extends TestCase
             'extra-notes' => route('extra-notes'),
             'projects' => route('projects', ['tab' => 'future']),
             'future-updates' => route('future-updates', ['done' => 1]),
+            'calendar' => route('calendar'),
         ];
 
         return $user;

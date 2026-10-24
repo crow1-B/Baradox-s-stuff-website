@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         prepend: [\App\Http\Middleware\FlushDeferredWrites::class],
         append: [\App\Http\Middleware\RejectPreviewWrites::class],
     );
+    // Written by calendar.js so the server can render the chosen layers; see CalendarController.
+    $middleware->encryptCookies(except: [\App\Http\Controllers\CalendarController::LAYER_COOKIE]);
     $middleware->appendToPriorityList(\Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\RejectPreviewWrites::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

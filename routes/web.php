@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DiaryController;
 use App\Http\Controllers\ExtraNotesController;
 use App\Http\Controllers\FutureUpdatesController;
@@ -27,6 +28,10 @@ Route::get('/visits', [HomeController::class, 'showAllVisits'])->middleware('aut
     ->name('visits.all');
 Route::delete('/visits/{visit}', [HomeController::class, 'deleteVisit'])->middleware('auth');
 Route::delete('/visits', [HomeController::class, 'deleteAllVisits'])->middleware('auth');
+
+//? the calendar: one read-only page. Month and year are both rendered and switched in the
+// browser; moving to another month is a real visit (?month=).
+Route::get('/calendar', [CalendarController::class, 'showCalendarPage'])->middleware(['auth', 'log.visit'])->name('calendar');
 
 //? the diary page
 Route::get('/diary', [DiaryController::class, 'showDiaryPage'])->middleware(['auth', 'log.visit'])->name('diary');

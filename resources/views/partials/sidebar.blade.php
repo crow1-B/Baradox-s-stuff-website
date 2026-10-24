@@ -11,7 +11,9 @@
     </div>
 
     <ul class="app-nav" role="list">
-        @include('partials.sidebar-item', ['item' => Navigation::HOME])
+        @foreach (Navigation::PINNED as $item)
+            @include('partials.sidebar-item', ['item' => $item])
+        @endforeach
     </ul>
 
     @foreach (Navigation::GROUPS as $group => $items)

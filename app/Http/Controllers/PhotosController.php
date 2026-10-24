@@ -82,9 +82,21 @@ class PhotosController extends Controller
         ])->values();
     }
 
-    public function showPhotosPage()
+    // ?photo= opens that photo's viewer on arrival (Calendar, Home). It must be one of the
+    // user's photos: a stale or foreign id 404s rather than quietly opening nothing.
+    public function showPhotosPage(Request $request)
     {
         $userId = Auth::user()->id;
+
+        $openPhotoId = null;
+        if ($request->query('photo') !== null) {
+            $openPhotoId = ctype_digit((string) $request->query('photo'))
+                ? Photo::where('user_id', $userId)->whereKey((int) $request->query('photo'))->value('id')
+                : null;
+            if ($openPhotoId === null) {
+                abort(404);
+            }
+        }
 
         $photos = Photo::with('albums:id,name,is_system')
             ->where('user_id', $userId)
@@ -108,6 +120,7 @@ class PhotosController extends Controller
             'albumCovers' => $covers,
             'favoriteAlbumId' => $favoriteAlbumId,
             'photoData' => $this->photoPayload($photos, $favoriteAlbumId),
+            'openPhotoId' => $openPhotoId,
             'canWrite' => !Auth::user()->isPreview(),
         ]);
     }

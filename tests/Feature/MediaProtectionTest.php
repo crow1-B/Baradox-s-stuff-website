@@ -251,6 +251,9 @@ class MediaProtectionTest extends TestCase
                 'palette' => '/palette',
                 'videos' => '/videos',
                 'video album' => '/video-albums/' . $vAlbum->id,
+                'calendar' => '/calendar',
+                'photo deep link, gated' => '/photos?photo=' . $gated->id,
+                'photo deep link, encrypted' => '/photos?photo=' . $encrypted->id,
             ],
             'gated' => $gated,
             'encrypted' => $encrypted,
@@ -297,6 +300,43 @@ class MediaProtectionTest extends TestCase
         $photos = $this->get('/photos')->assertOk()->getContent();
         $this->assertSame(1, substr_count($photos, 'class="ph-album__cover"'));
         $this->assertStringContainsString($lib['plain']->thumbnailUrl(), $photos);
+    }
+
+    // ?photo= opens the viewer on arrival; for a protected photo that is its key prompt. The
+    // page hands over nothing a click wouldn't: the same payload, no key, no plain URL.
+    public function test_the_photo_deep_link_opens_a_protected_photo_at_its_key_prompt(): void
+    {
+        $owner = $this->user();
+        $gated = $this->photo($owner, 'gated');
+        $encrypted = $this->photo($owner, 'encrypted');
+
+        foreach ([$gated, $encrypted] as $photo) {
+            $html = $this->actingAs($owner)->get('/photos?photo=' . $photo->id)->assertOk()->getContent();
+            preg_match('~<script type="application/json" id="ph-data">(.*?)</script>~s', $html, $m);
+            $data = json_decode($m[1], true);
+
+            $this->assertSame($photo->id, $data['openPhotoId']);
+            $entry = collect($data['photos'])->firstWhere('id', $photo->id);
+            $this->assertSame($photo->protection, $entry['protection']); // photos.js shows the key prompt for it
+            $this->assertDoesNotMatchRegularExpression('~[?&]key=~', html_entity_decode($html));
+
+            $this->get($entry['urls']['view'])->assertForbidden();
+            $photo->protection === 'encrypted'
+                ? $this->assertPadlock($this->get($entry['urls']['thumbnail']), 'deep-linked encrypted photo')
+                : $this->assertObscured($this->get($entry['urls']['thumbnail']), 'deep-linked gated photo');
+        }
+    }
+
+    public function test_the_photo_deep_link_only_names_the_users_own_photos(): void
+    {
+        $owner = $this->user();
+        $other = $this->user();
+        $theirs = $this->photo($other, 'gated');
+
+        $this->actingAs($owner)->get('/photos?photo=' . $theirs->id)->assertNotFound();
+        $this->actingAs($owner)->get('/photos?photo=999999')->assertNotFound();
+        $this->actingAs($owner)->get('/photos?photo=abc')->assertNotFound();
+        $this->actingAs($owner)->get('/photos')->assertOk();
     }
 
     public function test_the_plain_thumbnail_is_never_served_once_a_photo_is_gated(): void
