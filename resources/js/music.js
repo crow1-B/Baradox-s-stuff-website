@@ -237,25 +237,16 @@ const initMusic = () => {
         if (clearToolbar) clearToolbar.hidden = !filtering;
     };
 
-    // Filter and sort state lives in the query string: it survives Back/Forward, and the
-    // favorite toggle's redirect (back(), i.e. the Referer) lands on the same view.
-    // ?q= is written on Enter and before a form submits, never live, as on the Diary: the
-    // search box can be claimed by another script (CLAUDE.md §4), so a keystroke-synced URL
-    // would put whatever was typed into history.
-    let committedQuery = '';
-
-    const queryForUrl = () => {
-        const value = search?.value.trim() ?? '';
-        if (value === committedQuery) return value;
-        const sync = new CustomEvent('music:search-sync', { bubbles: true, cancelable: true, detail: { query: value } });
-        return search.dispatchEvent(sync) ? value : committedQuery;
-    };
-
+    // Favourite and sort state lives in the query string: it survives Back/Forward, and the
+    // favorite toggle's redirect (back(), i.e. the Referer) lands on the same view. The search
+    // never does, on Enter or otherwise: the box can be claimed by another script (CLAUDE.md
+    // §4), and whatever was typed must not land in history. A ?q= left by an older version is
+    // dropped on arrival.
     const writeUrl = () => {
         const url = new URL(window.location.href);
         const set = (key, value) => (value ? url.searchParams.set(key, value) : url.searchParams.delete(key));
 
-        if (search) set('q', queryForUrl());
+        url.searchParams.delete('q');
         set('fav', favFilter?.getAttribute('aria-pressed') === 'true' ? '1' : '');
         set('sort', sortKey ?? '');
         set('dir', sortKey ? sortDir : '');
@@ -266,8 +257,6 @@ const initMusic = () => {
     const readUrl = () => {
         const params = new URL(window.location.href).searchParams;
 
-        committedQuery = params.get('q') ?? '';
-        if (search) search.value = committedQuery;
         if (favFilter) favFilter.setAttribute('aria-pressed', params.get('fav') === '1' ? 'true' : 'false');
 
         const key = params.get('sort');
@@ -275,28 +264,24 @@ const initMusic = () => {
             sortKey = key;
             sortDir = params.get('dir') === 'asc' ? 'asc' : 'desc';
         }
+        if (params.has('q')) writeUrl();
     };
 
     if (search) {
         // Esc in a type=search field clears it without firing 'input' in some browsers.
         for (const type of ['input', 'search']) search.addEventListener(type, applyFilter);
-        search.addEventListener('search', () => {
-            if (search.value !== '') return;
-            committedQuery = '';
-            writeUrl();
-        });
 
+        // Enter only offers the query to listeners; filtering is already live.
         let committing = false;
         search.addEventListener('keydown', async (event) => {
             if (event.key !== 'Enter' || event.isComposing || committing) return;
             event.preventDefault();
 
-            const value = search.value;
             const claims = [];
             const commit = new CustomEvent('music:search-commit', {
                 bubbles: true,
                 cancelable: true,
-                detail: { query: value, claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)) },
+                detail: { query: search.value, claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)) },
             });
             search.dispatchEvent(commit);
 
@@ -307,15 +292,9 @@ const initMusic = () => {
             if (claimed) {
                 search.value = '';
                 applyFilter();
-                return;
             }
-
-            committedQuery = value.trim();
-            writeUrl();
         });
     }
-
-    root.addEventListener('submit', writeUrl, true);
 
     if (favFilter) {
         favFilter.addEventListener('click', () => {
@@ -341,7 +320,6 @@ const initMusic = () => {
 
     const clearFilters = () => {
         if (search) search.value = '';
-        committedQuery = '';
         favFilter?.setAttribute('aria-pressed', 'false');
         applyFilter();
         writeUrl();

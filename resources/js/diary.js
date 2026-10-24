@@ -83,47 +83,37 @@ const initDiary = () => {
         }
     };
 
-    // ?q= is written on Enter and before a form submits, never live: the search box can be
-    // claimed by another script (CLAUDE.md §4), so a keystroke-synced URL would put whatever
-    // was typed into history.
-    let committedQuery = '';
-
-    const queryForUrl = () => {
-        const value = search?.value.trim() ?? '';
-        if (value === committedQuery) return value;
-        const sync = new CustomEvent('diary:search-sync', { bubbles: true, cancelable: true, detail: { query: value } });
-        return search.dispatchEvent(sync) ? value : committedQuery;
-    };
-
+    // The search never reaches the URL, on Enter or otherwise: the box can be claimed by
+    // another script (CLAUDE.md §4), and whatever was typed must not land in history. Only the
+    // person filter is kept in ?person=. A ?q= left by an older version is dropped on arrival.
     const writeUrl = () => {
         const next = new URL(window.location.href);
-        const set = (key, value) => (value ? next.searchParams.set(key, value) : next.searchParams.delete(key));
-        if (search) set('q', queryForUrl());
-        set('person', person ?? '');
+        next.searchParams.delete('q');
+        if (person) next.searchParams.set('person', person);
+        else next.searchParams.delete('person');
         history.replaceState(history.state, '', next);
     };
 
     const readUrl = () => {
         const params = new URL(window.location.href).searchParams;
-        committedQuery = params.get('q') ?? '';
-        if (search) search.value = committedQuery;
         person = params.get('person') || null;
+        if (params.has('q')) writeUrl();
     };
 
     if (search) {
         for (const type of ['input', 'search']) search.addEventListener(type, applyFilter);
 
+        // Enter only offers the query to listeners; filtering is already live.
         let committing = false;
         search.addEventListener('keydown', async (event) => {
             if (event.key !== 'Enter' || event.isComposing || committing) return;
             event.preventDefault();
 
-            const value = search.value;
             const claims = [];
             const commit = new CustomEvent('diary:search-commit', {
                 bubbles: true,
                 cancelable: true,
-                detail: { query: value, claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)) },
+                detail: { query: search.value, claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)) },
             });
             search.dispatchEvent(commit);
 
@@ -135,15 +125,9 @@ const initDiary = () => {
                 search.value = '';
                 person = null;
                 applyFilter();
-                return;
             }
-
-            committedQuery = value.trim();
-            writeUrl();
         });
     }
-
-    root.addEventListener('submit', writeUrl, true);
 
     const setPerson = (name) => {
         person = name;
