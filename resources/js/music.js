@@ -239,11 +239,23 @@ const initMusic = () => {
 
     // Filter and sort state lives in the query string: it survives Back/Forward, and the
     // favorite toggle's redirect (back(), i.e. the Referer) lands on the same view.
+    // ?q= is written on Enter and before a form submits, never live, as on the Diary: the
+    // search box can be claimed by another script (CLAUDE.md §4), so a keystroke-synced URL
+    // would put whatever was typed into history.
+    let committedQuery = '';
+
+    const queryForUrl = () => {
+        const value = search?.value.trim() ?? '';
+        if (value === committedQuery) return value;
+        const sync = new CustomEvent('music:search-sync', { bubbles: true, cancelable: true, detail: { query: value } });
+        return search.dispatchEvent(sync) ? value : committedQuery;
+    };
+
     const writeUrl = () => {
         const url = new URL(window.location.href);
         const set = (key, value) => (value ? url.searchParams.set(key, value) : url.searchParams.delete(key));
 
-        set('q', search?.value.trim() ?? '');
+        if (search) set('q', queryForUrl());
         set('fav', favFilter?.getAttribute('aria-pressed') === 'true' ? '1' : '');
         set('sort', sortKey ?? '');
         set('dir', sortKey ? sortDir : '');
@@ -254,7 +266,8 @@ const initMusic = () => {
     const readUrl = () => {
         const params = new URL(window.location.href).searchParams;
 
-        if (search) search.value = params.get('q') ?? '';
+        committedQuery = params.get('q') ?? '';
+        if (search) search.value = committedQuery;
         if (favFilter) favFilter.setAttribute('aria-pressed', params.get('fav') === '1' ? 'true' : 'false');
 
         const key = params.get('sort');
@@ -264,23 +277,45 @@ const initMusic = () => {
         }
     };
 
-    let urlTimer;
-    const scheduleUrl = () => {
-        clearTimeout(urlTimer);
-        urlTimer = setTimeout(writeUrl, 250);
-    };
-
     if (search) {
-        search.addEventListener('input', () => {
-            applyFilter();
-            scheduleUrl();
-        });
         // Esc in a type=search field clears it without firing 'input' in some browsers.
+        for (const type of ['input', 'search']) search.addEventListener(type, applyFilter);
         search.addEventListener('search', () => {
-            applyFilter();
-            scheduleUrl();
+            if (search.value !== '') return;
+            committedQuery = '';
+            writeUrl();
+        });
+
+        let committing = false;
+        search.addEventListener('keydown', async (event) => {
+            if (event.key !== 'Enter' || event.isComposing || committing) return;
+            event.preventDefault();
+
+            const value = search.value;
+            const claims = [];
+            const commit = new CustomEvent('music:search-commit', {
+                bubbles: true,
+                cancelable: true,
+                detail: { query: value, claim: (promise) => claims.push(Promise.resolve(promise).catch(() => false)) },
+            });
+            search.dispatchEvent(commit);
+
+            committing = true;
+            const claimed = commit.defaultPrevented || (await Promise.all(claims)).some(Boolean);
+            committing = false;
+
+            if (claimed) {
+                search.value = '';
+                applyFilter();
+                return;
+            }
+
+            committedQuery = value.trim();
+            writeUrl();
         });
     }
+
+    root.addEventListener('submit', writeUrl, true);
 
     if (favFilter) {
         favFilter.addEventListener('click', () => {
@@ -306,6 +341,7 @@ const initMusic = () => {
 
     const clearFilters = () => {
         if (search) search.value = '';
+        committedQuery = '';
         favFilter?.setAttribute('aria-pressed', 'false');
         applyFilter();
         writeUrl();
