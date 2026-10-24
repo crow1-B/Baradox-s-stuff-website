@@ -7,7 +7,7 @@ use Throwable;
 
 // Rows that record a request rather than serve it, written after the response has gone out so
 // a page never waits on them. LogVisit queues its visit here; anything else that only records
-// what happened (the Phase 6 request log) should queue the same way rather than write inline.
+// what happened should queue the same way rather than write inline.
 // Bound per request (AppServiceProvider) and flushed by FlushDeferredWrites::terminate(),
 // one insert per table.
 class DeferredWrites
