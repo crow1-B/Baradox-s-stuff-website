@@ -251,6 +251,7 @@ class MediaProtectionTest extends TestCase
                 'palette' => '/palette',
                 'videos' => '/videos',
                 'video album' => '/video-albums/' . $vAlbum->id,
+                'calendar' => '/calendar',
             ],
             'gated' => $gated,
             'encrypted' => $encrypted,
