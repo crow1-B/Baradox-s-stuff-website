@@ -2,6 +2,10 @@
 
 namespace App\Support\Shell;
 
+use App\Models\Backup;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 // The site's pages, in one place: the sidebar renders them and the command palette lists
 // them. Local-only pages (config('shell.sidebar')) are deliberately not here, so nothing
 // the palette offers can name them.
@@ -31,11 +35,23 @@ class Navigation
         ],
     ];
 
-    public static function pages(): array
+    // Only for the owner (Backup::isOwner): Guest and any other account never see it listed.
+    public const OWNER_GROUPS = [
+        'System' => [
+            ['Backups', 'backups', ['backups'], 'fa-box-archive', 'b'],
+        ],
+    ];
+
+    public static function ownerGroups(?User $user): array
+    {
+        return Backup::isOwner($user) ? self::OWNER_GROUPS : [];
+    }
+
+    public static function pages(?User $user = null): array
     {
         $pages = array_map(fn ($item) => self::page($item, null), self::PINNED);
 
-        foreach (self::GROUPS as $group => $items) {
+        foreach (self::GROUPS + self::ownerGroups($user ?? Auth::user()) as $group => $items) {
             foreach ($items as $item) {
                 $pages[] = self::page($item, $group);
             }

@@ -191,6 +191,32 @@
 .app-topbar__menu,
 .app-topbar__brand { display: none !important; }
 
+/* The backups warning (partials/backup-attention). Fixed under the top bar so it never moves a
+   page's own layout; below the top bar and the drawer, above the content. The warn tint is
+   laid over an opaque surface because content scrolls underneath it. */
+.app-alert {
+    position: fixed;
+    top: calc(var(--nd-topbar-h) + 0.25rem);
+    right: var(--nd-gutter);
+    z-index: calc(var(--nd-z-shell) - 2);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nd-space-3);
+    width: min(25rem, calc(100vw - 2 * var(--nd-gutter)));
+    padding: 0.75rem 0.6rem 0.75rem 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--nd-warn) 40%, transparent);
+    border-radius: var(--nd-r);
+    background: linear-gradient(var(--nd-warn-soft), var(--nd-warn-soft)), var(--nd-surface);
+    color: var(--nd-ink);
+    font-size: var(--nd-text-sm);
+    box-shadow: var(--nd-shadow-2);
+}
+.app-alert[hidden] { display: none; }
+.app-alert__icon { margin-top: 0.2rem; color: var(--nd-warn); }
+.app-alert__text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.app-alert__text p { margin: 0 0 0.25rem; }
+.app-alert__close { margin: -0.3rem 0 0; color: inherit; }
+
 .app-topbar__tools { display: flex; align-items: center; gap: var(--nd-space-1); margin-left: auto; }
 
 .app-jump {
@@ -370,6 +396,8 @@
     .app-jump { width: 2.75rem; height: 2.75rem; }
     .app-skip { min-height: 2.75rem; display: inline-flex; align-items: center; }
     .app-topbar__brand { padding-block: 0.75rem; }
+    .app-alert__text .nd-link { position: relative; display: inline-block; }
+    .app-alert__text .nd-link::after { content: ''; position: absolute; inset: min(0px, calc((100% - 2.75rem) / 2)); }
 }
 
 /* No colour transitions while the phase changes (theme.js, tokens.css). */

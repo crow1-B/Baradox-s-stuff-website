@@ -11,6 +11,7 @@ const behindDrawer = () =>
     [
         document.querySelector('.app-skip'),
         document.querySelector('.app-topbar'),
+        document.querySelector('.app-alert'),
         document.getElementById('main'),
         document.getElementById('bs-player'),
     ].filter(Boolean);
@@ -45,7 +46,20 @@ const closeNav = ({ returnFocus = false } = {}) => {
 document.addEventListener('click', (event) => {
     if (event.target.closest('[data-app-menu-open]')) openNav();
     else if (event.target.closest('[data-app-menu-close]')) closeNav({ returnFocus: true });
+    else if (event.target.closest('[data-backup-alert-dismiss]')) dismissBackupAlert(event.target.closest('[data-backup-alert]'));
 });
+
+// The backups warning (partials/backup-attention): gone for this browser session, for this
+// reason only. A different reason is a different key, so it shows again.
+const dismissBackupAlert = (alert) => {
+    try {
+        sessionStorage.setItem('nd-backup-alert', alert.dataset.backupAlert);
+    } catch {
+        // storage blocked: dismissing still hides it on this page
+    }
+    alert.hidden = true;
+    document.getElementById('main')?.focus({ preventScroll: true });
+};
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Tab' && isOpen()) {

@@ -36,6 +36,9 @@
 
         <div class="app-column">
             @include('partials.topbar')
+            @auth
+                @include('partials.backup-attention')
+            @endauth
 
             <main class="app-main" id="main" tabindex="-1">
                 @yield('content')

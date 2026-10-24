@@ -17,18 +17,16 @@
     </ul>
 
     @foreach (Navigation::GROUPS as $group => $items)
-        <div class="app-nav-group" role="group" aria-labelledby="nav-group-{{ Str::slug($group) }}">
-            <p class="app-nav-group__label" id="nav-group-{{ Str::slug($group) }}">{{ $group }}</p>
-            <ul class="app-nav" role="list">
-                @foreach ($items as $item)
-                    @include('partials.sidebar-item', ['item' => $item])
-                @endforeach
-            </ul>
-        </div>
+        @include('partials.sidebar-group')
     @endforeach
 
     @foreach (config('shell.sidebar', []) as $partial)
         @include($partial)
+    @endforeach
+
+    {{-- Owner-only groups sit below the shell.sidebar partials, so those still follow Work. --}}
+    @foreach (Navigation::ownerGroups(Auth::user()) as $group => $items)
+        @include('partials.sidebar-group')
     @endforeach
 
     {{-- data-turbo="false": signing out is a full page load, which is what stops the player
